@@ -130,7 +130,7 @@ jobs:
 
   publish-test-results:
     runs-on: ubuntu-latest
-    needs: ["linux-build", "mac-build"]
+    needs: ["linux-build", "macos-build"]
     # the action will only run on 4paradigm/HybridSE's context, not for fork repo or dependabot
     if: >
       always() && github.event_name == 'push' || (
