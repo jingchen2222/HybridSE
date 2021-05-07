@@ -64,7 +64,7 @@ if [ ! -f gtest_succ ]; then
 
 	pushd googletest-release-1.10.0
 	cmake -H. -Bbuild -DCMAKE_INSTALL_PREFIX="$DEPS_PREFIX" -DCMAKE_CXX_FLAGS=-fPIC
-	cmkae --build buld -- "-j$(nproc)"
+	cmake --build buld -- "-j$(nproc)"
     cmake --build build --target install
 	popd
 
@@ -124,7 +124,7 @@ else
 	tar zxf gflags-2.2.0.tar.gz
 	pushd gflags-2.2.0
 	cmake -H. -Bbuild -DCMAKE_INSTALL_PREFIX="$DEPS_PREFIX" -DGFLAGS_NAMESPACE=google -DCMAKE_CXX_FLAGS=-fPIC
-	cmkae --build buld -- "-j$(nproc)"
+	cmake --build buld -- "-j$(nproc)"
     cmake --build build --target install
 	popd
 
