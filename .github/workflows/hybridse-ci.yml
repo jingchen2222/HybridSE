@@ -56,8 +56,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/tags/v"* ]]; then
             VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
             VERSION=$(echo $VERSION | sed -e 's/^v//')
-            echo "HYBRIDSE_VERSION=$VERSION" >> $GITHUB_ENV
-            ./tools/hybridse_deploy.sh
+            HYBRIDSE_VERSION=$VERSION ./tools/hybridse_deploy.sh
           else
             ./tools/hybridse_deploy.sh
           fi
@@ -130,8 +129,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/tags/v"* ]]; then
             VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
             VERSION=$(echo $VERSION | sed -e 's/^v//')
-            echo "HYBRIDSE_VERSION=$VERSION" >> $GITHUB_ENV
-            ./tools/hybridse_deploy.sh
+            HYBRIDSE_VERSION=$VERSION ./tools/hybridse_deploy.sh
           else
             ./tools/hybridse_deploy.sh
           fi
