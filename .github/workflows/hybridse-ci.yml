@@ -67,6 +67,7 @@ jobs:
 
       - name: Publish Java Library
         if: ${{ github.event_name == 'push' }}
+        working-directory: java
         run: |
           mvn --batch-mode deploy
         env:
@@ -157,6 +158,7 @@ jobs:
 
       - name: Publish Java Library
         if: ${{ github.event_name == 'push' }}
+        working-directory: java
         run: |
           mvn --batch-mode deploy -P macos
         env:
@@ -215,6 +217,7 @@ jobs:
           cp libhybridse_*.dylib java/hybridse-native/src/main/resources/
 
       - name: Publish Java Library
+        working-directory: java
         run: |
           mvn --batch-mode deploy -P allinone
         env:
