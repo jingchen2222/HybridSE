@@ -25,7 +25,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '8'
-          server-id: maven
+          server-id: ossrh
           server-username: MAVEN_USERNAME
           server-password: MAVEN_TOKEN
 
@@ -106,7 +106,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '8'
-          server-id: maven
+          server-id: ossrh
           server-username: MAVEN_USERNAME
           server-password: MAVEN_TOKEN
 
@@ -202,7 +202,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: '8'
-          server-id: maven
+          server-id: ossrh
           server-username: MAVEN_USERNAME
           server-password: MAVEN_TOKEN
 
