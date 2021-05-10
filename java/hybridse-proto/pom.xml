@@ -11,7 +11,7 @@
 	<artifactId>hybridse-proto</artifactId>
 	<packaging>jar</packaging>
 	<name>hybridse-proto</name>
-	<version>0.1.3</version>
+    <version>${project.parent.version}</version>
 
     <dependencies>
         <dependency>

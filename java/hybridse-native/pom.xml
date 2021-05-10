@@ -21,19 +21,19 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<versionFromProfile>${project.parent.version}</versionFromProfile>
+                <versionFromProfile>${project.parent.version}${project.version.suffix}</versionFromProfile>
 			</properties>
 		</profile>
 		<profile>
 			<id>macos</id>
 			<properties>
-				<versionFromProfile>${project.parent.version}-macos</versionFromProfile>
+                <versionFromProfile>${project.parent.version}-macos${project.version.suffix}</versionFromProfile>
 			</properties>
 		</profile>
 		<profile>
 			<id>allinone</id>
 			<properties>
-				<versionFromProfile>${project.parent.version}-allinone</versionFromProfile>
+                <versionFromProfile>${project.parent.version}-allinone${project.version.suffix}</versionFromProfile>
 			</properties>
 		</profile>
 	</profiles>
