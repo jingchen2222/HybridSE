@@ -50,6 +50,21 @@ jobs:
           path: |
             java/hybridse-sdk/target/**/TEST-*.xml
 
+      - name: Upload jsdk
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@v2
+        with:
+          path: build/src/sdk/libhybridse*.so
+          name: lib-artifacts
+
+      - name: Publish Java Library
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          mvn --batch-mode deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+
       - name: Create Archive
         if: ${{ github.event_name == 'push' }}
         run: |
@@ -67,13 +82,6 @@ jobs:
         with:
           path: hybridse-*-${{ env.OS }}-${{ env.ARCH }}.tar.gz
           name: release-artifacts
-
-      - name: Upload jsdk
-        if: ${{ github.event_name == 'push' }}
-        uses: actions/upload-artifact@v2
-        with:
-          path: build/src/sdk/libhybridse*.so
-          name: lib-artifacts
 
   macos-build:
     name: Build in MacOS
@@ -130,6 +138,21 @@ jobs:
           path: |
             java/hybridse-sdk/target/**/TEST-*.xml
 
+      - name: Upload jsdk
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@v2
+        with:
+          path: build/src/sdk/libhybridse*.dylib
+          name: lib-artifacts
+
+      - name: Publish Java Library
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          mvn --batch-mode deploy -P macos
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+
       - name: Create Archive
         if: ${{ github.event_name == 'push' }}
         run: |
@@ -148,12 +171,37 @@ jobs:
           path: hybridse-*-${{ env.OS }}-${{ env.ARCH }}.tar.gz
           name: release-artifacts
 
-      - name: Upload jsdk
-        if: ${{ github.event_name == 'push' }}
-        uses: actions/upload-artifact@v2
+  java-allinone-deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/4paradigm/hybridsql:latest
+    needs: ["macos-build"]
+    if: >
+      success() && github.event_name = 'push'
+    steps:
+      - uses: actions/checkout@v2
         with:
-          path: build/src/sdk/libhybridse*.dylib
+          submodules: true
+
+      - name: Download Lib Artifacts
+        uses: actions/download-artifact@v2
+        with:
           name: lib-artifacts
+
+      - name: Build Core
+        run: |
+          ./tools/hybridse_build.sh
+
+      - name: Copy Dylib
+        run: |
+          cp libhybridse_*.dylib java/hybridse-native/src/main/resources/
+
+      - name: Publish Java Library
+        run: |
+          mvn --batch-mode deploy -P allinone
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
   release:
     runs-on: ubuntu-latest
