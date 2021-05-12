@@ -59,7 +59,7 @@ jobs:
             java/hybridse-sdk/target/**/TEST-*.xml
 
       - name: Upload jsdk
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.ref == "refs/heads/main" }}
         uses: actions/upload-artifact@v2
         with:
           path: build/src/sdk/libhybridse*.so
@@ -158,7 +158,7 @@ jobs:
           name: lib-artifacts
 
       - name: Publish Java Library
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.ref == "refs/heads/main" }}
         working-directory: java
         run: |
           mvn --batch-mode deploy -P macos
@@ -190,7 +190,7 @@ jobs:
       image: ghcr.io/4paradigm/hybridsql:latest
     needs: ["macos-build"]
     if: >
-      success() && github.event_name == 'push'
+      success() && github.ref == "refs/heads/main"
     steps:
       - uses: actions/checkout@v2
         with:
