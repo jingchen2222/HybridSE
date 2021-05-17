@@ -59,7 +59,10 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(SWIG_DIR ${CMAKE_SOURCE_DIR}/thirdparty/share/swig/4.0.1)
+if(UNIX AND NOT APPLE AND NOT DEFINED SWIG_DIR)
+    # TODO: swig 4.0.1 compiled is not portable, check 'swig -swiglib'
+    set(SWIG_DIR ${CMAKE_SOURCE_DIR}/thirdparty/share/swig/4.0.1)
+endif()
 
 # llvm dependency
 if (NOT DEFINED LLVM_DIR)
