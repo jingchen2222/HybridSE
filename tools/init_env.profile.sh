@@ -27,6 +27,7 @@ then
     pushd /depends
     if [[ ! -d thirdparty && -r thirdparty.tar.gz ]]; then
         tar xzf thirdparty.tar.gz
+        mv thirdparty-*/ thirdparty
     fi
     popd
 
