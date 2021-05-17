@@ -59,6 +59,8 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+set(SWIG_DIR ${CMAKE_SOURCE_DIR}/thirdparty/share/swig/4.0.1)
+
 # llvm dependency
 if (NOT DEFINED LLVM_DIR)
     set(LLVM_DIR "${PROJECT_SOURCE_DIR}/thirdparty/lib/cmake/llvm")
