@@ -20,10 +20,11 @@ LABEL org.opencontainers.image.source https://github.com/4paradigm/HybridSE
 # hadolint ignore=DL3031
 RUN yum update -y && yum install -y centos-release-scl epel-release && yum clean all
 
-RUN yum install -y devtoolset-8 rh-git218 devtoolset-8-libasan-devel flex \
-    autoconf automake unzip bc expect libtool doxygen \
-    java-1.8.0-openjdk-devel lcov rh-python38-python-devel rh-python38-python-wheel && \
-    yum clean all
+RUN yum install -y devtoolset-8 rh-git218 devtoolset-8-libasan-devel flex libtool doxygen \
+    java-1.8.0-openjdk-devel rh-python38-python-devel rh-python38-python-wheel && \
+    curl -SLo lcov-1.14-1.noarch.rpm https://github.com/linux-test-project/lcov/releases/download/v1.14/lcov-1.14-1.noarch.rpm && \
+    yum localinstall -y lcov-1.14-1.noarch.rpm && \
+    yum clean all && rm lcov-1.14-1.noarch.rpm
 
 COPY --chown=root:root etc/profile.d/enable-rh.sh /etc/profile.d/
 
