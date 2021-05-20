@@ -40,8 +40,8 @@
 #define SRC_BASE_FE_LINENOISE_H_
 
 #ifdef __cplusplus
-extern "C++" {
-#include <cstddef>
+extern "C" {
+#include <stddef.h>
 #endif
 
 namespace hybridse {

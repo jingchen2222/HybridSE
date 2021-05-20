@@ -33,9 +33,6 @@ endif ()
 if (POLICY CMP0086)
     cmake_policy(SET CMP0086 NEW)
 endif ()
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
@@ -60,7 +57,15 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
 endif ()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if(UNIX AND NOT APPLE AND NOT DEFINED SWIG_DIR)
+    # TODO: swig 4.0.1 compiled is not portable, check 'swig -swiglib'
+    set(SWIG_DIR ${CMAKE_SOURCE_DIR}/thirdparty/share/swig/4.0.1)
+endif()
 
 # llvm dependency
 if (NOT DEFINED LLVM_DIR)
@@ -80,6 +85,7 @@ else ()
 endif ()
 
 find_package(Threads)
+
 
 set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/thirdparty/")
 find_package(Boost COMPONENTS filesystem date_time regex REQUIRED)
@@ -122,6 +128,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_definitions('-Wall')
     add_definitions('-fexceptions')
     add_definitions(-Wno-unused-function)
+    add_definitions(-Wno-register)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_definitions('-Wall')
     add_definitions('-fexceptions')
@@ -142,7 +149,6 @@ find_package(yaml-cpp REQUIRED)
 set(yaml_libs yaml-cpp)
 
 add_definitions('-g')
-add_definitions('-std=c++17')
 add_definitions(${LLVM_DEFINITIONS})
 find_package(SWIG REQUIRED)
 include(UseSWIG)
@@ -215,7 +221,6 @@ endif ()
 # Find java
 
 if (JAVASDK_ENABLE)
-    set(JAVA_HOME ${PROJECT_SOURCE_DIR}/thirdparty/jdk1.8.0_141)
     find_package(Java COMPONENTS Development REQUIRED)
     message(STATUS "Found Java: ${Java_JAVA_EXECUTABLE} (found version \"${Java_VERSION_STRING}\")")
 
