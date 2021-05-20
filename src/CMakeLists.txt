@@ -84,8 +84,14 @@ if (TESTING_ENABLE AND CORE_TESTING_ENABLE)
 			--gtest_output=xml:${CMAKE_BINARY_DIR}/${TEST_TARGET_NAME}.xml)
 
             target_link_options(${TEST_TARGET_NAME} PRIVATE -rdynamic)
-	    target_link_libraries(${TEST_TARGET_NAME} gtest hybridse_core hybridse_flags
-                ${yaml_libs} ${BRPC_LIBS})
+		message(${TEST_TARGET_NAME})
+		if (${TEST_TARGET_NAME} STREQUAL "zetasql_parser_test")
+			target_link_libraries(${TEST_TARGET_NAME} gtest
+					${ZETASQL_LIBS} ${GTEST_LIBRARIES} )
+		else()
+	    	target_link_libraries(${TEST_TARGET_NAME} gtest hybridse_core hybridse_flags
+				${yaml_libs} ${BRPC_LIBS})
+		endif()
     	list(APPEND test_list ${TEST_TARGET_NAME})
 	endforeach()
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

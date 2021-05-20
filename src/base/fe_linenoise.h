@@ -40,7 +40,7 @@
 #define SRC_BASE_FE_LINENOISE_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C++" {
 #include <cstddef>
 #endif
 

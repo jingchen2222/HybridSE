@@ -33,6 +33,9 @@ endif ()
 if (POLICY CMP0086)
     cmake_policy(SET CMP0086 NEW)
 endif ()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake-modules")
 
@@ -77,7 +80,6 @@ else ()
 endif ()
 
 find_package(Threads)
-
 
 set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/thirdparty/")
 find_package(Boost COMPONENTS filesystem date_time regex REQUIRED)
@@ -124,6 +126,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_definitions('-Wall')
     add_definitions('-fexceptions')
     add_definitions(-Wreorder)
+    add_definitions(-Wno-register)
     add_definitions(-Wno-unused-private-field)
     add_definitions(-Wno-unused-function)
     add_definitions(-Wno-overloaded-virtual)
@@ -139,7 +142,7 @@ find_package(yaml-cpp REQUIRED)
 set(yaml_libs yaml-cpp)
 
 add_definitions('-g')
-add_definitions('-std=c++14')
+add_definitions('-std=c++17')
 add_definitions(${LLVM_DEFINITIONS})
 find_package(SWIG REQUIRED)
 include(UseSWIG)
@@ -148,6 +151,56 @@ include_directories(${PROJECT_SOURCE_DIR}/thirdparty/include)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_SOURCE_DIR}/thirdparty/lib)
 link_directories(${PROJECT_SOURCE_DIR}/thirdparty/lib64)
+
+
+set(absl_ROOT "${PROJECT_SOURCE_DIR}/thirdparty")
+find_package(absl REQUIRED)
+
+set(GTEST_ROOT "${PROJECT_SOURCE_DIR}/thirdparty")
+find_package(GTest 1.10 EXACT REQUIRED)
+set(Protobuf_USE_STATIC_LIBS ON)
+set(Protobuf_ROOT "${PROJECT_SOURCE_DIR}/thirdparty")
+find_package(Protobuf 3.6 EXACT REQUIRED)
+list(
+        APPEND
+        ABSL_LIBS
+        absl::algorithm
+        absl::base
+        absl::cord
+        absl::debugging
+        absl::flat_hash_map
+        absl::flags
+        absl::flags_parse
+        absl::memory
+        absl::meta
+        absl::numeric
+        absl::random_random
+        absl::strings
+        absl::strings_internal
+        absl::synchronization
+        absl::time
+        absl::status
+        absl::utility)
+
+list(APPEND ICU_LIBS icui18n icuio icuuc icudata)
+list(APPEND file_based_test_driver_LIBS
+        alternations
+        test_case_options
+        test_case_outputs
+        file_based_test_driver
+        test_case_mode
+        logging
+        path
+        status
+        unified_diff_oss
+        ret_check
+        )
+set(ZETASQL_LIBS zetasql
+        re2
+        ${ICU_LIBS}
+        ${Protobuf_LIBRARIES}
+        ${ABSL_LIBS}
+        date_proto)
 
 if (PYSDK_ENABLE)
     set(Python_ADDITIONAL_VERSIONS "3.8;3.7;3.6;3.5;2.7" CACHE STRING "Python to use for binding")
