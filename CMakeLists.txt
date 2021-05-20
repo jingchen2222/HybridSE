@@ -57,10 +57,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
 endif ()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+add_definitions(-Wno-register)
 
 if(UNIX AND NOT APPLE AND NOT DEFINED SWIG_DIR)
     # TODO: swig 4.0.1 compiled is not portable, check 'swig -swiglib'
