@@ -30,8 +30,6 @@ then
         tar xzf thirdparty.tar.gz -C thirdparty --strip-components=1
         curl -SL -o libzetasql.tar.gz https://github.com/aceforeverd/zetasql/releases/download/v0.2.0-beta1/libzetasql-0.2.0-beta1.tar.gz
         tar xzf libzetasql.tar.gz -C  thirdparty --strip-components 1
-        ls thirdparty/include
-        ls thirdparty/lib
     fi
     popd
 
