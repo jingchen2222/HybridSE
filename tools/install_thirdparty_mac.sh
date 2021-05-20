@@ -24,7 +24,7 @@ pushd "${CICD_RUNNER_THIRDSRC_PATH}"
 
 # download thirdparty-mac
 wget -nv --show-progress https://github.com/jingchen2222/hybridsql-asserts/releases/download/v0.3.1/thirdparty-2021-05-20-drawin-x86_64.tar.gz
-tar xzf thirdparty-mac.tar.gz -C  "${CICD_RUNNER_THIRDPARTY_PATH}" --strip-components 1
+tar xzf thirdparty-2021-05-20-drawin-x86_64.tar.gz -C  "${CICD_RUNNER_THIRDPARTY_PATH}" --strip-components 1
 echo "list files under ${CICD_RUNNER_THIRDPARTY_PATH}"
 
 if [ -f "bison_succ" ]; then
