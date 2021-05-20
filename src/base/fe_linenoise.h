@@ -40,13 +40,12 @@
 #define SRC_BASE_FE_LINENOISE_H_
 
 #ifdef __cplusplus
-namespace hybridse {
-namespace base {
-
 extern "C" {
 #include <stddef.h>
 #endif
 
+namespace hybridse {
+namespace base {
 
 typedef struct linenoiseCompletions {
     size_t len;
@@ -71,11 +70,11 @@ void linenoiseClearScreen(void);
 void linenoiseSetMultiLine(int ml);
 void linenoisePrintKeyCodes(void);
 
-
-#ifdef __cplusplus
-}  // extern C
 }  // namespace base
 }  // namespace hybridse
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif  // SRC_BASE_FE_LINENOISE_H_
