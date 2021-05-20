@@ -28,6 +28,10 @@ then
     if [[ ! -d thirdparty && -r thirdparty.tar.gz ]]; then
         mkdir -p thirdparty
         tar xzf thirdparty.tar.gz -C thirdparty --strip-components=1
+        wget -nv --show-progress https://github.com/aceforeverd/zetasql/releases/download/v0.2.0-beta1/libzetasql-0.2.0-beta1.tar.gz
+        tar xzf libzetasql-0.2.0-beta1.tar.gz -C  thirdparty --strip-components 1
+        ls thirdparty/include
+        ls thirdparty/lib
     fi
     popd
 
