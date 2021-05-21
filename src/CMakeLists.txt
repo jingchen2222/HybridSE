@@ -84,7 +84,6 @@ if (TESTING_ENABLE AND CORE_TESTING_ENABLE)
 			--gtest_output=xml:${CMAKE_BINARY_DIR}/${TEST_TARGET_NAME}.xml)
 
             target_link_options(${TEST_TARGET_NAME} PRIVATE -rdynamic)
-		message(${TEST_TARGET_NAME})
 		if (${TEST_TARGET_NAME} STREQUAL "zetasql_parser_test")
 			target_link_libraries(${TEST_TARGET_NAME} gtest
 					${ZETASQL_LIBS} ${GTEST_LIBRARIES} )
