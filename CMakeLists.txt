@@ -201,27 +201,15 @@ list(APPEND file_based_test_driver_LIBS
         unified_diff_oss
         ret_check
         )
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(ZETASQL_LIBS zetasql
-        zetasql_public_templated_sql_tvf
-        zetasql
-        re2
-        ${ICU_LIBS}
-        ${Protobuf_LIBRARIES}
-        ${ABSL_LIBS}
-        date_proto
-        timeofday_proto
-        latlng_proto
-        )
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(ZETASQL_LIBS zetasql
-        re2
-        ${ICU_LIBS}
-        ${Protobuf_LIBRARIES}
-        ${ABSL_LIBS}
-        date_proto
-        )
-endif()
+set(ZETASQL_LIBS zetasql
+    re2
+    ${ICU_LIBS}
+    ${Protobuf_LIBRARIES}
+    ${ABSL_LIBS}
+    date_proto
+    timeofday_proto
+    latlng_proto
+    )
 if (PYSDK_ENABLE)
     set(Python_ADDITIONAL_VERSIONS "3.8;3.7;3.6;3.5;2.7" CACHE STRING "Python to use for binding")
     find_package(PythonInterp REQUIRED)
