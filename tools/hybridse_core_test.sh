@@ -29,7 +29,7 @@ fi
 
 mkdir -p build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DTESTING_ENABLE=ON
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j"$(nproc)"
 SQL_CASE_BASE_DIR=${HYRBIDSE_DIR} make -j"$(nproc)" test
 
