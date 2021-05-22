@@ -27,7 +27,7 @@ wget -nv --show-progress https://github.com/jingchen2222/hybridsql-asserts/relea
 tar xzf thirdparty-2021-05-21-drawin-x86_64.tar.gz -C  "${CICD_RUNNER_THIRDPARTY_PATH}" --strip-components 1
 # download and install libzetasql
 wget -nv --show-progress https://github.com/jingchen2222/zetasql/releases/download/v0.2.0-beta4/libzetasql-0.2.0-beta4-linux-x86_64.tar.gz
-tar xzf libzetasql-0.2.0-beta4-darwin-x86_64.tar.gz -C  "${CICD_RUNNER_THIRDPARTY_PATH}" --strip-components 1
+tar xzf libzetasql-0.2.0-beta4-linux-x86_64.tar.gz -C  "${CICD_RUNNER_THIRDPARTY_PATH}" --strip-components 1
 echo "list files under ${CICD_RUNNER_THIRDPARTY_PATH}"
 ls "${CICD_RUNNER_THIRDPARTY_PATH}/include"
 
