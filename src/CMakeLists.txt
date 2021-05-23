@@ -67,9 +67,11 @@ add_library(hybridse_core STATIC ${SRC_FILE_LIST} ${PROJECT_SOURCE_DIR}/src/flag
 target_link_libraries(hybridse_core
     ${yaml_libs} ${LLVM_LIBS} ${OS_LIB} ${COMMON_LIBS} ${g_libs} ${LLVM_EXT_LIB} hybridse_flags)
 
-add_library(hybridse_core_shared SHARED ${SRC_FILE_LIST} ${PROJECT_SOURCE_DIR}/src/flags.cc  $<TARGET_OBJECTS:hybridse_proto> $<TARGET_OBJECTS:hybridse_parser> case/case_data_mock.cc)
-target_link_libraries(hybridse_core_shared
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	add_library(hybridse_core_shared SHARED ${SRC_FILE_LIST} ${PROJECT_SOURCE_DIR}/src/flags.cc  $<TARGET_OBJECTS:hybridse_proto> $<TARGET_OBJECTS:hybridse_parser> case/case_data_mock.cc)
+	target_link_libraries(hybridse_core_shared
 		${yaml_libs} ${LLVM_LIBS} ${OS_LIB} ${COMMON_LIBS} ${g_libs} ${LLVM_EXT_LIB} hybridse_flags)
+endif()
 
 add_subdirectory(testing)
 # hybridse core unittests
@@ -94,8 +96,13 @@ if (TESTING_ENABLE AND CORE_TESTING_ENABLE)
 			target_link_libraries(${TEST_TARGET_NAME} gtest
 					${ZETASQL_LIBS} ${GTEST_LIBRARIES} )
 		else()
+			if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	    	target_link_libraries(${TEST_TARGET_NAME} gtest hybridse_core_shared hybridse_test_base hybridse_flags
 				${yaml_libs} ${BRPC_LIBS})
+			else()
+				target_link_libraries(${TEST_TARGET_NAME} gtest hybridse_core hybridse_test_base hybridse_flags
+						${yaml_libs} ${BRPC_LIBS})
+			endif()
 		endif()
     	list(APPEND test_list ${TEST_TARGET_NAME})
 	endforeach()
