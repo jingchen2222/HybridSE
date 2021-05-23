@@ -17,5 +17,5 @@ include_directories(${INCLUDE_DIRECTORIES}
         ${PROJECT_BINARY_DIR}/src)
 
 add_library(hybridse_test_base STATIC engine_test_base.cc test_base.cc)
-target_link_libraries(hybridse_test_base hybridse_core_shared
+target_link_libraries(hybridse_test_base ${HYBRIDSE_CORE_LIBS}
         ${yaml_libs} ${LLVM_LIBS} ${OS_LIB} ${COMMON_LIBS} ${g_libs} ${LLVM_EXT_LIB} hybridse_flags)
