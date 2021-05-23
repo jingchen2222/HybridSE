@@ -29,31 +29,29 @@
 // limitations under the License.
 //
 
-#include "zetasql/parser/parse_tree.h"
-
 #include <map>
 #include <memory>
-
+#include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "zetasql/base/source_location.h"
+#include "zetasql/base/status.h"
+#include "zetasql/base/status_builder.h"
+#include "zetasql/base/status_payload.h"
+#include "zetasql/base/statusor.h"
+#include "zetasql/base/testing/status_matchers.h"
 #include "zetasql/common/errors.h"
 #include "zetasql/common/status_payload_utils.h"
-#include "zetasql/base/testing/status_matchers.h"
 #include "zetasql/parser/ast_node_kind.h"
+#include "zetasql/parser/parse_tree.h"
 #include "zetasql/parser/parse_tree_visitor.h"
 #include "zetasql/parser/parser.h"
 #include "zetasql/proto/internal_error_location.pb.h"
 #include "zetasql/public/error_location.pb.h"
 #include "zetasql/public/parse_location.h"
 #include "zetasql/testdata/test_schema.pb.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#include "absl/status/status.h"
-#include "zetasql/base/statusor.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
-#include "zetasql/base/source_location.h"
-#include "zetasql/base/status.h"
-#include "zetasql/base/status_builder.h"
-#include "zetasql/base/status_payload.h"
 
 namespace zetasql {
 namespace testing {

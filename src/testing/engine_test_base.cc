@@ -18,7 +18,6 @@
 namespace hybridse {
 namespace vm {
 
-
 bool IsNaN(float x) { return x != x; }
 bool IsNaN(double x) { return x != x; }
 
@@ -490,20 +489,26 @@ void EngineTestRunner::RunBenchmark(size_t iters) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(EngineFailQuery, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/fail_query.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineFailQuery, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/fail_query.yaml")));
 
-INSTANTIATE_TEST_CASE_P(EngineTestFzTest, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/fz_sql.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineTestFzTest, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/fz_sql.yaml")));
 
 // INSTANTIATE_TEST_CASE_P(
 //     EngineTestFzTempTest, EngineTest,
 //     testing::ValuesIn(sqlcase::InitCases("/cases/query/fz_temp.yaml")));
 
-INSTANTIATE_TEST_CASE_P(EngineSimpleQuery, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/simple_query.yaml")));
-INSTANTIATE_TEST_CASE_P(EngineConstQuery, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/const_query.yaml")));
-INSTANTIATE_TEST_CASE_P(EngineUdfQuery, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/udf_query.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineSimpleQuery, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/simple_query.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineConstQuery, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/const_query.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineUdfQuery, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/udf_query.yaml")));
 INSTANTIATE_TEST_CASE_P(EngineOperatorQuery, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/query/operator_query.yaml")));
-INSTANTIATE_TEST_CASE_P(EngineUdafQuery, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/udaf_query.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineUdafQuery, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/udaf_query.yaml")));
 INSTANTIATE_TEST_CASE_P(EngineExtreamQuery, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/query/extream_query.yaml")));
 
@@ -513,7 +518,8 @@ INSTANTIATE_TEST_CASE_P(EngineLastJoinQuery, EngineTest,
 INSTANTIATE_TEST_CASE_P(EngineLastJoinWindowQuery, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/query/last_join_window_query.yaml")));
 
-INSTANTIATE_TEST_CASE_P(EngineWindowQuery, EngineTest, testing::ValuesIn(sqlcase::InitCases("/cases/query/window_query.yaml")));
+INSTANTIATE_TEST_CASE_P(EngineWindowQuery, EngineTest,
+                        testing::ValuesIn(sqlcase::InitCases("/cases/query/window_query.yaml")));
 
 INSTANTIATE_TEST_CASE_P(EngineWindowWithUnionQuery, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/query/window_with_union_query.yaml")));
@@ -524,8 +530,9 @@ INSTANTIATE_TEST_CASE_P(EngineBatchGroupQuery, EngineTest,
 INSTANTIATE_TEST_CASE_P(EngineTestWindowRowQuery, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/window/test_window_row.yaml")));
 
-INSTANTIATE_TEST_CASE_P(EngineTestWindowRowsRangeQuery, EngineTest,
-                        testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/window/test_window_row_range.yaml")));
+INSTANTIATE_TEST_CASE_P(
+    EngineTestWindowRowsRangeQuery, EngineTest,
+    testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/window/test_window_row_range.yaml")));
 
 INSTANTIATE_TEST_CASE_P(EngineTestWindowUnion, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/window/test_window_union.yaml")));
@@ -552,8 +559,9 @@ INSTANTIATE_TEST_CASE_P(EngineTestSubSelect, EngineTest,
 
 INSTANTIATE_TEST_CASE_P(EngineTestUdfFunction, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/function/test_udf_function.yaml")));
-INSTANTIATE_TEST_CASE_P(EngineTestUdafFunction, EngineTest,
-                        testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/function/test_udaf_function.yaml")));
+INSTANTIATE_TEST_CASE_P(
+    EngineTestUdafFunction, EngineTest,
+    testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/function/test_udaf_function.yaml")));
 INSTANTIATE_TEST_CASE_P(EngineTestCalculateFunction, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/function/test_calculate.yaml")));
 INSTANTIATE_TEST_CASE_P(EngineTestDateFunction, EngineTest,
@@ -578,8 +586,9 @@ INSTANTIATE_TEST_CASE_P(EngineTestClusterWindowRow, EngineTest,
 INSTANTIATE_TEST_CASE_P(EngineTestClusterWindowRowRange, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/integration/cluster/test_window_row_range.yaml")));
 
-INSTANTIATE_TEST_CASE_P(EngineTestWindowExcludeCurrentTime, EngineTest,
-                        testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/test_window_exclude_current_time.yaml")));
+INSTANTIATE_TEST_CASE_P(
+    EngineTestWindowExcludeCurrentTime, EngineTest,
+    testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/test_window_exclude_current_time.yaml")));
 
 INSTANTIATE_TEST_CASE_P(EngineTestIndexOptimized, EngineTest,
                         testing::ValuesIn(sqlcase::InitCases("/cases/integration/v1/test_index_optimized.yaml")));

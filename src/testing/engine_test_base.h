@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef SRC_VM_ENGINE_TEST_BASE_H_
-#define SRC_VM_ENGINE_TEST_BASE_H_
+#ifndef SRC_TESTING_ENGINE_TEST_BASE_H_
+#define SRC_TESTING_ENGINE_TEST_BASE_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -429,4 +429,4 @@ class BatchRequestEngineTestRunner : public EngineTestRunner {
 
 }  // namespace vm
 }  // namespace hybridse
-#endif  // SRC_VM_ENGINE_TEST_BASE_H_
+#endif  // SRC_TESTING_ENGINE_TEST_BASE_H_
