@@ -23,7 +23,7 @@
 #include "vm/engine.h"
 #include "vm/simple_catalog.h"
 #include "vm/sql_compiler.h"
-#include "vm/test_base.h"
+#include "testing/test_base.h"
 #include "yaml-cpp/yaml.h"
 
 namespace hybridse {

@@ -42,7 +42,7 @@
 #include "udf/default_udf_library.h"
 #include "udf/udf.h"
 #include "vm/sql_compiler.h"
-#include "vm/test_base.h"
+#include "testing/test_base.h"
 #include "vm/transform.h"
 
 using namespace llvm;       // NOLINT

@@ -35,7 +35,7 @@
 #include "parser/parser.h"
 #include "plan/planner.h"
 #include "vm/sql_compiler.h"
-#include "vm/test_base.h"
+#include "testing/test_base.h"
 
 using namespace llvm;       // NOLINT
 using namespace llvm::orc;  // NOLINT

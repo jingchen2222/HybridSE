@@ -51,7 +51,7 @@
 #include "plan/planner.h"
 #include "sys/time.h"
 #include "vm/engine.h"
-#include "vm/test_base.h"
+#include "testing/test_base.h"
 #define MAX_DEBUG_LINES_CNT 20
 #define MAX_DEBUG_COLUMN_CNT 20
 

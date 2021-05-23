@@ -36,7 +36,7 @@
 #include "parser/parser.h"
 #include "plan/planner.h"
 #include "vm/simple_catalog.h"
-#include "vm/test_base.h"
+#include "testing/test_base.h"
 #include "testing/engine_test_base.h"
 
 using namespace llvm;       // NOLINT
