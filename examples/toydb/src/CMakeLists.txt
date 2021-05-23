@@ -66,7 +66,7 @@ if (TESTING_ENABLE AND EXAMPLES_TESTING_ENABLE)
                 ${CMAKE_CURRENT_BINARY_DIR}/${TEST_TARGET_DIR}/${TEST_TARGET_NAME}
                 --gtest_output=xml:${CMAKE_BINARY_DIR}/${TEST_TARGET_NAME}.xml)
         target_link_libraries(${TEST_TARGET_NAME}
-                toydb_lib toydb_sdk hybridse_flags sqlite3
+                toydb_lib toydb_sdk hybridse_test_base hybridse_flags sqlite3
                 gtest benchmark ${yaml_libs} ${BRPC_LIBS} ${OS_LIBS} ${g_libs})
         list(APPEND test_list ${TEST_TARGET_NAME})
     endforeach()

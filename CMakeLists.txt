@@ -91,7 +91,7 @@ set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/thirdparty/")
 find_package(Boost COMPONENTS filesystem date_time regex REQUIRED)
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(OS_LIB ${CMAKE_THREAD_LIBS_INIT} rt)
-    set(COMMON_LIBS boost_date_time boost_filesystem boost_regex leveldb protobuf glog gflags unwind z snappy ssl crypto dl)
+    set(COMMON_LIBS boost_date_time boost_filesystem boost_regex leveldb protobuf glog unwind z snappy ssl crypto dl)
     set(BRPC_LIBS brpc ${COMMON_LIBS})
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(OS_LIB
@@ -105,7 +105,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             "-Wl,-U,_MallocExtension_ReleaseFreeMemory"
             "-Wl,-U,_ProfilerStart"
             "-Wl,-U,_ProfilerStop")
-    set(COMMON_LIBS boost_date_time boost_filesystem boost_regex leveldb protobuf glog gflags z snappy ssl crypto dl)
+    set(COMMON_LIBS boost_date_time boost_filesystem boost_regex leveldb protobuf glog  z snappy ssl crypto dl)
     set(BRPC_LIBS brpc ${COMMON_LIBS})
 endif ()
 

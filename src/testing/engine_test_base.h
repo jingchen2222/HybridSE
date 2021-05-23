@@ -73,8 +73,6 @@ using hybridse::common::kSqlError;
 using hybridse::sqlcase::SqlCase;
 enum EngineRunMode { RUNBATCH, RUNONE };
 
-std::vector<SqlCase> InitCases(std::string yaml_path);
-void InitCases(std::string yaml_path, std::vector<SqlCase>& cases);  // NOLINT
 
 bool IsNaN(float x);
 bool IsNaN(double x);

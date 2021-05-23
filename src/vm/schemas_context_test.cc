@@ -28,21 +28,6 @@
 
 namespace hybridse {
 namespace vm {
-std::vector<SqlCase> InitCases(std::string yaml_path);
-void InitCases(std::string yaml_path, std::vector<SqlCase>& cases);  // NOLINT
-
-void InitCases(std::string yaml_path, std::vector<SqlCase>& cases) {  // NOLINT
-    if (!SqlCase::CreateSqlCasesFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(), yaml_path, cases)) {
-        FAIL();
-    }
-}
-
-std::vector<SqlCase> InitCases(std::string yaml_path) {
-    std::vector<SqlCase> cases;
-    InitCases(yaml_path, cases);
-    return cases;
-}
 class SchemasContextTest : public ::testing::Test {
  public:
     SchemasContextTest()
@@ -202,7 +187,7 @@ PhysicalOpNode* GetTestSqlPlan(SqlCase& sql_case,  // NOLINT
 INSTANTIATE_TEST_CASE_P(
     ResolveNameTest, SchemasContextResolveTest,
     testing::ValuesIn(
-        InitCases("/cases/schemas_context/resolve_column_name.yaml")));
+        sqlcase::InitCases("/cases/schemas_context/resolve_column_name.yaml")));
 
 TEST_P(SchemasContextResolveTest, test_request_column_resolve) {
     SqlCase sql_case = GetParam();
