@@ -598,6 +598,7 @@ int SimplePlannerV2::CreatePlanTree(const zetasql::ASTScript *script, PlanNodeLi
 
                 status = CreateQueryPlan(query_statement->query(), &query_plan);
                 if (!status.isOK()) {
+                    LOG(WARNING) << status;
                     return status.code;
                 }
                 //
@@ -615,8 +616,7 @@ int SimplePlannerV2::CreatePlanTree(const zetasql::ASTScript *script, PlanNodeLi
                 //                    DLOG(INFO) << "plan after primary check:\n" << *query_plan;
                 //                }
                 //
-                //                plan_trees.push_back(query_plan);
-                //                break;
+                plan_trees.push_back(query_plan);
                 break;
             }
                 //            case node::kCreateStmt: {
@@ -722,6 +722,9 @@ base::Status SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *ro
 
     base::Status status;
     node::PlanNode *current_node = nullptr;
+    if (nullptr != table_ref_plan) {
+        current_node = table_ref_plan;
+    }
     //    // where condition
     //    if (nullptr != root->where_clause()) {
     //        current_node = node_manager_->MakeFilterPlanNode(current_node, root->where_clause_ptr_);
@@ -764,8 +767,8 @@ base::Status SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *ro
         switch (select_expr_list[pos]->node_kind()) {
             case zetasql::AST_SELECT_COLUMN: {
                 auto select_column = select_expr_list[pos]->GetAsOrDie<zetasql::ASTSelectColumn>();
-                project_name = select_column->alias()->GetAsString();
-                CHECK_STATUS(ConvertExprNode(select_expr_list[pos]->expression(), node_manager_, &project_expr))
+                CHECK_STATUS(ConvertExprNode(select_column->expression(), node_manager_, &project_expr))
+                project_name = nullptr != select_column->alias() ? select_column->alias()->GetAsString() : "";
                 if (project_name.empty()) {
                     project_name = project_expr->GenerateExpressionName();
                 }
@@ -857,14 +860,14 @@ base::Status SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *ro
     //        current_node = node_manager_->MakeFilterPlanNode(current_node, root->having_clause_ptr_);
     //    }
     // order
-//    if (nullptr != root->) {
-//        current_node = node_manager_->MakeSortPlanNode(current_node, root->order_clause_ptr_);
-//    }
+    //    if (nullptr != root->) {
+    //        current_node = node_manager_->MakeSortPlanNode(current_node, root->order_clause_ptr_);
+    //    }
     // limit
-//    if (nullptr != root->) {
-//        const node::LimitNode *limit_ptr = (node::LimitNode *)root->GetLimit();
-//        current_node = node_manager_->MakeLimitPlanNode(current_node, limit_ptr->GetLimitCount());
-//    }
+    //    if (nullptr != root->) {
+    //        const node::LimitNode *limit_ptr = (node::LimitNode *)root->GetLimit();
+    //        current_node = node_manager_->MakeLimitPlanNode(current_node, limit_ptr->GetLimitCount());
+    //    }
     current_node = node_manager_->MakeSelectPlanNode(current_node);
     *plan_tree = current_node;
     return base::Status::OK();

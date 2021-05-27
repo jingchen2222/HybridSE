@@ -63,10 +63,10 @@ TEST_P(PlannerV2Test, PlannerSucessTest) {
 
     PlannerV2 *planner_ptr = new SimplePlannerV2(manager_);
     node::PlanNodeList plan_trees;
-    ASSERT_EQ(0, planner_ptr->CreatePlanTree(script, plan_trees, status));
+    ASSERT_EQ(0, planner_ptr->CreatePlanTree(script, plan_trees, status)) << status;
     LOG(INFO) << "logical plan:\n";
     for (auto tree : plan_trees) {
-        LOG(INFO) << *tree << std::endl;
+        LOG(INFO) << "statement : " << *tree << std::endl;
     }
 }
 

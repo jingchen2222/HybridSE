@@ -17,7 +17,7 @@ include_directories(${INCLUDE_DIRECTORIES}
         ${PROJECT_BINARY_DIR}/src)
 
 add_library(hybridse_planner_v2 STATIC
-        planner_v2.cc)
+        planner_v2.cc ast_node_converter.cc)
 target_link_libraries(hybridse_planner_v2 ${ZETASQL_LIBS} hybridse_core glog)
 
 
