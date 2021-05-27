@@ -143,6 +143,55 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = node_manager->MakeUnaryExprNode(operand, op);
             return base::Status::OK();
         }
+
+            // TODO: optimize AND expression from BinaryExprNode to AndExpr
+        case zetasql::AST_AND_EXPR: {
+            auto* and_expression = ast_expression->GetAsOrDie<zetasql::ASTAndExpr>();
+            node::ExprNode* lhs = nullptr;
+            CHECK_STATUS(ConvertExprNode(and_expression->conjuncts(0), node_manager, &lhs))
+            if (nullptr == lhs) {
+                status.msg = "Invalid AND expression";
+                status.code = common::kSqlError;
+                return status;
+            }
+            for(size_t i = 1; i < and_expression->conjuncts().size(); i++) {
+                node::ExprNode* rhs = nullptr;
+                CHECK_STATUS(ConvertExprNode(and_expression->conjuncts(i), node_manager, &rhs))
+                if (nullptr == rhs) {
+                    status.msg = "Invalid AND expression";
+                    status.code = common::kSqlError;
+                    return status;
+                }
+                lhs = node_manager->MakeBinaryExprNode(lhs, rhs, node::FnOperator::kFnOpAnd);
+            }
+            *output = lhs;
+            return base::Status();
+        }
+
+            // TODO: optimize OR expression from BinaryExprNode to OrExpr
+        case zetasql::AST_OR_EXPR: {
+            auto* or_expression = ast_expression->GetAsOrDie<zetasql::ASTOrExpr>();
+            node::ExprNode* lhs = nullptr;
+            CHECK_STATUS(ConvertExprNode(or_expression->disjuncts()[0], node_manager, &lhs))
+            if (nullptr == lhs) {
+                status.msg = "Invalid OR expression";
+                status.code = common::kSqlError;
+                return status;
+            }
+            for(size_t i = 1; i < or_expression->disjuncts().size(); i++) {
+                node::ExprNode* rhs = nullptr;
+                CHECK_STATUS(ConvertExprNode(or_expression->disjuncts()[i], node_manager, &rhs))
+                if (nullptr == rhs) {
+                    status.msg = "Invalid OR expression";
+                    status.code = common::kSqlError;
+                    return status;
+                }
+                lhs = node_manager->MakeBinaryExprNode(lhs, rhs, node::FnOperator::kFnOpOr);
+            }
+            *output = lhs;
+            return base::Status();
+        }
+            // TODO: support case when value and case when without value
         case zetasql::AST_FUNCTION_CALL: {
             auto* function_call = ast_expression->GetAsOrDie<zetasql::ASTFunctionCall>();
             node::ExprListNode* args = nullptr;
