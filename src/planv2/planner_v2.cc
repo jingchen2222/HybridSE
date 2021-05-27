@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "planv2/ast_node_converter.h"
 #include "proto/fe_common.pb.h"
 
 namespace hybridse {
@@ -147,16 +148,18 @@ bool PlannerV2::CreateWindowPlanNode(const node::WindowDefNode *w_ptr, node::Win
         w_node_ptr->SetKeys(w_ptr->GetPartitions());
         w_node_ptr->SetOrders(w_ptr->GetOrders());
 
+        // TODO: handle window union
         // Prepare Window Union Info
-        if (nullptr != w_ptr->union_tables() && !w_ptr->union_tables()->GetList().empty()) {
-            for (auto node : w_ptr->union_tables()->GetList()) {
-                node::PlanNode *table_plan = nullptr;
-                if (!CreateTableReferencePlanNode(dynamic_cast<node::TableRefNode *>(node), &table_plan, status)) {
-                    return false;
-                }
-                w_node_ptr->AddUnionTable(table_plan);
-            }
-        }
+        //        if (nullptr != w_ptr->union_tables() && !w_ptr->union_tables()->GetList().empty()) {
+        //            for (auto node : w_ptr->union_tables()->GetList()) {
+        //                node::PlanNode *table_plan = nullptr;
+        //                if (!CreateTableReferencePlanNode(dynamic_cast<node::TableRefNode *>(node), &table_plan,
+        //                status)) {
+        //                    return false;
+        //                }
+        //                w_node_ptr->AddUnionTable(table_plan);
+        //            }
+        //        }
         w_node_ptr->set_instance_not_in_window(w_ptr->instance_not_in_window());
         w_node_ptr->set_exclude_current_time(w_ptr->exclude_current_time());
     }
@@ -188,18 +191,29 @@ std::string PlannerV2::MakeTableName(const PlanNode *node) const {
     }
     return "";
 }
-bool PlannerV2::CreateTableReferencePlanNode(const zetasql::ASTTableExpression *root, node::PlanNode **output,
-                                             base::Status &status) {
+base::Status PlannerV2::CreateTableReferencePlanNode(const zetasql::ASTTableExpression *root, node::PlanNode **output) {
+    base::Status status;
+    if (nullptr == root) {
+        status.msg = "Fail to create table reference plan node with null table expression";
+        status.code = common::kSqlError;
+        *output = nullptr;
+        return status;
+    }
     node::PlanNode *plan_node = nullptr;
     switch (root->node_kind()) {
         case zetasql::AST_TABLE_PATH_EXPRESSION: {
-            const node::TableNode *table_node = dynamic_cast<const node::TableNode *>(root);
             auto table_path_expression = root->GetAsOrNull<zetasql::ASTTablePathExpression>();
 
             plan_node =
                 node_manager_->MakeTablePlanNode(table_path_expression->path_expr()->last_name()->GetAsString());
-            if (!table_node->alias_table_name_.empty()) {
-                *output = node_manager_->MakeRenamePlanNode(plan_node, table_path_expression->alias()->GetAsString());
+            if (nullptr != table_path_expression->alias()) {
+                std::string alias_name = table_path_expression->alias()->GetAsString();
+                if (alias_name.empty()) {
+                    *output =
+                        node_manager_->MakeRenamePlanNode(plan_node, table_path_expression->alias()->GetAsString());
+                } else {
+                    *output = plan_node;
+                }
             } else {
                 *output = plan_node;
             }
@@ -241,11 +255,11 @@ bool PlannerV2::CreateTableReferencePlanNode(const zetasql::ASTTableExpression *
             status.msg = "fail to create table reference node, unrecognized type " + root->GetNodeKindString();
             status.code = common::kPlanError;
             LOG(WARNING) << status;
-            return false;
+            return status;
         }
     }
 
-    return true;
+    return base::Status::OK();
 }
 bool PlannerV2::MergeWindows(const std::map<const node::WindowDefNode *, node::ProjectListNode *> &map,
                              std::vector<const node::WindowDefNode *> *windows_ptr) {
@@ -582,7 +596,8 @@ int SimplePlannerV2::CreatePlanTree(const zetasql::ASTScript *script, PlanNodeLi
 
                 PlanNode *query_plan = nullptr;
 
-                if (!CreateQueryPlan(query_statement->query(), &query_plan, status)) {
+                status = CreateQueryPlan(query_statement->query(), &query_plan);
+                if (!status.isOK()) {
                     return status.code;
                 }
                 //
@@ -667,19 +682,18 @@ int SimplePlannerV2::CreatePlanTree(const zetasql::ASTScript *script, PlanNodeLi
     return status.code;
 }
 
-bool SimplePlannerV2::CreateQueryPlan(const zetasql::ASTQuery *root, PlanNode **plan_tree, Status &status) {
+base::Status SimplePlannerV2::CreateQueryPlan(const zetasql::ASTQuery *root, PlanNode **plan_tree) {
+    base::Status status;
     if (nullptr == root) {
         status.msg = "can not create query plan node with null query node";
         status.code = common::kPlanError;
         LOG(WARNING) << status;
-        return false;
+        return status;
     }
     const zetasql::ASTQueryExpression *query_expression = root->query_expr();
     switch (query_expression->node_kind()) {
         case zetasql::AST_SELECT:
-            if (!CreateSelectQueryPlan(query_expression->GetAsOrNull<zetasql::ASTSelect>(), plan_tree, status)) {
-                return false;
-            }
+            CHECK_STATUS(CreateSelectQueryPlan(query_expression->GetAsOrNull<zetasql::ASTSelect>(), plan_tree))
             break;
             //        case node::kQueryUnion:
             //            if (!CreateUnionQueryPlan(
@@ -692,81 +706,76 @@ bool SimplePlannerV2::CreateQueryPlan(const zetasql::ASTQuery *root, PlanNode **
             status.msg =
                 "can not create query plan node with invalid query type " + query_expression->GetNodeKindString();
             status.code = common::kPlanError;
-            return false;
+            return status;
         }
     }
-    return true;
+    return base::Status::OK();
 }
-bool SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *root, PlanNode **plan_tree, Status &status) {
+base::Status SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *root, PlanNode **plan_tree) {
     auto from_clause = root->from_clause();
     node::PlanNode *table_ref_plan = nullptr;
-    if (!CreateTableReferencePlanNode(from_clause->table_expression(), &table_ref_plan, status)) {
-        return false;
+    std::string table_name = "";
+    if (nullptr != from_clause && nullptr != from_clause->table_expression()) {
+        CHECK_STATUS(CreateTableReferencePlanNode(from_clause->table_expression(), &table_ref_plan))
     }
-    std::string table_name = MakeTableName(table_ref_plan);
+    table_name = nullptr == table_ref_plan ? "" : MakeTableName(table_ref_plan);
+
+    base::Status status;
     node::PlanNode *current_node = nullptr;
     //    // where condition
     //    if (nullptr != root->where_clause()) {
     //        current_node = node_manager_->MakeFilterPlanNode(current_node, root->where_clause_ptr_);
     //    }
     //
-    //    // group by
-    //    bool group_by_agg = false;
+    // group by
+    bool group_by_agg = false;
+    // TODO: implement group by
     //    if (nullptr != root->group_by()) {
     //        current_node = node_manager_->MakeGroupPlanNode(current_node, root->group_clause_ptr_);
     //        group_by_agg = true;
     //    }
 
     // select target_list
-    if (nullptr == root->select_list() || root->select_list()->columns().empty()) {
-        status.msg =
-            "fail to create select query plan: select expr list is null or "
-            "empty";
-        status.code = common::kPlanError;
-        return false;
-    }
+    CHECK_TRUE(nullptr != root->select_list() && !root->select_list()->columns().empty(), common::kSqlError,
+               "fail to create select query plan: select expr list is null or empty")
     auto &select_expr_list = root->select_list()->columns();
 
     // prepare window list
-    std::map<const zetasql::ASTWindowDefinition*, node::ProjectListNode *> project_list_map;
+    std::map<const node::WindowDefNode *, node::ProjectListNode *> project_list_map;
     // prepare window def
     int w_id = 1;
     std::map<std::string, const node::WindowDefNode *> windows;
     if (nullptr != root->window_clause() && !root->window_clause()->windows().empty()) {
-        for (auto w : root->window_clause()->windows()) {
-            std::string w_name = w->name()->GetAsString();
-            if (windows.find(w_name) != windows.cend()) {
-                status.msg = "fail to resolve window, window name duplicate: " + w_name;
-                status.code = common::kPlanError;
-                return false;
-            }
+        for (auto window : root->window_clause()->windows()) {
+            std::string w_name = window->name()->GetAsString();
+            CHECK_TRUE(windows.find(w_name) == windows.cend(), common::kPlanError,
+                       "fail to resolve window, window name duplicate: ", w_name)
 
-            if (!CheckWindowFrame(w, status)) {
-                return false;
-            }
+            node::WindowDefNode *w = nullptr;
+            CHECK_STATUS(ConvertWindowDefinition(window, node_manager_, &w))
+            CHECK_TRUE(CheckWindowFrame(w, status), status.code, status.msg)
             windows[w->GetName()] = w;
         }
     }
 
     for (uint32_t pos = 0u; pos < select_expr_list.size(); pos++) {
-        auto expr = select_expr_list[pos];
         std::string project_name;
-        node::ExprNode *project_expr;
-        switch (expr->GetType()) {
-            case node::kResTarget: {
-                const node::ResTarget *target_ptr = (const node::ResTarget *)expr;
-                project_name = target_ptr->GetName();
+        node::ExprNode *project_expr = nullptr;
+        switch (select_expr_list[pos]->node_kind()) {
+            case zetasql::AST_SELECT_COLUMN: {
+                auto select_column = select_expr_list[pos]->GetAsOrDie<zetasql::ASTSelectColumn>();
+                project_name = select_column->alias()->GetAsString();
+                CHECK_STATUS(ConvertExprNode(select_expr_list[pos]->expression(), node_manager_, &project_expr))
                 if (project_name.empty()) {
-                    project_name = target_ptr->GetVal()->GenerateExpressionName();
+                    project_name = project_expr->GenerateExpressionName();
                 }
-                project_expr = target_ptr->GetVal();
                 break;
             }
             default: {
-                status.msg = "can not create project plan node with type " + node::NameOfSqlNodeType(root->GetType());
+                status.msg = "can not create project plan node with type " + select_expr_list[pos]->GetNodeKindString();
                 status.code = common::kPlanError;
                 LOG(WARNING) << status;
-                return false;
+                return status;
             }
         }
 
@@ -774,7 +783,7 @@ bool SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *root, Plan
         if (!node::WindowOfExpression(windows, project_expr, &w_ptr)) {
             status.msg = "fail to resolved window";
             status.code = common::kPlanError;
-            return false;
+            return status;
         }
 
         if (project_list_map.find(w_ptr) == project_list_map.end()) {
@@ -783,9 +792,7 @@ bool SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *root, Plan
 
             } else {
                 node::WindowPlanNode *w_node_ptr = node_manager_->MakeWindowPlanNode(w_id++);
-                if (!CreateWindowPlanNode(w_ptr, w_node_ptr, status)) {
-                    return false;
-                }
+                CHECK_TRUE(CreateWindowPlanNode(w_ptr, w_node_ptr, status), status.code, status.msg)
                 project_list_map[w_ptr] = node_manager_->MakeProjectListPlanNode(w_node_ptr, true);
             }
         }
@@ -798,10 +805,8 @@ bool SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *root, Plan
 
     // merge window map
     std::map<const node::WindowDefNode *, node::ProjectListNode *> merged_project_list_map;
-    if (!MergeProjectMap(project_list_map, &merged_project_list_map, status)) {
-        LOG(WARNING) << "Fail to merge window project";
-        return false;
-    }
+    CHECK_TRUE(MergeProjectMap(project_list_map, &merged_project_list_map, status), status.code,
+               "Fail to merge window project: ", status.msg)
     // add MergeNode if multi ProjectionLists exist
     PlanNodeList project_list_vec(w_id);
     for (auto &v : merged_project_list_map) {
@@ -844,25 +849,25 @@ bool SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *root, Plan
     current_node = node_manager_->MakeProjectPlanNode(current_node, table_name, project_list_without_null, pos_mapping);
 
     // distinct
-    if (root->distinct_opt_) {
+    if (root->distinct()) {
         current_node = node_manager_->MakeDistinctPlanNode(current_node);
     }
-    // having
-    if (nullptr != root->having_clause_ptr_) {
-        current_node = node_manager_->MakeFilterPlanNode(current_node, root->having_clause_ptr_);
-    }
+    // TODO: handle having node
+    //    if (nullptr != root->having()) {
+    //        current_node = node_manager_->MakeFilterPlanNode(current_node, root->having_clause_ptr_);
+    //    }
     // order
-    if (nullptr != root->order_clause_ptr_) {
-        current_node = node_manager_->MakeSortPlanNode(current_node, root->order_clause_ptr_);
-    }
+//    if (nullptr != root->) {
+//        current_node = node_manager_->MakeSortPlanNode(current_node, root->order_clause_ptr_);
+//    }
     // limit
-    if (nullptr != root->GetLimit()) {
-        const node::LimitNode *limit_ptr = (node::LimitNode *)root->GetLimit();
-        current_node = node_manager_->MakeLimitPlanNode(current_node, limit_ptr->GetLimitCount());
-    }
+//    if (nullptr != root->) {
+//        const node::LimitNode *limit_ptr = (node::LimitNode *)root->GetLimit();
+//        current_node = node_manager_->MakeLimitPlanNode(current_node, limit_ptr->GetLimitCount());
+//    }
     current_node = node_manager_->MakeSelectPlanNode(current_node);
     *plan_tree = current_node;
-    return true;
+    return base::Status::OK();
 }
 
 }  // namespace plan

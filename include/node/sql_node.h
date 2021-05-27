@@ -552,8 +552,8 @@ class FnNodeList : public FnNode {
 
 class OrderByNode : public ExprNode {
  public:
-    explicit OrderByNode(const ExprListNode *order, bool is_asc)
-        : ExprNode(kExprOrder), is_asc_(is_asc), order_by_(order) {}
+    OrderByNode(const ExprListNode *order, const std::vector<bool>& is_asc_list)
+        : ExprNode(kExprOrder), is_asc_list_(is_asc_list), order_by_(order) {}
     ~OrderByNode() {}
 
     void Print(std::ostream &output, const std::string &org_tab) const;
@@ -561,10 +561,17 @@ class OrderByNode : public ExprNode {
     virtual bool Equals(const ExprNode *that) const;
     OrderByNode *ShadowCopy(NodeManager *) const override;
     const ExprListNode *order_by() const { return order_by_; }
+    const std::vector<bool>& is_asc_list() const { return is_asc_list_; }
+    bool is_asc() const {
+        for(auto is_asc : is_asc_list_) {
+            if (!is_asc) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-    bool is_asc() const { return is_asc_; }
-
-    const bool is_asc_;
+    const std::vector<bool> is_asc_list_;
     const ExprListNode *order_by_;
 };
 class TableRefNode : public SqlNode {

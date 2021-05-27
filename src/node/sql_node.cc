@@ -453,7 +453,7 @@ void OrderByNode::Print(std::ostream &output,
     const std::string tab = org_tab + INDENT + SPACE_ED;
 
     output << "\n";
-    PrintValue(output, tab, is_asc_ ? "ASC" : "DESC", "sort_type", false);
+    PrintValue(output, tab, is_asc() ? "ASC" : "DESC", "sort_type", false);
 
     output << "\n";
     PrintSqlNode(output, tab, order_by_, "order_by", true);
@@ -461,7 +461,7 @@ void OrderByNode::Print(std::ostream &output,
 const std::string OrderByNode::GetExprString() const {
     std::string str = "";
     str.append(nullptr == order_by_ ? "()" : order_by_->GetExprString());
-    str.append(is_asc_ ? " ASC" : " DESC");
+    str.append(is_asc() ? " ASC" : " DESC");
     return str;
 }
 bool OrderByNode::Equals(const ExprNode *node) const {
@@ -469,7 +469,7 @@ bool OrderByNode::Equals(const ExprNode *node) const {
         return false;
     }
     const OrderByNode *that = dynamic_cast<const OrderByNode *>(node);
-    return is_asc_ == that->is_asc_ && ExprEquals(order_by_, that->order_by_);
+    return is_asc_list() == that->is_asc_list() && ExprEquals(order_by_, that->order_by_);
 }
 
 void FrameNode::Print(std::ostream &output, const std::string &org_tab) const {
