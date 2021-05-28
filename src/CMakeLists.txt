@@ -86,20 +86,20 @@ if (TESTING_ENABLE AND CORE_TESTING_ENABLE)
 	    get_filename_component(TEST_TARGET_DIR ${RELATIVE_TEST_PATH} DIRECTORY)
 	    get_filename_component(TEST_TARGET_NAME ${RELATIVE_TEST_PATH} NAME_WE)
 	    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${TEST_TARGET_DIR})
-		add_executable(${TEST_TARGET_NAME} ${TEST_SCRIPT})
-
-		add_test(${TEST_TARGET_NAME}
-			${CMAKE_CURRENT_BINARY_DIR}/${TEST_TARGET_DIR}/${TEST_TARGET_NAME}
-			--gtest_output=xml:${CMAKE_BINARY_DIR}/${TEST_TARGET_NAME}.xml)
-
-            target_link_options(${TEST_TARGET_NAME} PRIVATE -rdynamic)
 		if (${TEST_TARGET_NAME} STREQUAL "zetasql_parser_test")
+			add_executable(${TEST_TARGET_NAME} ${TEST_SCRIPT})
 			target_link_libraries(${TEST_TARGET_NAME} gtest
 					${ZETASQL_LIBS} ${GTEST_LIBRARIES} )
 		else()
-			target_link_libraries(${TEST_TARGET_NAME} gtest ${HYBRIDSE_CORE_LIBS} hybridse_test_base hybridse_flags
+			add_executable(${TEST_TARGET_NAME} ${TEST_SCRIPT} testing/engine_test_base.cc testing/test_base.cc)
+			target_link_libraries(${TEST_TARGET_NAME} gtest ${HYBRIDSE_CORE_LIBS} hybridse_flags
 			${yaml_libs} ${BRPC_LIBS})
 		endif()
+        add_test(${TEST_TARGET_NAME}
+				${CMAKE_CURRENT_BINARY_DIR}/${TEST_TARGET_DIR}/${TEST_TARGET_NAME}
+				--gtest_output=xml:${CMAKE_BINARY_DIR}/${TEST_TARGET_NAME}.xml)
+
+		target_link_options(${TEST_TARGET_NAME} PRIVATE -rdynamic)
     	list(APPEND test_list ${TEST_TARGET_NAME})
 	endforeach()
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
