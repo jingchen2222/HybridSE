@@ -54,5 +54,18 @@ else
   cd -
   touch glog_succ
 fi
+if [ -f "gflags_succ" ]; then
+  echo "gflags exist"
+else
+  wget --no-check-certificate -O gflags-2.2.2.tar.gz https://github.com/gflags/gflags/archive/refs/tags/v2.2.2.tar.gz
+  tar zxf gflags-2.2.2.tar.gz
+  cd gflags-2.2.2
+  mkdir -p b2
+  cd b2
+  cmake -DCMAKE_INSTALL_PREFIX="${CICD_RUNNER_THIRDPARTY_PATH}" -DCMAKE_CXX_FLAGS=-fPIC -DBUILD_SHARED_LIBS=ON -DBUILD_gflags_nothreads_LIB=ON ..
+  make install -j8
+  cd -
+  touch gflags_succ
+fi
 
 popd

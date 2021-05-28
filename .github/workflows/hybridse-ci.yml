@@ -119,7 +119,6 @@ jobs:
       - name: Install thirdparty
         run: |
           brew install swig
-          brew install gflags
           brew install coreutils
           brew install yaml-cpp
           sh tools/install_thirdparty_mac.sh
