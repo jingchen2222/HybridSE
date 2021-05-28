@@ -25,7 +25,6 @@
 #include "zetasql/public/error_location.pb.h"
 namespace hybridse {
 namespace plan {
-GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(PlannerV2Test);
 
 using hybridse::node::NodeManager;
 using hybridse::node::PlanNode;
