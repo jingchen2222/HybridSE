@@ -47,9 +47,25 @@ else
   wget --no-check-certificate -O glog-0.4.0.tar.gz https://github.com/google/glog/archive/refs/tags/v0.4.0.tar.gz
   tar zxf glog-0.4.0.tar.gz
   cd glog-0.4.0
-  ./autogen.sh && CXXFLAGS=-fPIC ./configure --prefix="${CICD_RUNNER_THIRDPARTY_PATH}"
-  make install
+  mkdir -p build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX="${CICD_RUNNER_THIRDPARTY_PATH}" -DCMAKE_CXX_FLAGS=-fPIC ..
+  make install -j8
   cd -
   touch glog_succ
 fi
+if [ -f "gflags_succ" ]; then
+  echo "gflags exist"
+else
+  wget --no-check-certificate -O gflags-2.2.2.tar.gz https://github.com/gflags/gflags/archive/refs/tags/v2.2.2.tar.gz
+  tar zxf gflags-2.2.0.tar.gz
+  cd gflags-2.2.0
+  mkdir -p build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX="${CICD_RUNNER_THIRDPARTY_PATH}" -DGFLAGS_NAMESPACE=google -DCMAKE_CXX_FLAGS=-fPIC ..
+  make install -j8
+  cd -
+  touch gflags_succ
+fi
+
 popd
