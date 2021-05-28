@@ -41,19 +41,7 @@ else
   cd -
   touch bison_succ
 fi
-if [ -f "glog_succ" ]; then
-  echo "glog exist"
-else
-  wget --no-check-certificate -O glog-0.4.0.tar.gz https://github.com/google/glog/archive/refs/tags/v0.4.0.tar.gz
-  tar zxf glog-0.4.0.tar.gz
-  cd glog-0.4.0
-  mkdir -p b2
-  cd b2
-  cmake -DCMAKE_INSTALL_PREFIX="${CICD_RUNNER_THIRDPARTY_PATH}" -DCMAKE_CXX_FLAGS=-fPIC ..
-  make install -j8
-  cd -
-  touch glog_succ
-fi
+
 if [ -f "gflags_succ" ]; then
   echo "gflags exist"
 else
@@ -67,5 +55,20 @@ else
   cd -
   touch gflags_succ
 fi
+
+if [ -f "glog_succ" ]; then
+  echo "glog exist"
+else
+  wget --no-check-certificate -O glog-0.4.0.tar.gz https://github.com/google/glog/archive/refs/tags/v0.4.0.tar.gz
+  tar zxf glog-0.4.0.tar.gz
+  cd glog-0.4.0
+  mkdir -p b2
+  cd b2
+  cmake -DCMAKE_INSTALL_PREFIX="${CICD_RUNNER_THIRDPARTY_PATH}" -DCMAKE_CXX_FLAGS=-fPIC ..
+  make install -j8
+  cd -
+  touch glog_succ
+fi
+
 
 popd
