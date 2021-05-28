@@ -339,15 +339,24 @@ SqlNode *NodeManager::MakeFrameNode(FrameType frame_type,
 OrderByNode *NodeManager::MakeOrderByNode(const ExprListNode *order,
                                           const bool is_asc) {
     std::vector<bool> is_asc_list;
-    for(size_t i = 0; i < order->GetChildNum(); i++) {
-        is_asc_list.push_back(is_asc);
+    if (nullptr != order) {
+        for (size_t i = 0; i < order->GetChildNum(); i++) {
+            is_asc_list.push_back(is_asc);
+        }
     }
-    OrderByNode *node_ptr = new OrderByNode(order, is_asc_list);
+    OrderByNode *node_ptr = new OrderByNode(order, is_asc_list, is_asc);
     return RegisterNode(node_ptr);
 }
 OrderByNode *NodeManager::MakeOrderByNode(const ExprListNode *order,
                                           const std::vector<bool>& is_asc_list) {
-    OrderByNode *node_ptr = new OrderByNode(order, is_asc_list);
+    bool is_asc = true;
+    for(bool flag : is_asc_list) {
+        if (!flag) {
+            is_asc = false;
+            break;
+        }
+    }
+    OrderByNode *node_ptr = new OrderByNode(order, is_asc_list, is_asc);
     return RegisterNode(node_ptr);
 }
 
