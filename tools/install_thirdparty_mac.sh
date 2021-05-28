@@ -60,8 +60,8 @@ else
   wget --no-check-certificate -O gflags-2.2.2.tar.gz https://github.com/gflags/gflags/archive/refs/tags/v2.2.2.tar.gz
   tar zxf gflags-2.2.2.tar.gz
   cd gflags-2.2.2
-  mkdir -p build
-  cd build
+  mkdir -p b2
+  cd b2
   cmake -DCMAKE_INSTALL_PREFIX="${CICD_RUNNER_THIRDPARTY_PATH}" -DGFLAGS_NAMESPACE=google -DCMAKE_CXX_FLAGS=-fPIC ..
   make install -j8
   cd -
