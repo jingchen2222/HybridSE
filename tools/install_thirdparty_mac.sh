@@ -41,6 +41,15 @@ else
   cd -
   touch bison_succ
 fi
-
-ls /usr/local/opt/glog/lib/
+if [ -f "glog_succ" ]; then
+  echo "glog exist"
+else
+  wget --no-check-certificate -O glog-0.4.0.tar.gz https://github.com/google/glog/archive/refs/tags/v0.4.0.tar.gz
+  tar zxf glog-0.4.0.tar.gz
+  cd glog-0.4.0
+  ./autogen.sh && CXXFLAGS=-fPIC ./configure --prefix="${CICD_RUNNER_THIRDPARTY_PATH}"
+  make install
+  cd -
+  touch glog_succ
+fi
 popd
