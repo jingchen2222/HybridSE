@@ -41,4 +41,6 @@ else
   cd -
   touch bison_succ
 fi
+
+ls /usr/local/opt/glog/lib/
 popd
