@@ -164,6 +164,9 @@ find_package(absl REQUIRED)
 
 set(GTEST_ROOT "${PROJECT_SOURCE_DIR}/thirdparty")
 find_package(GTest 1.10 EXACT REQUIRED)
+set(GLOG_ROOT "${PROJECT_SOURCE_DIR}/thirdparty")
+find_package(GLOG 0.4.0 EXACT REQUIRED)
+
 set(Protobuf_USE_STATIC_LIBS ON)
 set(Protobuf_ROOT "${PROJECT_SOURCE_DIR}/thirdparty")
 find_package(Protobuf 3.6 EXACT REQUIRED)
