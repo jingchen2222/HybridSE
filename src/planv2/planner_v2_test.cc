@@ -50,54 +50,53 @@ INSTANTIATE_TEST_CASE_P(
     SqlRenameQueryParse, PlannerV2Test,
     testing::ValuesIn(sqlcase::InitCases("cases/plan/rename_query.yaml", FILTERS)));
 
-/*
 INSTANTIATE_TEST_CASE_P(
     SqlWindowQueryParse, PlannerV2Test,
     testing::ValuesIn(sqlcase::InitCases("cases/plan/window_query.yaml", FILTERS)));
-INSTANTIATE_TEST_CASE_P(
-    SqlDistinctParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/distinct_query.yaml", FILTERS)));
 
-INSTANTIATE_TEST_CASE_P(
-    SqlWhereParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/where_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(
-    SqlGroupParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/group_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(
-    SqlHavingParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/having_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(
-    SqlOrderParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/order_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(
-    SqlJoinParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/join_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(
-    SqlUnionParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/union_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(
-    SqlSubQueryParse, PlannerTest,
-    testing::ValuesIn(sqlcase::InitCases("cases/plan/sub_query.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(UdfParse, PlannerTest,
-                        testing::ValuesIn(sqlcase::InitCases("cases/plan/udf.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerTest,
-                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerTest,
-                        testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
-
-INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerTest,
-                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
-*/
+//INSTANTIATE_TEST_CASE_P(
+//    SqlDistinctParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/distinct_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlWhereParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/where_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlGroupParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/group_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlHavingParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/having_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlOrderParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/order_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlJoinParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/join_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlUnionParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/union_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(
+//    SqlSubQueryParse, PlannerV2Test,
+//    testing::ValuesIn(sqlcase::InitCases("cases/plan/sub_query.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(UdfParse, PlannerV2Test,
+//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/udf.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerV2Test,
+//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerV2Test,
+//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
+//
+//INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerV2Test,
+//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
 TEST_P(PlannerV2Test, PlannerSucessTest) {
     std::string sqlstr = GetParam().sql_str();
     std::cout << sqlstr << std::endl;

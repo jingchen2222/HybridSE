@@ -219,26 +219,57 @@ base::Status PlannerV2::CreateTableReferencePlanNode(const zetasql::ASTTableExpr
             }
             break;
         }
-            //        case case node::kRefJoin: {
-            //            const node::JoinNode *join_node = dynamic_cast<const node::JoinNode *>(root);
-            //            node::PlanNode *left = nullptr;
-            //            node::PlanNode *right = nullptr;
-            //            if (!CreateTableReferencePlanNode(join_node->left_, &left, status)) {
-            //                return false;
-            //            }
-            //            if (!CreateTableReferencePlanNode(join_node->right_, &right, status)) {
-            //                return false;
-            //            }
-            //            plan_node = node_manager_->MakeJoinNode(left, right, join_node->join_type_,
-            //            join_node->orders_,
-            //                                                    join_node->condition_);
-            //            if (!join_node->alias_table_name_.empty()) {
-            //                *output = node_manager_->MakeRenamePlanNode(plan_node, join_node->alias_table_name_);
-            //            } else {
-            //                *output = plan_node;
-            //            }
-            //            break;
-            //        }
+        case zetasql::AST_JOIN: {
+            auto join = root->GetAsOrDie<zetasql::ASTJoin>();
+            node::PlanNode *left = nullptr;
+            node::PlanNode *right = nullptr;
+            node::OrderByNode *order_by = nullptr;
+            node::ExprNode *condition = nullptr;
+            node::JoinType join_type = node::JoinType::kJoinTypeInner;
+            CHECK_STATUS(CreateTableReferencePlanNode(join->lhs(), &left))
+            CHECK_STATUS(CreateTableReferencePlanNode(join->rhs(), &right))
+            if (nullptr != join->order_by()) {
+                CHECK_STATUS(ConvertOrderBy(join->order_by(), node_manager_, &order_by))
+            }
+            if (nullptr != join->on_clause()) {
+                CHECK_STATUS(ConvertExprNode(join->on_clause()->expression(), node_manager_, &condition))
+            }
+            switch (join->join_type()) {
+                case zetasql::ASTJoin::JoinType::FULL: {
+                    join_type = node::JoinType::kJoinTypeFull;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::LEFT: {
+                    join_type = node::JoinType::kJoinTypeLeft;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::RIGHT: {
+                    join_type = node::JoinType::kJoinTypeRight;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::LAST: {
+                    join_type = node::JoinType::kJoinTypeLast;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::INNER: {
+                    join_type = node::JoinType::kJoinTypeInner;
+                    break;
+                }
+                default: {
+                    status.msg = "Un-support join type " + join->GetSQLForJoinType();
+                    status.code = common::kSqlError;
+                    *output = nullptr;
+                    return status;
+                }
+            }
+            plan_node = node_manager_->MakeJoinNode(left, right, join_type, order_by, condition);
+            if (nullptr != join->alias()) {
+                *output = node_manager_->MakeRenamePlanNode(plan_node, join->alias()->GetAsString());
+            } else {
+                *output = plan_node;
+            }
+            break;
+        }
             //        case zetasql::AST_TABLE_SUBQUERY: {
             //            const node::QueryRefNode *sub_query_node = dynamic_cast<const node::QueryRefNode *>(root);
             //            if (!CreateQueryPlan(sub_query_node->query_, &plan_node, status)) {

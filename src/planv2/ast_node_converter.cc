@@ -267,6 +267,44 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = node_manager->MakeConstNode(double_value);
             return base::Status::OK();
         }
+        case zetasql::AST_INTERVAL_LITERAL: {
+            const zetasql::ASTIntervalLiteral* literal = ast_expression->GetAsOrDie<zetasql::ASTIntervalLiteral>();
+            int64_t interval_value;
+            node::DataType interval_unit = node::DataType::kSecond;
+            size_t image_len = literal->image().size();
+            hybridse::codec::StringRef str(std::string(literal->image().substr(0, image_len-1)));
+            switch (literal->image().data()[image_len-1]) {
+                case 'h':
+                case 'H': {
+                    interval_unit = node::DataType::kHour;
+                    break;
+                }
+                case 's':
+                case 'S': {
+                    interval_unit = node::DataType::kSecond;
+                    break;
+                }
+                case 'm':
+                case 'M': {
+                    interval_unit = node::DataType::kMinute;
+                    break;
+                }
+                case 'd':
+                case 'D': {
+                    interval_unit = node::DataType::kDay;
+                    break;
+                }
+            }
+            bool is_null;
+            hybridse::udf::v1::string_to_bigint(&str, &interval_value, &is_null);
+            if (is_null) {
+                status.msg = "Invalid floating point literal: " + std::string(literal->image());
+                status.code = common::kSqlError;
+                return status;
+            }
+            *output = node_manager->MakeConstNode(interval_value, interval_unit);
+            return base::Status::OK();
+        }
 
         case zetasql::AST_NULL_LITERAL: {
             // NULL literals are always treated as int64_t.  Literal coercion rules
@@ -295,6 +333,10 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
 }
 base::Status ConvertOrderBy(const zetasql::ASTOrderBy* order_by, node::NodeManager* node_manager,
                             node::OrderByNode** output) {
+    if (nullptr == order_by) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
     auto ordering_expressions = node_manager->MakeExprList();
     std::vector<bool> is_asc_list;
     for (auto ordering_expression : order_by->ordering_expressions()) {
@@ -310,6 +352,10 @@ base::Status ConvertOrderBy(const zetasql::ASTOrderBy* order_by, node::NodeManag
 
 base::Status ConvertExprNodeList(const absl::Span<const zetasql::ASTExpression* const>& expression_list,
                                  node::NodeManager* node_manager, node::ExprListNode** output) {
+    if (expression_list.empty()) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
     auto expr_list = node_manager->MakeExprList();
     for (auto expression : expression_list) {
         node::ExprNode* expr = nullptr;
@@ -356,7 +402,11 @@ base::Status ConvertFrameBound(const zetasql::ASTWindowFrameExpr* window_frame_e
             return status;
         }
     }
-    *output = dynamic_cast<node::FrameBound*>(node_manager->MakeFrameBound(bound_type, expr));
+    if (nullptr == expr ) {
+        *output = dynamic_cast<node::FrameBound*>(node_manager->MakeFrameBound(bound_type));
+    } else {
+        *output = dynamic_cast<node::FrameBound*>(node_manager->MakeFrameBound(bound_type, expr));
+    }
     return base::Status::OK();
 }
 base::Status ConvertFrameNode(const zetasql::ASTWindowFrame* window_frame, node::NodeManager* node_manager,
@@ -391,7 +441,9 @@ base::Status ConvertFrameNode(const zetasql::ASTWindowFrame* window_frame, node:
     CHECK_STATUS(ConvertFrameBound(window_frame->start_expr(), node_manager, &start))
     CHECK_STATUS(ConvertFrameBound(window_frame->end_expr(), node_manager, &end))
     node::ExprNode* frame_size = nullptr;
-    CHECK_STATUS(ConvertExprNode(window_frame->max_size()->max_size(), node_manager, &frame_size))
+    if (nullptr != window_frame->max_size()) {
+        CHECK_STATUS(ConvertExprNode(window_frame->max_size()->max_size(), node_manager, &frame_size))
+    }
     *output = dynamic_cast<node::FrameNode*>(
         node_manager->MakeFrameNode(frame_type, node_manager->MakeFrameExtent(start, end), frame_size));
     return base::Status::OK();
@@ -414,16 +466,26 @@ base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* w
     node::ExprListNode* partition_by = nullptr;
     node::OrderByNode* order_by = nullptr;
     node::FrameNode* frame_node = nullptr;
-    CHECK_STATUS(
-        ConvertExprNodeList(window_spec->partition_by()->partitioning_expressions(), node_manager, &partition_by))
-    CHECK_STATUS(ConvertOrderBy(window_spec->order_by(), node_manager, &order_by))
-    CHECK_STATUS(ConvertFrameNode(window_spec->window_frame(), node_manager, &frame_node))
+    if (nullptr !=  window_spec->partition_by()) {
+        CHECK_STATUS(
+            ConvertExprNodeList(window_spec->partition_by()->partitioning_expressions(), node_manager, &partition_by))
+    }
+    if (nullptr != window_spec->order_by()) {
+        CHECK_STATUS(ConvertOrderBy(window_spec->order_by(), node_manager, &order_by))
+    }
+    if (nullptr != window_spec->window_frame()) {
+        CHECK_STATUS(ConvertFrameNode(window_spec->window_frame(), node_manager, &frame_node))
+    }
     // TODO: fill the following flags
-    bool instance_is_not_in_window = false;
-    bool exclude_current_time = false;
+    bool instance_is_not_in_window = window_spec->is_instance_not_in_window();
+    bool exclude_current_time = window_spec->is_exclude_current_time();
     node::SqlNodeList* union_tables = nullptr;
+
     *output = dynamic_cast<node::WindowDefNode*>(node_manager->MakeWindowDefNode(
         union_tables, partition_by, order_by, frame_node, exclude_current_time, instance_is_not_in_window));
+    if (nullptr != window_spec->base_window_name()) {
+        (*output)->SetName(window_spec->base_window_name()->GetAsString());
+    }
     return base::Status::OK();
 }
 
