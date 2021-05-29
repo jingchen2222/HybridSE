@@ -31,6 +31,8 @@ mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DTESTING_ENABLE=ON
 make zetasql_parser_test -j"$(nproc)"
+make fe_slice_test -j"$(nproc)"
 ./src/parser/zetasql_parser_test
+./src/base/fe_slice_test
 
 popd

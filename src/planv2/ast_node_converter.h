@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef HYBRIDSE_AST_NODE_CONVERTER_H
-#define HYBRIDSE_AST_NODE_CONVERTER_H
+#ifndef SRC_PLANV2_AST_NODE_CONVERTER_H_
+#define SRC_PLANV2_AST_NODE_CONVERTER_H_
 #include "node/node_manager.h"
 #include "udf/udf.h"
 #include "zetasql/parser/parser.h"
@@ -39,4 +39,4 @@ base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* w
 
 }  // namespace plan
 }  // namespace hybridse
-#endif  // HYBRIDSE_AST_NODE_CONVERTER_H
+#endif  // SRC_PLANV2_AST_NODE_CONVERTER_H_

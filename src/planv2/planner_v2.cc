@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <algorithm>
 #include "planv2/ast_node_converter.h"
 #include "proto/fe_common.pb.h"
 
@@ -128,7 +129,6 @@ bool PlannerV2::ValidatePrimaryPath(node::PlanNode *node, node::PlanNode **outpu
 
 bool PlannerV2::CreateWindowPlanNode(const node::WindowDefNode *w_ptr, node::WindowPlanNode *w_node_ptr,
                                      Status &status) {  // NOLINT (runtime/references)
-
     if (nullptr != w_ptr) {
         // Prepare Window Frame
         if (!CheckWindowFrame(w_ptr, status)) {
@@ -148,7 +148,7 @@ bool PlannerV2::CreateWindowPlanNode(const node::WindowDefNode *w_ptr, node::Win
         w_node_ptr->SetKeys(w_ptr->GetPartitions());
         w_node_ptr->SetOrders(w_ptr->GetOrders());
 
-        // TODO: handle window union
+        // TODO(chenjing): handle window union
         // Prepare Window Union Info
         //        if (nullptr != w_ptr->union_tables() && !w_ptr->union_tables()->GetList().empty()) {
         //            for (auto node : w_ptr->union_tables()->GetList()) {
@@ -763,7 +763,7 @@ base::Status SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *ro
     //
     // group by
     bool group_by_agg = false;
-    // TODO: implement group by
+    // TODO(chenjing): implement group by
     //    if (nullptr != root->group_by()) {
     //        current_node = node_manager_->MakeGroupPlanNode(current_node, root->group_clause_ptr_);
     //        group_by_agg = true;
@@ -886,7 +886,7 @@ base::Status SimplePlannerV2::CreateSelectQueryPlan(const zetasql::ASTSelect *ro
     if (root->distinct()) {
         current_node = node_manager_->MakeDistinctPlanNode(current_node);
     }
-    // TODO: handle having node
+    // TODO(chenjing): handle having node
     //    if (nullptr != root->having()) {
     //        current_node = node_manager_->MakeFilterPlanNode(current_node, root->having_clause_ptr_);
     //    }

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_PLAN_PLANNER_H_
-#define SRC_PLAN_PLANNER_H_
+#ifndef SRC_PLANV2_PLANNER_V2_H_
+#define SRC_PLANV2_PLANNER_V2_H_
 
 #include <map>
 #include <string>
@@ -61,6 +61,7 @@ class PlannerV2 {
                                      node::ProjectListNode *> &map,
                       std::vector<const node::WindowDefNode *> *windows);
     static const std::string GenerateName(const std::string prefix, int id);
+
  protected:
     const bool is_batch_mode_;
     const bool is_cluster_optimized_;
@@ -108,4 +109,4 @@ class SimplePlannerV2 : public PlannerV2 {
 }  // namespace plan
 }  // namespace hybridse
 
-#endif  // SRC_PLAN_PLANNER_H_
+#endif  // SRC_PLANV2_PLANNER_V2_H_

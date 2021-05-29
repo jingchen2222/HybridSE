@@ -31,9 +31,6 @@ mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j"$(nproc)"
-
-./src/base/fe_slice_test
-
 SQL_CASE_BASE_DIR=${HYRBIDSE_DIR} make -j"$(nproc)" test
 
 popd

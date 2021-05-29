@@ -350,7 +350,7 @@ OrderByNode *NodeManager::MakeOrderByNode(const ExprListNode *order,
 OrderByNode *NodeManager::MakeOrderByNode(const ExprListNode *order,
                                           const std::vector<bool>& is_asc_list) {
     bool is_asc = true;
-    for(bool flag : is_asc_list) {
+    for (bool flag : is_asc_list) {
         if (!flag) {
             is_asc = false;
             break;

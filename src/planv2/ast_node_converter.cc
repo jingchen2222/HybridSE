@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #include "planv2/ast_node_converter.h"
+#include <string>
+#include <vector>
 
 namespace hybridse {
 namespace plan {
@@ -25,6 +27,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
         return base::Status::OK();
     }
     base::Status status;
+    // TODO(chenjing): support case when value and case when without value
     switch (ast_expression->node_kind()) {
         case zetasql::AST_STAR: {
             *output = node_manager->MakeAllNode("");
@@ -143,9 +146,8 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = node_manager->MakeUnaryExprNode(operand, op);
             return base::Status::OK();
         }
-
-            // TODO: optimize AND expression from BinaryExprNode to AndExpr
         case zetasql::AST_AND_EXPR: {
+            // TODO(chenjing): optimize AND expression from BinaryExprNode to AndExpr
             auto* and_expression = ast_expression->GetAsOrDie<zetasql::ASTAndExpr>();
             node::ExprNode* lhs = nullptr;
             CHECK_STATUS(ConvertExprNode(and_expression->conjuncts(0), node_manager, &lhs))
@@ -154,7 +156,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                 status.code = common::kSqlError;
                 return status;
             }
-            for(size_t i = 1; i < and_expression->conjuncts().size(); i++) {
+            for (size_t i = 1; i < and_expression->conjuncts().size(); i++) {
                 node::ExprNode* rhs = nullptr;
                 CHECK_STATUS(ConvertExprNode(and_expression->conjuncts(i), node_manager, &rhs))
                 if (nullptr == rhs) {
@@ -168,8 +170,8 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             return base::Status();
         }
 
-            // TODO: optimize OR expression from BinaryExprNode to OrExpr
         case zetasql::AST_OR_EXPR: {
+            // TODO(chenjing): optimize OR expression from BinaryExprNode to OrExpr
             auto* or_expression = ast_expression->GetAsOrDie<zetasql::ASTOrExpr>();
             node::ExprNode* lhs = nullptr;
             CHECK_STATUS(ConvertExprNode(or_expression->disjuncts()[0], node_manager, &lhs))
@@ -178,7 +180,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                 status.code = common::kSqlError;
                 return status;
             }
-            for(size_t i = 1; i < or_expression->disjuncts().size(); i++) {
+            for (size_t i = 1; i < or_expression->disjuncts().size(); i++) {
                 node::ExprNode* rhs = nullptr;
                 CHECK_STATUS(ConvertExprNode(or_expression->disjuncts()[i], node_manager, &rhs))
                 if (nullptr == rhs) {
@@ -191,7 +193,6 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = lhs;
             return base::Status();
         }
-            // TODO: support case when value and case when without value
         case zetasql::AST_FUNCTION_CALL: {
             auto* function_call = ast_expression->GetAsOrDie<zetasql::ASTFunctionCall>();
             node::ExprListNode* args = nullptr;
@@ -402,7 +403,8 @@ base::Status ConvertFrameBound(const zetasql::ASTWindowFrameExpr* window_frame_e
             return status;
         }
     }
-    if (nullptr == expr ) {
+
+    if (nullptr == expr) {
         *output = dynamic_cast<node::FrameBound*>(node_manager->MakeFrameBound(bound_type));
     } else {
         *output = dynamic_cast<node::FrameBound*>(node_manager->MakeFrameBound(bound_type, expr));
@@ -476,7 +478,7 @@ base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* w
     if (nullptr != window_spec->window_frame()) {
         CHECK_STATUS(ConvertFrameNode(window_spec->window_frame(), node_manager, &frame_node))
     }
-    // TODO: fill the following flags
+    // TODO(chenjing): fill the following flags
     bool instance_is_not_in_window = window_spec->is_instance_not_in_window();
     bool exclude_current_time = window_spec->is_exclude_current_time();
     node::SqlNodeList* union_tables = nullptr;
