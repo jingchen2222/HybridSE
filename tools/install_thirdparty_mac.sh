@@ -72,5 +72,6 @@ fi
 popd
 
 pushd /usr/local/opt
+ln -sf ${CICD_RUNNER_THIRDPARTY_PATH} gflags
 ln -sf ${CICD_RUNNER_THIRDPARTY_PATH} glog
 popd
