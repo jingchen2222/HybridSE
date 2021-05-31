@@ -29,7 +29,6 @@ tar xzf thirdparty-2021-05-27-drawin-x86_64.tar.gz -C  "${CICD_RUNNER_THIRDPARTY
 wget -nv --show-progress https://github.com/jingchen2222/zetasql/releases/download/v0.2.0-bata5/libzetasql-0.2.0-bata5-darwin-x86_64.tar.gz
 tar xzf libzetasql-0.2.0-bata5-darwin-x86_64.tar.gz -C  "${CICD_RUNNER_THIRDPARTY_PATH}" --strip-components 1
 echo "list files under ${CICD_RUNNER_THIRDPARTY_PATH}"
-ls "${CICD_RUNNER_THIRDPARTY_PATH}/include"
 
 if [ -f "bison_succ" ]; then
   echo "bison exist"
