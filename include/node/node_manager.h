@@ -139,7 +139,6 @@ class NodeManager {
     FrameNode *MergeFrameNode(const FrameNode *frame1, const FrameNode *frame2);
     SqlNode *MakeLimitNode(int count);
 
-    SqlNode *MakeNameNode(const std::string &name);
     SqlNode *MakeInsertTableNode(const std::string &table_name,
                                  const ExprListNode *column_names,
                                  const ExprListNode *values);

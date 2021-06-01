@@ -582,11 +582,6 @@ UnaryExpr *NodeManager::MakeUnaryExprNode(ExprNode *left, FnOperator op) {
     return RegisterNode(uexpr);
 }
 
-SqlNode *NodeManager::MakeNameNode(const std::string &name) {
-    SqlNode *node_ptr = new NameNode(name);
-    return RegisterNode(node_ptr);
-}
-
 SqlNode *NodeManager::MakeCreateTableNode(bool op_if_not_exist,
                                           const std::string &table_name,
                                           SqlNodeList *column_desc_list,

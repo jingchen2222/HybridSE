@@ -667,19 +667,6 @@ class UnionQueryNode : public QueryNode {
     const bool is_all_;
 };
 
-class NameNode : public SqlNode {
- public:
-    NameNode() : SqlNode(kName, 0, 0), name_("") {}
-    explicit NameNode(const std::string &name) : SqlNode(kName, 0, 0), name_(name) {}
-    ~NameNode() {}
-
-    std::string GetName() const { return name_; }
-    virtual bool Equals(const SqlNode *node) const;
-
- private:
-    std::string name_;
-};
-
 class ConstNode : public ExprNode {
     struct FeDate {
         int32_t year = -1;

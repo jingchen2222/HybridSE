@@ -121,6 +121,51 @@ TEST_P(PlannerV2Test, PlannerSucessTest) {
     }
 }
 
+
+class PlannerV2ErrorTest : public ::testing::TestWithParam<SqlCase> {
+ public:
+    PlannerV2ErrorTest() {
+        manager_ = new NodeManager();
+    }
+
+    ~PlannerV2ErrorTest() {
+        delete manager_;
+    }
+
+ protected:
+    NodeManager *manager_;
+};
+INSTANTIATE_TEST_CASE_P(
+    SqlErrorQuery, PlannerV2ErrorTest,
+    testing::ValuesIn(sqlcase::InitCases("cases/plan/error_query.yaml", FILTERS)));
+
+INSTANTIATE_TEST_CASE_P(
+    SqlErrorRequestQuery, PlannerV2ErrorTest,
+    testing::ValuesIn(sqlcase::InitCases("cases/plan/error_request_query.yaml", FILTERS)));
+TEST_P(PlannerV2ErrorTest, RequestModePlanErrorTest) {
+    auto sql_case = GetParam();
+    std::string sqlstr = sql_case.sql_str();
+    std::cout << sqlstr << std::endl;
+    LOG(INFO) << "ID: " << sql_case.id() << ", DESC: " << sql_case.desc();
+    if (boost::contains(sql_case.mode(), "request-unsupport")) {
+        LOG(INFO) << "Skip mode " << sql_case.mode();
+        return;
+    }
+    std::unique_ptr<zetasql::ParserOutput> parser_output;
+    base::Status status;
+    auto zetasql_status = zetasql::ParseScript(sqlstr, zetasql::ParserOptions(),
+                                               zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
+    zetasql::ErrorLocation location;
+    GetErrorLocation(zetasql_status, &location);
+    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:" << zetasql::FormatError(zetasql_status) << "\n"
+                                      << GetErrorStringWithCaret(sqlstr, location);
+    const zetasql::ASTScript *script = parser_output->script();
+    std::cout << "script node: \n" << script->DebugString();
+
+    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_);
+    node::PlanNodeList plan_trees;
+    ASSERT_TRUE(0 != planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) << status;
+}
 }  // namespace plan
 }  // namespace hybridse
 
