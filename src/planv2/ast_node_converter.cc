@@ -198,8 +198,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             node::ExprListNode* args = nullptr;
             function_call->order_by();
             CHECK_STATUS(ConvertExprNodeList(function_call->arguments(), node_manager, &args))
-            *output = node_manager->MakeFuncNode(function_call->function()->ToIdentifierPathString(),
-                                                 args, nullptr);
+            *output = node_manager->MakeFuncNode(function_call->function()->ToIdentifierPathString(), args, nullptr);
             return base::Status::OK();
         }
         case zetasql::AST_ANALYTIC_FUNCTION_CALL: {
@@ -273,8 +272,8 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             int64_t interval_value;
             node::DataType interval_unit = node::DataType::kSecond;
             size_t image_len = literal->image().size();
-            hybridse::codec::StringRef str(std::string(literal->image().substr(0, image_len-1)));
-            switch (literal->image().data()[image_len-1]) {
+            hybridse::codec::StringRef str(std::string(literal->image().substr(0, image_len - 1)));
+            switch (literal->image().data()[image_len - 1]) {
                 case 'h':
                 case 'H': {
                     interval_unit = node::DataType::kHour;
@@ -464,11 +463,11 @@ base::Status ConvertWindowDefinition(const zetasql::ASTWindowDefinition* window_
     return base::Status::OK();
 }
 base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* window_spec,
-                                     node::NodeManager* node_manager, node::WindowDefNode** output) {
+                                        node::NodeManager* node_manager, node::WindowDefNode** output) {
     node::ExprListNode* partition_by = nullptr;
     node::OrderByNode* order_by = nullptr;
     node::FrameNode* frame_node = nullptr;
-    if (nullptr !=  window_spec->partition_by()) {
+    if (nullptr != window_spec->partition_by()) {
         CHECK_STATUS(
             ConvertExprNodeList(window_spec->partition_by()->partitioning_expressions(), node_manager, &partition_by))
     }
@@ -490,6 +489,199 @@ base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* w
     }
     return base::Status::OK();
 }
+base::Status ConvertSelectList(const zetasql::ASTSelectList* select_list, node::NodeManager* node_manager,
+                               node::SqlNodeList** output) {
+    base::Status status;
+    if (nullptr == select_list) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+    *output = node_manager->MakeNodeList();
+    for (auto select_column : select_list->columns()) {
+        std::string project_name;
+        node::ExprNode* project_expr = nullptr;
+        CHECK_STATUS(ConvertExprNode(select_column->expression(), node_manager, &project_expr))
+        project_name = nullptr != select_column->alias() ? select_column->alias()->GetAsString() : "";
+        (*output)->PushBack(node_manager->MakeResTargetNode(project_expr, project_name));
+    }
+    return base::Status::OK();
+}
+base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root, node::NodeManager* node_manager,
+                                        node::TableRefNode** output) {
+    base::Status status;
+    if (nullptr == root) {
+        *output = nullptr;
+        return status;
+    }
+    switch (root->node_kind()) {
+        case zetasql::AST_TABLE_PATH_EXPRESSION: {
+            auto table_path_expression = root->GetAsOrDie<zetasql::ASTTablePathExpression>();
 
+            std::string alias_name =
+                nullptr != table_path_expression->alias() ? table_path_expression->alias()->GetAsString() : "";
+            *output =
+                node_manager->MakeTableNode(table_path_expression->path_expr()->last_name()->GetAsString(), alias_name);
+            break;
+        }
+        case zetasql::AST_JOIN: {
+            auto join = root->GetAsOrDie<zetasql::ASTJoin>();
+            node::TableRefNode* left = nullptr;
+            node::TableRefNode* right = nullptr;
+            node::OrderByNode* order_by = nullptr;
+            node::ExprNode* condition = nullptr;
+            node::JoinType join_type = node::JoinType::kJoinTypeInner;
+            CHECK_STATUS(ConvertTableExpressionNode(join->lhs(), node_manager, &left))
+            CHECK_STATUS(ConvertTableExpressionNode(join->rhs(), node_manager, &right))
+            CHECK_STATUS(ConvertOrderBy(join->order_by(), node_manager, &order_by))
+            CHECK_STATUS(ConvertExprNode(join->on_clause()->expression(), node_manager, &condition))
+            switch (join->join_type()) {
+                case zetasql::ASTJoin::JoinType::FULL: {
+                    join_type = node::JoinType::kJoinTypeFull;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::LEFT: {
+                    join_type = node::JoinType::kJoinTypeLeft;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::RIGHT: {
+                    join_type = node::JoinType::kJoinTypeRight;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::LAST: {
+                    join_type = node::JoinType::kJoinTypeLast;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::INNER: {
+                    join_type = node::JoinType::kJoinTypeInner;
+                    break;
+                }
+                default: {
+                    status.msg = "Un-support join type " + join->GetSQLForJoinType();
+                    status.code = common::kSqlError;
+                    *output = nullptr;
+                    return status;
+                }
+            }
+            std::string alias_name = nullptr != join->alias() ? join->alias()->GetAsString() : "";
+            if (node::kJoinTypeLast == join_type) {
+                *output = node_manager->MakeLastJoinNode(left, right, order_by, condition, alias_name);
+            } else {
+                *output = node_manager->MakeJoinNode(left, right, join_type, condition, alias_name);
+            }
+            break;
+        }
+            //        case zetasql::AST_TABLE_SUBQUERY: {
+            //            const node::QueryRefNode *sub_query_node = dynamic_cast<const node::QueryRefNode *>(root);
+            //            if (!CreateQueryPlan(sub_query_node->query_, &plan_node, status)) {
+            //                return false;
+            //            }
+            //            if (!sub_query_node->alias_table_name_.empty()) {
+            //                *output = node_manager_->MakeRenamePlanNode(plan_node, sub_query_node->alias_table_name_);
+            //            } else {
+            //                *output = plan_node;
+            //            }
+            //            break;
+            //        }
+        default: {
+            status.msg = "fail to convert table expression, unrecognized type " + root->GetNodeKindString();
+            status.code = common::kPlanError;
+            LOG(WARNING) << status;
+            return status;
+        }
+    }
+
+    return base::Status::OK();
+}
+base::Status ConvertGroupItems(const zetasql::ASTGroupBy* group_by, node::NodeManager* node_manager,
+                               node::ExprListNode** output) {
+    if (nullptr == group_by) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+    *output = node_manager->MakeExprList();
+    for (auto grouping_item : group_by->grouping_items()) {
+        node::ExprNode* group_expr = nullptr;
+        CHECK_STATUS(ConvertExprNode(grouping_item->expression(), node_manager, &group_expr))
+        (*output)->AddChild(group_expr);
+    }
+    return base::Status::OK();
+}
+base::Status ConvertWindowClause(const zetasql::ASTWindowClause* window_clause, node::NodeManager* node_manager,
+                                 node::SqlNodeList** output) {
+    base::Status status;
+    if (nullptr == window_clause) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+    *output = node_manager->MakeNodeList();
+    for (auto window : window_clause->windows()) {
+        std::string project_name;
+        node::WindowDefNode* window_def = nullptr;
+        CHECK_STATUS(ConvertWindowDefinition(window, node_manager, &window_def))
+        (*output)->PushBack(window_def);
+    }
+    return base::Status::OK();
+}
+base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* node_manager,
+                              node::QueryNode** output) {
+    base::Status status;
+    if (nullptr == root) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+    const zetasql::ASTQueryExpression* query_expression = root->query_expr();
+    switch (query_expression->node_kind()) {
+        case zetasql::AST_SELECT: {
+            auto select_query = query_expression->GetAsOrNull<zetasql::ASTSelect>();
+            bool is_distinct = false;
+            node::SqlNodeList* select_list_ptr = nullptr;
+            node::SqlNodeList* tableref_list_ptr = nullptr;
+            node::ExprNode* where_expr = nullptr;
+            node::ExprListNode* group_expr_list = nullptr;
+            node::ExprNode* having_expr = nullptr;
+            // TODO(chenjing): handle order expression in table reference
+            node::ExprNode* order_expr_list = nullptr;
+            node::SqlNodeList* window_list_ptr = nullptr;
+            // TODO(chenjing): handle order expression in table reference
+            node::SqlNode* limit_ptr = nullptr;
+            node::TableRefNode* table_ref_node = nullptr;
+            CHECK_STATUS(ConvertSelectList(select_query->select_list(), node_manager, &select_list_ptr));
+            if (nullptr != select_query->from_clause()) {
+                CHECK_STATUS(ConvertTableExpressionNode(select_query->from_clause()->table_expression(), node_manager,
+                                                        &table_ref_node))
+                if (nullptr != table_ref_node) {
+                    tableref_list_ptr = node_manager->MakeNodeList();
+                    tableref_list_ptr->PushBack(table_ref_node);
+                }
+            }
+            if (nullptr != select_query->where_clause()) {
+                CHECK_STATUS(ConvertExprNode(select_query->where_clause()->expression(), node_manager, &where_expr))
+            }
+
+            if (nullptr != select_query->group_by()) {
+                CHECK_STATUS(ConvertGroupItems(select_query->group_by(), node_manager, &group_expr_list))
+            }
+
+            if (nullptr != select_query->having()) {
+                CHECK_STATUS(ConvertExprNode(select_query->having()->expression(), node_manager, &having_expr))
+            }
+
+            if (nullptr != select_query->window_clause()) {
+                CHECK_STATUS(ConvertWindowClause(select_query->window_clause(), node_manager, &window_list_ptr))
+            }
+            *output = node_manager->MakeSelectQueryNode(is_distinct, select_list_ptr, tableref_list_ptr, where_expr,
+                                                        group_expr_list, having_expr, order_expr_list, window_list_ptr,
+                                                        limit_ptr);
+            return base::Status::OK();
+        }
+        default: {
+            status.msg =
+                "can not create query plan node with invalid query type " + query_expression->GetNodeKindString();
+            status.code = common::kPlanError;
+            return status;
+        }
+    }
+    return base::Status::OK();
+}
 }  // namespace plan
 }  // namespace hybridse

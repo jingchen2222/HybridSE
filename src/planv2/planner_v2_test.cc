@@ -112,9 +112,9 @@ TEST_P(PlannerV2Test, PlannerSucessTest) {
     const zetasql::ASTScript *script = parser_output->script();
     std::cout << "script node: \n" << script->DebugString();
 
-    PlannerV2 *planner_ptr = new SimplePlannerV2(manager_);
+    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_);
     node::PlanNodeList plan_trees;
-    ASSERT_EQ(0, planner_ptr->CreatePlanTree(script, plan_trees, status)) << status;
+    ASSERT_EQ(0, planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) << status;
     LOG(INFO) << "logical plan:\n";
     for (auto tree : plan_trees) {
         LOG(INFO) << "statement : " << *tree << std::endl;

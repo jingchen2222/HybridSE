@@ -36,6 +36,15 @@ base::Status ConvertWindowDefinition(const zetasql::ASTWindowDefinition* window_
                                      node::NodeManager* node_manager, node::WindowDefNode** output);
 base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* window_spec,
                                      node::NodeManager* node_manager, node::WindowDefNode** output);
+base::Status ConvertWindowClause(const zetasql::ASTWindowClause* window_clause, node::NodeManager* node_manager,
+                                 node::SqlNodeList** output);
+base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root, node::NodeManager* node_manager,
+                                        node::TableRefNode** output);
+base::Status ConvertSelectList(const zetasql::ASTSelectList* select_list, node::NodeManager* node_manager,
+                               node::SqlNodeList** output);
+
+base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* node_manager,
+                              node::QueryNode** output);
 
 }  // namespace plan
 }  // namespace hybridse
