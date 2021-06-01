@@ -37,6 +37,14 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = node_manager->MakeExprIdNode(ast_expression->GetAsOrDie<zetasql::ASTIdentifier>()->GetAsString());
             return base::Status::OK();
         }
+        case zetasql::AST_EXPRESSION_SUBQUERY: {
+            auto expression_subquery = ast_expression->GetAsOrDie<zetasql::ASTExpressionSubquery>();
+            node::QueryNode* subquery = nullptr;
+
+            CHECK_STATUS(ConvertQueryNode(expression_subquery->query(), node_manager, &subquery))
+            *output = node_manager->MakeQueryExprNode(subquery);
+            return base::Status::OK();
+        }
         case zetasql::AST_PATH_EXPRESSION: {
             auto* path_expression = ast_expression->GetAsOrDie<zetasql::ASTPathExpression>();
             int num_names = path_expression->num_names();
@@ -484,7 +492,7 @@ base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* w
 
     if (nullptr != window_spec->union_table_references()) {
         union_tables = node_manager->MakeNodeList();
-        for(auto table_reference: window_spec->union_table_references()->table_references()) {
+        for (auto table_reference : window_spec->union_table_references()->table_references()) {
             node::TableRefNode* union_table = nullptr;
             CHECK_STATUS(ConvertTableExpressionNode(table_reference, node_manager, &union_table))
             union_tables->PushBack(union_table);
@@ -578,19 +586,14 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
             }
             break;
         }
-            // TODO(chenjing): support table subquery
-            //        case zetasql::AST_TABLE_SUBQUERY: {
-            //            const node::QueryRefNode *sub_query_node = dynamic_cast<const node::QueryRefNode *>(root);
-            //            if (!CreateQueryPlan(sub_query_node->query_, &plan_node, status)) {
-            //                return false;
-            //            }
-            //            if (!sub_query_node->alias_table_name_.empty()) {
-            //                *output = node_manager_->MakeRenamePlanNode(plan_node, sub_query_node->alias_table_name_);
-            //            } else {
-            //                *output = plan_node;
-            //            }
-            //            break;
-            //        }
+        case zetasql::AST_TABLE_SUBQUERY: {
+            auto table_subquery = root->GetAsOrDie<zetasql::ASTTableSubquery>();
+            std::string alias_name = nullptr == table_subquery->alias() ? "" : table_subquery->alias()->GetAsString();
+            node::QueryNode* subquery = nullptr;
+            CHECK_STATUS(ConvertQueryNode(table_subquery->subquery(), node_manager, &subquery))
+            *output = node_manager->MakeQueryRefNode(subquery, alias_name);
+            break;
+        }
         default: {
             status.msg = "fail to convert table expression, unrecognized type " + root->GetNodeKindString();
             status.code = common::kPlanError;

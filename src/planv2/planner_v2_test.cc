@@ -82,10 +82,10 @@ INSTANTIATE_TEST_CASE_P(
 //    SqlUnionParse, PlannerV2Test,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/union_query.yaml", FILTERS)));
 //
-// INSTANTIATE_TEST_CASE_P(
-//    SqlSubQueryParse, PlannerV2Test,
-//    testing::ValuesIn(sqlcase::InitCases("cases/plan/sub_query.yaml", FILTERS)));
-//
+ INSTANTIATE_TEST_CASE_P(
+    SqlSubQueryParse, PlannerV2Test,
+    testing::ValuesIn(sqlcase::InitCases("cases/plan/sub_query.yaml", FILTERS)));
+
 // INSTANTIATE_TEST_CASE_P(UdfParse, PlannerV2Test,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/udf.yaml", FILTERS)));
 //
