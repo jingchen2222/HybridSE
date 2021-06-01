@@ -482,6 +482,14 @@ base::Status ConvertWindowSpecification(const zetasql::ASTWindowSpecification* w
     bool exclude_current_time = window_spec->is_exclude_current_time();
     node::SqlNodeList* union_tables = nullptr;
 
+    if (nullptr != window_spec->union_table_references()) {
+        union_tables = node_manager->MakeNodeList();
+        for(auto table_reference: window_spec->union_table_references()->table_references()) {
+            node::TableRefNode* union_table = nullptr;
+            CHECK_STATUS(ConvertTableExpressionNode(table_reference, node_manager, &union_table))
+            union_tables->PushBack(union_table);
+        }
+    }
     *output = dynamic_cast<node::WindowDefNode*>(node_manager->MakeWindowDefNode(
         union_tables, partition_by, order_by, frame_node, exclude_current_time, instance_is_not_in_window));
     if (nullptr != window_spec->base_window_name()) {
@@ -570,6 +578,7 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
             }
             break;
         }
+            // TODO(chenjing): support table subquery
             //        case zetasql::AST_TABLE_SUBQUERY: {
             //            const node::QueryRefNode *sub_query_node = dynamic_cast<const node::QueryRefNode *>(root);
             //            if (!CreateQueryPlan(sub_query_node->query_, &plan_node, status)) {
