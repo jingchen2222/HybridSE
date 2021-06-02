@@ -196,13 +196,16 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
         case zetasql::AST_FUNCTION_CALL: {
             auto* function_call = ast_expression->GetAsOrDie<zetasql::ASTFunctionCall>();
             node::ExprListNode* args = nullptr;
-            function_call->order_by();
+            CHECK_TRUE(false == function_call->HasModifiers(), common::kSqlError,
+                       "Un-support Modifiers for function call")
             CHECK_STATUS(ConvertExprNodeList(function_call->arguments(), node_manager, &args))
             *output = node_manager->MakeFuncNode(function_call->function()->ToIdentifierPathString(), args, nullptr);
             return base::Status::OK();
         }
         case zetasql::AST_ANALYTIC_FUNCTION_CALL: {
             auto* analytic_function_call = ast_expression->GetAsOrDie<zetasql::ASTAnalyticFunctionCall>();
+
+
             node::ExprNode* function_call = nullptr;
             node::WindowDefNode* over_winodw = nullptr;
             CHECK_STATUS(ConvertExprNode(analytic_function_call->function(), node_manager, &function_call));
@@ -424,7 +427,7 @@ base::Status ConvertFrameNode(const zetasql::ASTWindowFrame* window_frame, node:
             break;
         }
         case zetasql::ASTWindowFrame::FrameUnit::RANGE: {
-            frame_type = node::kFrameRows;
+            frame_type = node::kFrameRange;
             break;
         }
         case zetasql::ASTWindowFrame::FrameUnit::ROWS_RANGE: {
@@ -517,6 +520,19 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
         case zetasql::AST_TABLE_PATH_EXPRESSION: {
             auto table_path_expression = root->GetAsOrDie<zetasql::ASTTablePathExpression>();
 
+            CHECK_TRUE(nullptr == table_path_expression->pivot_clause(), common::kSqlError,
+                       "Un-support pivot clause")
+            CHECK_TRUE(nullptr == table_path_expression->unpivot_clause(), common::kSqlError,
+                       "Un-support unpivot clause")
+            CHECK_TRUE(nullptr == table_path_expression->for_system_time(), common::kSqlError,
+                       "Un-support system time")
+            CHECK_TRUE(nullptr == table_path_expression->with_offset(), common::kSqlError,
+                       "Un-support scan WITH OFFSET")
+            CHECK_TRUE(nullptr == table_path_expression->sample_clause(), common::kSqlError,
+                       "Un-support tablesample clause")
+            CHECK_TRUE(nullptr == table_path_expression->hint(), common::kSqlError,
+                       "Un-support hint")
+
             std::string alias_name =
                 nullptr != table_path_expression->alias() ? table_path_expression->alias()->GetAsString() : "";
             *output =
@@ -525,6 +541,15 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
         }
         case zetasql::AST_JOIN: {
             auto join = root->GetAsOrDie<zetasql::ASTJoin>();
+            CHECK_TRUE(nullptr == join->hint(), common::kSqlError,
+                       "Un-support hint with join")
+
+            CHECK_TRUE(zetasql::ASTJoin::JoinHint::NO_JOIN_HINT == join->join_hint(), common::kSqlError,
+                       "Un-support join hint with join ", join->GetSQLForJoinHint())
+            CHECK_TRUE(nullptr == join->using_clause(), common::kSqlError,
+                       "Un-support USING clause with join ")
+            CHECK_TRUE(false == join->natural(), common::kSqlError,
+                       "Un-support natural with join ")
             node::TableRefNode* left = nullptr;
             node::TableRefNode* right = nullptr;
             node::OrderByNode* order_by = nullptr;
