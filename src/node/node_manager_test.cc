@@ -394,32 +394,6 @@ TEST_F(NodeManagerTest, RowMergeRowsRangeTest) {
     }
 }
 
-TEST_F(NodeManagerTest, MakeConstNodeTest) {
-    NodeManager *manager = new NodeManager();
-
-    {
-        auto node = manager->MakeConstNode();
-        ASSERT_TRUE(node->IsNull());
-    }
-    {
-        auto node = manager->MakeConstNode(10);
-        ASSERT_EQ(node::DataType::kInt32, node->GetDataType());
-        ASSERT_EQ(10, node->GetInt());
-    }
-    {
-        auto node = manager->MakeConstNode(static_cast<int64_t >(10));
-        ASSERT_EQ(node::DataType::kInt64, node->GetDataType());
-        ASSERT_EQ(10L, node->GetAsInt64());
-    }
-    {
-        // TODO(chenjing): assign DataType::kTTL to TTLType
-        auto node = manager->MakeConstNode(static_cast<int64_t >(10), node::TTLType::kLatest);
-        ASSERT_EQ(node::DataType::kInt64, node->GetDataType());
-        ASSERT_EQ(10L, node->GetAsInt64());
-        ASSERT_EQ(node::TTLType::kLatest, node->GetTTLType());
-    }
-    delete manager;
-}
 }  // namespace node
 }  // namespace hybridse
 
