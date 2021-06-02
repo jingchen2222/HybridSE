@@ -1703,13 +1703,7 @@ bool FrameBound::Equals(const SqlNode *node) const {
     return this->bound_type_ == that->bound_type_ &&
            this->offset_ == that->offset_;
 }
-bool NameNode::Equals(const SqlNode *node) const {
-    if (!SqlNode::Equals(node)) {
-        return false;
-    }
-    const NameNode *that = dynamic_cast<const NameNode *>(node);
-    return this->name_ == that->name_;
-}
+
 void BetweenExpr::Print(std::ostream &output,
                         const std::string &org_tab) const {
     ExprNode::Print(output, org_tab);

@@ -153,8 +153,11 @@ base::Status SimplePlannerV2::CreateASTQueryPlan(const zetasql::ASTQuery *root, 
     node::QueryNode* query_node = nullptr;
     CHECK_STATUS(ConvertQueryNode(root, node_manager_, &query_node))
     std::cout << *query_node << std::endl;
-    CreateQueryPlan(query_node, plan_tree, status);
-    return base::Status::OK();
+    if (CreateQueryPlan(query_node, plan_tree, status)) {
+        return base::Status::OK();
+    } else {
+        return status;
+    }
 }
 
 }  // namespace plan

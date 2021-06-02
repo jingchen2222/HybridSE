@@ -17,7 +17,7 @@ cases:
     desc: resolve请求主表失败
     mode: batch-unsupport
     sql: |
-      select col1, col2 from t1 union select c1 + c2 as col1, col2 from t2;
+      select col1, col2 from t1 union all select c1 + c2 as col1, col2 from t2;
   - id: 1
     desc: resolve请求主表失败
     mode: batch-unsupport
