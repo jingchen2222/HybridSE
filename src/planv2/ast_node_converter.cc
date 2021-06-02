@@ -225,18 +225,34 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
         case zetasql::AST_INT_LITERAL: {
             const zetasql::ASTIntLiteral* literal = ast_expression->GetAsOrDie<zetasql::ASTIntLiteral>();
             int64_t int_value;
-            hybridse::codec::StringRef str(literal->image().data());
             bool is_null;
-            hybridse::udf::v1::string_to_bigint(&str, &int_value, &is_null);
-            if (is_null) {
-                status.msg = "Invalid floating point literal: " + std::string(literal->image());
+
+            if (literal->is_hex()) {
+                status.msg = "Un-support hex integer literal: " + std::string(literal->image());
                 status.code = common::kSqlError;
                 return status;
-            }
-            if (int_value <= INT_MAX && int_value >= INT_MIN) {
-                *output = node_manager->MakeConstNode(static_cast<int>(int_value));
-            } else {
+            } else if (literal->is_long()) {
+                hybridse::codec::StringRef str(std::string(literal->image().substr(0, literal->image().size() - 1)));
+                hybridse::udf::v1::string_to_bigint(&str, &int_value, &is_null);
+                if (is_null) {
+                    status.msg = "Invalid long integer literal: " + std::string(literal->image());
+                    status.code = common::kSqlError;
+                    return status;
+                }
                 *output = node_manager->MakeConstNode(int_value);
+            } else {
+                hybridse::codec::StringRef str(literal->image().data());
+                hybridse::udf::v1::string_to_bigint(&str, &int_value, &is_null);
+                if (is_null) {
+                    status.msg = "Invalid integer literal: " + std::string(literal->image());
+                    status.code = common::kSqlError;
+                    return status;
+                }
+                if (int_value <= INT_MAX && int_value >= INT_MIN) {
+                    *output = node_manager->MakeConstNode(static_cast<int>(int_value));
+                } else {
+                    *output = node_manager->MakeConstNode(int_value);
+                }
             }
             return base::Status::OK();
         }
@@ -263,16 +279,29 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
         }
         case zetasql::AST_FLOAT_LITERAL: {
             const zetasql::ASTFloatLiteral* literal = ast_expression->GetAsOrDie<zetasql::ASTFloatLiteral>();
-            double double_value;
-            hybridse::codec::StringRef str(literal->image().data());
+
             bool is_null;
-            hybridse::udf::v1::string_to_double(&str, &double_value, &is_null);
-            if (is_null) {
-                status.msg = "Invalid floating point literal: " + std::string(literal->image());
-                status.code = common::kSqlError;
-                return status;
+            if (literal->is_float32()) {
+                float float_value = 0.0;
+                hybridse::codec::StringRef str(std::string(literal->image().substr(0, literal->image().size() - 1)));
+                hybridse::udf::v1::string_to_float(&str, &float_value, &is_null);
+                if (is_null) {
+                    status.msg = "Invalid float integer literal: " + std::string(literal->image());
+                    status.code = common::kSqlError;
+                    return status;
+                }
+                *output = node_manager->MakeConstNode(float_value);
+            } else {
+                double double_value = 0.0;
+                hybridse::codec::StringRef str(literal->image().data());
+                hybridse::udf::v1::string_to_double(&str, &double_value, &is_null);
+                if (is_null) {
+                    status.msg = "Invalid integer literal: " + std::string(literal->image());
+                    status.code = common::kSqlError;
+                    return status;
+                }
+                *output = node_manager->MakeConstNode(double_value);
             }
-            *output = node_manager->MakeConstNode(double_value);
             return base::Status::OK();
         }
         case zetasql::AST_INTERVAL_LITERAL: {
