@@ -162,7 +162,7 @@ TEST_P(PlannerV2ErrorTest, RequestModePlanErrorTest) {
     const zetasql::ASTScript *script = parser_output->script();
     std::cout << "script node: \n" << script->DebugString();
 
-    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_);
+    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_, false);
     node::PlanNodeList plan_trees;
     ASSERT_TRUE(0 != planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) << status;
 }
