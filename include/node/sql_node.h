@@ -842,7 +842,7 @@ class ConstNode : public ExprNode {
                 std::string date_str(val_.vstr);
                 std::vector<std::string> date_vec;
                 boost::split(date_vec, date_str, boost::is_any_of("-"), boost::token_compress_on);
-                if (date_vec.empty()) {
+                if (date_vec.size() < 3) {
                     LOG(WARNING) << "Invalid Date Format";
                     return false;
                 }
