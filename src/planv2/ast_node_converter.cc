@@ -201,6 +201,22 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = lhs;
             return base::Status();
         }
+        case zetasql::AST_BETWEEN_EXPRESSION: {
+            auto* between_expression = ast_expression->GetAsOrDie<zetasql::ASTBetweenExpression>();
+            node::ExprNode* expr = nullptr;
+            node::ExprNode* low = nullptr;
+            node::ExprNode* high = nullptr;
+            CHECK_STATUS(ConvertExprNode(between_expression->lhs(), node_manager, &expr))
+            CHECK_STATUS(ConvertExprNode(between_expression->low(), node_manager, &low))
+            CHECK_STATUS(ConvertExprNode(between_expression->high(), node_manager, &high))
+            if (between_expression->is_not()) {
+                *output = node_manager->MakeUnaryExprNode(node_manager->MakeBetweenExpr(expr, low, high),
+                                                          node::FnOperator::kFnOpNot);
+            } else {
+                *output = node_manager->MakeBetweenExpr(expr, low, high);
+            }
+            return base::Status();
+        }
         case zetasql::AST_FUNCTION_CALL: {
             auto* function_call = ast_expression->GetAsOrDie<zetasql::ASTFunctionCall>();
             node::ExprListNode* args = nullptr;
