@@ -64,14 +64,13 @@ INSTANTIATE_TEST_CASE_P(SqlGroupParse, PlannerV2Test,
 INSTANTIATE_TEST_CASE_P(SqlHavingParse, PlannerV2Test,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/having_query.yaml", FILTERS)));
 
-// INSTANTIATE_TEST_CASE_P(
-//    SqlOrderParse, PlannerV2Test,
-//    testing::ValuesIn(sqlcase::InitCases("cases/plan/order_query.yaml", FILTERS)));
+INSTANTIATE_TEST_CASE_P(SqlOrderParse, PlannerV2Test,
+                        testing::ValuesIn(sqlcase::InitCases("cases/plan/order_query.yaml", FILTERS)));
 
 INSTANTIATE_TEST_CASE_P(SqlJoinParse, PlannerV2Test,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/join_query.yaml", FILTERS)));
 
-//INSTANTIATE_TEST_CASE_P(SqlUnionParse, PlannerV2Test,
+// INSTANTIATE_TEST_CASE_P(SqlUnionParse, PlannerV2Test,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/union_query.yaml", FILTERS)));
 
 INSTANTIATE_TEST_CASE_P(SqlSubQueryParse, PlannerV2Test,

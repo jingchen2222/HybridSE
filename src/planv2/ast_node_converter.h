@@ -26,6 +26,8 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
 base::Status ConvertOrderBy(const zetasql::ASTOrderBy* order_by, node::NodeManager* node_manager,
                             node::OrderByNode** output);
 
+base::Status ConvertDotStart(const zetasql::ASTDotStar* dot_start_expression, node::NodeManager* node_manager,
+                             node::ExprNode** output);
 base::Status ConvertExprNodeList(const absl::Span<const zetasql::ASTExpression* const>& expression_list,
                                  node::NodeManager* node_manager, node::ExprListNode** output);
 base::Status ConvertFrameBound(const zetasql::ASTWindowFrameExpr* window_frame_expr, node::NodeManager* node_manager,

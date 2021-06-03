@@ -33,6 +33,11 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = node_manager->MakeAllNode("");
             return base::Status::OK();
         }
+        case zetasql::AST_DOT_STAR: {
+            auto dot_start_expression = ast_expression->GetAsOrDie<zetasql::ASTDotStar>();
+            CHECK_STATUS(ConvertDotStart(dot_start_expression, node_manager, output));
+            return base::Status::OK();
+        }
         case zetasql::AST_IDENTIFIER: {
             *output = node_manager->MakeExprIdNode(ast_expression->GetAsOrDie<zetasql::ASTIdentifier>()->GetAsString());
             return base::Status::OK();
@@ -404,7 +409,42 @@ base::Status ConvertOrderBy(const zetasql::ASTOrderBy* order_by, node::NodeManag
     *output = node_manager->MakeOrderByNode(ordering_expressions, is_asc_list);
     return base::Status::OK();
 }
+base::Status ConvertDotStart(const zetasql::ASTDotStar* dot_start_expression, node::NodeManager* node_manager,
+                             node::ExprNode** output) {
+    base::Status status;
+    if (nullptr == dot_start_expression) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+    if (nullptr == dot_start_expression->expr()) {
+        *output = node_manager->MakeAllNode("");
+        return base::Status::OK();
+    }
+    switch (dot_start_expression->expr()->node_kind()) {
+        case zetasql::AST_PATH_EXPRESSION: {
+            auto path_expression = dot_start_expression->expr()->GetAsOrDie<zetasql::ASTPathExpression>();
+            int num_names = path_expression->num_names();
+            if (1 == num_names) {
+                *output = node_manager->MakeAllNode(path_expression->first_name()->GetAsString(), "");
+            } else if (2 == num_names) {
+                *output = node_manager->MakeAllNode(path_expression->name(0)->GetAsString(),
+                                                    path_expression->name(1)->GetAsString());
+            } else {
+                status.code = common::kSqlError;
+                status.msg = "Invalid column path expression " + path_expression->ToIdentifierPathString();
+                return status;
+            }
+            break;
+        }
+        default: {
+            status.code = common::kSqlError;
+            status.msg = "Un-support dot star expression " + dot_start_expression->expr()->GetNodeKindString();
+            return status;
+        }
+    }
+    return base::Status::OK();
 
+}
 base::Status ConvertExprNodeList(const absl::Span<const zetasql::ASTExpression* const>& expression_list,
                                  node::NodeManager* node_manager, node::ExprListNode** output) {
     if (expression_list.empty()) {
@@ -706,6 +746,10 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
         return base::Status::OK();
     }
     const zetasql::ASTQueryExpression* query_expression = root->query_expr();
+    node::OrderByNode* order_by = nullptr;
+    if (nullptr != root->order_by()) {
+        CHECK_STATUS(ConvertOrderBy(root->order_by(), node_manager, &order_by));
+    }
     switch (query_expression->node_kind()) {
         case zetasql::AST_SELECT: {
             auto select_query = query_expression->GetAsOrNull<zetasql::ASTSelect>();
@@ -715,8 +759,6 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
             node::ExprNode* where_expr = nullptr;
             node::ExprListNode* group_expr_list = nullptr;
             node::ExprNode* having_expr = nullptr;
-            // TODO(chenjing): handle order expression in table reference
-            node::ExprNode* order_expr_list = nullptr;
             node::SqlNodeList* window_list_ptr = nullptr;
             // TODO(chenjing): handle order expression in table reference
             node::SqlNode* limit_ptr = nullptr;
@@ -745,9 +787,9 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
             if (nullptr != select_query->window_clause()) {
                 CHECK_STATUS(ConvertWindowClause(select_query->window_clause(), node_manager, &window_list_ptr))
             }
-            *output = node_manager->MakeSelectQueryNode(is_distinct, select_list_ptr, tableref_list_ptr, where_expr,
-                                                        group_expr_list, having_expr, order_expr_list, window_list_ptr,
-                                                        limit_ptr);
+            *output =
+                node_manager->MakeSelectQueryNode(is_distinct, select_list_ptr, tableref_list_ptr, where_expr,
+                                                  group_expr_list, having_expr, order_by, window_list_ptr, limit_ptr);
             return base::Status::OK();
         }
         default: {
