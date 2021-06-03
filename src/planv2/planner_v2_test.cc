@@ -138,10 +138,14 @@ class PlannerV2ErrorTest : public ::testing::TestWithParam<SqlCase> {
 INSTANTIATE_TEST_CASE_P(
     SqlErrorQuery, PlannerV2ErrorTest,
     testing::ValuesIn(sqlcase::InitCases("cases/plan/error_query.yaml", FILTERS)));
+INSTANTIATE_TEST_CASE_P(
+    SqlUnsupporQuery, PlannerV2ErrorTest,
+    testing::ValuesIn(sqlcase::InitCases("cases/plan/error_unsupport_sql.yaml", FILTERS)));
 
 INSTANTIATE_TEST_CASE_P(
     SqlErrorRequestQuery, PlannerV2ErrorTest,
     testing::ValuesIn(sqlcase::InitCases("cases/plan/error_request_query.yaml", FILTERS)));
+
 TEST_P(PlannerV2ErrorTest, RequestModePlanErrorTest) {
     auto sql_case = GetParam();
     std::string sqlstr = sql_case.sql_str();
