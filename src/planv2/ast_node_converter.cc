@@ -738,6 +738,42 @@ base::Status ConvertWindowClause(const zetasql::ASTWindowClause* window_clause, 
     }
     return base::Status::OK();
 }
+base::Status ConvertLimitOffsetNode(const zetasql::ASTLimitOffset* limit_offset, node::NodeManager* node_manager,
+                                    node::SqlNode ** output) {
+    base::Status status;
+    if (nullptr == limit_offset) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+
+    CHECK_TRUE(nullptr == limit_offset->offset(), common::kSqlError,
+               "Un-support OFFSET")
+
+    if (nullptr != limit_offset->limit()) {
+        node::ExprNode* limit = nullptr;
+        CHECK_STATUS(ConvertExprNode(limit_offset->limit(), node_manager, &limit))
+        CHECK_TRUE(node::kExprPrimary == limit->GetExprType(), common::kSqlError,
+                   "Un-support LIMIT with expression type ", limit_offset->GetNodeKindString())
+        node::ConstNode * value = dynamic_cast<node::ConstNode*>(limit);
+        switch (value->GetDataType()) {
+            case node::kInt16:
+            case node::kInt32:
+            case node::kInt64: {
+                *output = node_manager->MakeLimitNode(value->GetAsInt64());
+                return base::Status::OK();
+            }
+            default: {
+                status.code = common::kSqlError;
+                status.msg = "Un-support LIMIT with expression type " + limit_offset->GetNodeKindString();
+                return status;
+            }
+        }
+    } else {
+        status.code = common::kSqlError;
+        status.msg = "Un-support LIMIT with null expression";
+        return status;
+    }
+}
 base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* node_manager,
                               node::QueryNode** output) {
     base::Status status;
@@ -750,6 +786,10 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
     if (nullptr != root->order_by()) {
         CHECK_STATUS(ConvertOrderBy(root->order_by(), node_manager, &order_by));
     }
+    node::SqlNode* limit = nullptr;
+    if (nullptr != root->limit_offset()) {
+        CHECK_STATUS(ConvertLimitOffsetNode(root->limit_offset(), node_manager, &limit));
+    }
     switch (query_expression->node_kind()) {
         case zetasql::AST_SELECT: {
             auto select_query = query_expression->GetAsOrNull<zetasql::ASTSelect>();
@@ -760,8 +800,6 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
             node::ExprListNode* group_expr_list = nullptr;
             node::ExprNode* having_expr = nullptr;
             node::SqlNodeList* window_list_ptr = nullptr;
-            // TODO(chenjing): handle order expression in table reference
-            node::SqlNode* limit_ptr = nullptr;
             node::TableRefNode* table_ref_node = nullptr;
             CHECK_STATUS(ConvertSelectList(select_query->select_list(), node_manager, &select_list_ptr));
             if (nullptr != select_query->from_clause()) {
@@ -789,7 +827,7 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
             }
             *output =
                 node_manager->MakeSelectQueryNode(is_distinct, select_list_ptr, tableref_list_ptr, where_expr,
-                                                  group_expr_list, having_expr, order_by, window_list_ptr, limit_ptr);
+                                                  group_expr_list, having_expr, order_by, window_list_ptr, limit);
             return base::Status::OK();
         }
         default: {
