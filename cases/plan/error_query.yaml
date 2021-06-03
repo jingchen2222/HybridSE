@@ -50,30 +50,3 @@ cases:
       SELECT
       sum(col2) OVER (PARTITION BY col1 ORDER BY col5 ROWS BETWEEN 10 PRECEDING AND CURRENT ROW MAXSIZE 20) as w1_col2_sum
       FROM t1;
-  - id: 6
-    desc: 不支持PIVOT
-    sql: |
-      SELECT * FROM t PIVOT(a FOR b IN (x));
-  - id: 7
-    desc: 不支持UNPIVOT
-    sql: |
-      SELECT * FROM t UNPIVOT(a FOR b IN (x));
-  - id: 8
-    desc: 不支持FOR SYSTEM_TIME
-    sql: |
-      SELECT
-        *
-      FROM
-        t FOR SYSTEM_TIME AS OF TIMESTAMP('2011-01-01 12:20:20')
-  - id: 9
-    desc: 不支持WITH OFFSET
-    sql: |
-      SELECT
-        *
-      FROM
-        t1 WITH OFFSET AS offset,
-        t2 WITH OFFSET AS offset
-  - id: 10
-    desc: 不支持TABLESAMPLE
-    sql: |
-      select uId from Users TABLESAMPLE RESERVOIR (100 ROWS) REPEATABLE(10)
