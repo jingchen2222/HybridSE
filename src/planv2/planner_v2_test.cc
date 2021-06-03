@@ -110,6 +110,35 @@ TEST_P(PlannerV2Test, PlannerSucessTest) {
         LOG(INFO) << "statement : " << *tree << std::endl;
     }
 }
+TEST_P(PlannerV2Test, PlannerClusterOptTest) {
+    auto sql_case = GetParam();
+    std::string sqlstr = sql_case.sql_str();
+    std::cout << sqlstr << std::endl;
+    LOG(INFO) << "ID: " << sql_case.id() << ", DESC: " << sql_case.desc();
+    if (boost::contains(sql_case.mode(), "request-unsupport") ||
+        boost::contains(sql_case.mode(), "cluster-unsupport")) {
+        LOG(INFO) << "Skip mode " << sql_case.mode();
+        return;
+    }
+    std::unique_ptr<zetasql::ParserOutput> parser_output;
+    base::Status status;
+    auto zetasql_status = zetasql::ParseScript(sqlstr, zetasql::ParserOptions(),
+                                               zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
+    zetasql::ErrorLocation location;
+    GetErrorLocation(zetasql_status, &location);
+    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:" << zetasql::FormatError(zetasql_status) << "\n"
+                                      << GetErrorStringWithCaret(sqlstr, location);
+    const zetasql::ASTScript *script = parser_output->script();
+    std::cout << "script node: \n" << script->DebugString();
+
+    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_, false, true);
+    node::PlanNodeList plan_trees;
+    ASSERT_EQ(0, planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) << status;
+    LOG(INFO) << "logical plan:\n";
+    for (auto tree : plan_trees) {
+        LOG(INFO) << "statement : " << *tree << std::endl;
+    }
+}
 
 class PlannerV2ErrorTest : public ::testing::TestWithParam<SqlCase> {
  public:
