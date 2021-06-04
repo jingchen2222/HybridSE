@@ -1693,6 +1693,12 @@ sql_expr:
      {
      	$$ = node_manager->MakeBetweenExpr($1, $3, $5);
      }
+     | sql_expr NOT BETWEEN sql_expr AND sql_expr
+     {
+      	auto node = node_manager->MakeBetweenExpr($1, $4, $6);
+      	node->set_is_not_between(true);
+      	$$ = node;
+     }
      | sql_case_when_expr
      {
      	$$ = $1;

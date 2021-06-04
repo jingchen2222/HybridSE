@@ -214,12 +214,9 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             CHECK_STATUS(ConvertExprNode(between_expression->lhs(), node_manager, &expr))
             CHECK_STATUS(ConvertExprNode(between_expression->low(), node_manager, &low))
             CHECK_STATUS(ConvertExprNode(between_expression->high(), node_manager, &high))
-            if (between_expression->is_not()) {
-                *output = node_manager->MakeUnaryExprNode(node_manager->MakeBetweenExpr(expr, low, high),
-                                                          node::FnOperator::kFnOpNot);
-            } else {
-                *output = node_manager->MakeBetweenExpr(expr, low, high);
-            }
+            *output = node_manager->MakeBetweenExpr(expr, low, high);
+            (*output)->set_is_not_between(between_expression->is_not());
+
             return base::Status();
         }
         case zetasql::AST_FUNCTION_CALL: {

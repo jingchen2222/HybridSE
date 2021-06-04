@@ -682,7 +682,9 @@ AllNode* AllNode::ShadowCopy(NodeManager* nm) const {
 }
 
 BetweenExpr* BetweenExpr::ShadowCopy(NodeManager* nm) const {
-    return nm->MakeBetweenExpr(expr_, left_, right_);
+    auto node = nm->MakeBetweenExpr(expr_, left_, right_);
+    node->set_is_not_between(is_not_between_);
+    return node;
 }
 
 QueryExpr* QueryExpr::ShadowCopy(NodeManager* nm) const {
