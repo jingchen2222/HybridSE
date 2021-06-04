@@ -443,7 +443,6 @@ base::Status ConvertDotStart(const zetasql::ASTDotStar* dot_start_expression, no
         }
     }
     return base::Status::OK();
-
 }
 base::Status ConvertExprNodeList(const absl::Span<const zetasql::ASTExpression* const>& expression_list,
                                  node::NodeManager* node_manager, node::ExprListNode** output) {
@@ -631,6 +630,8 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
                        "Un-support tablesample clause")
             CHECK_TRUE(nullptr == table_path_expression->hint(), common::kSqlError, "Un-support hint")
 
+            CHECK_TRUE(table_path_expression->path_expr()->num_names() <= 2, common::kSqlError,
+                       "Invalid table path expression ", table_path_expression->path_expr()->ToIdentifierPathString());
             std::string alias_name =
                 nullptr != table_path_expression->alias() ? table_path_expression->alias()->GetAsString() : "";
             *output =
@@ -783,13 +784,9 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
     }
     const zetasql::ASTQueryExpression* query_expression = root->query_expr();
     node::OrderByNode* order_by = nullptr;
-    if (nullptr != root->order_by()) {
-        CHECK_STATUS(ConvertOrderBy(root->order_by(), node_manager, &order_by));
-    }
+    CHECK_STATUS(ConvertOrderBy(root->order_by(), node_manager, &order_by));
     node::SqlNode* limit = nullptr;
-    if (nullptr != root->limit_offset()) {
-        CHECK_STATUS(ConvertLimitOffsetNode(root->limit_offset(), node_manager, &limit));
-    }
+    CHECK_STATUS(ConvertLimitOffsetNode(root->limit_offset(), node_manager, &limit));
     switch (query_expression->node_kind()) {
         case zetasql::AST_SELECT: {
             auto select_query = query_expression->GetAsOrNull<zetasql::ASTSelect>();
