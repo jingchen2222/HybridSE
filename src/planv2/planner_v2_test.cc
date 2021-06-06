@@ -126,8 +126,7 @@ TEST_P(PlannerV2Test, PlannerClusterOptTest) {
                                                zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
     zetasql::ErrorLocation location;
     GetErrorLocation(zetasql_status, &location);
-    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:" << zetasql::FormatError(zetasql_status) << "\n"
-                                      << GetErrorStringWithCaret(sqlstr, location);
+    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:\n" << GetErrorStringWithCaret(sqlstr, location);
     const zetasql::ASTScript *script = parser_output->script();
     std::cout << "script node: \n" << script->DebugString();
 

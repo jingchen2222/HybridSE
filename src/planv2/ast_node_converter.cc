@@ -164,19 +164,12 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             auto* and_expression = ast_expression->GetAsOrDie<zetasql::ASTAndExpr>();
             node::ExprNode* lhs = nullptr;
             CHECK_STATUS(ConvertExprNode(and_expression->conjuncts(0), node_manager, &lhs))
-            if (nullptr == lhs) {
-                status.msg = "Invalid AND expression";
-                status.code = common::kSqlError;
-                return status;
-            }
+            CHECK_TRUE(nullptr != lhs, common::kSqlError, "Invalid AND expression")
+
             for (size_t i = 1; i < and_expression->conjuncts().size(); i++) {
                 node::ExprNode* rhs = nullptr;
                 CHECK_STATUS(ConvertExprNode(and_expression->conjuncts(i), node_manager, &rhs))
-                if (nullptr == rhs) {
-                    status.msg = "Invalid AND expression";
-                    status.code = common::kSqlError;
-                    return status;
-                }
+                CHECK_TRUE(nullptr != rhs, common::kSqlError, "Invalid AND expression")
                 lhs = node_manager->MakeBinaryExprNode(lhs, rhs, node::FnOperator::kFnOpAnd);
             }
             *output = lhs;
@@ -188,19 +181,11 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             auto* or_expression = ast_expression->GetAsOrDie<zetasql::ASTOrExpr>();
             node::ExprNode* lhs = nullptr;
             CHECK_STATUS(ConvertExprNode(or_expression->disjuncts()[0], node_manager, &lhs))
-            if (nullptr == lhs) {
-                status.msg = "Invalid OR expression";
-                status.code = common::kSqlError;
-                return status;
-            }
+            CHECK_TRUE(nullptr != lhs, common::kSqlError, "Invalid OR expression")
             for (size_t i = 1; i < or_expression->disjuncts().size(); i++) {
                 node::ExprNode* rhs = nullptr;
                 CHECK_STATUS(ConvertExprNode(or_expression->disjuncts()[i], node_manager, &rhs))
-                if (nullptr == rhs) {
-                    status.msg = "Invalid OR expression";
-                    status.code = common::kSqlError;
-                    return status;
-                }
+                CHECK_TRUE(nullptr != rhs, common::kSqlError, "Invalid OR expression")
                 lhs = node_manager->MakeBinaryExprNode(lhs, rhs, node::FnOperator::kFnOpOr);
             }
             *output = lhs;
@@ -305,7 +290,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                 hybridse::codec::StringRef str(std::string(literal->image().substr(0, literal->image().size() - 1)));
                 hybridse::udf::v1::string_to_float(&str, &float_value, &is_null);
                 if (is_null) {
-                    status.msg = "Invalid float integer literal: " + std::string(literal->image());
+                    status.msg = "Invalid float literal: " + std::string(literal->image());
                     status.code = common::kSqlError;
                     return status;
                 }
@@ -315,7 +300,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                 hybridse::codec::StringRef str(literal->image().data());
                 hybridse::udf::v1::string_to_double(&str, &double_value, &is_null);
                 if (is_null) {
-                    status.msg = "Invalid integer literal: " + std::string(literal->image());
+                    status.msg = "Invalid double literal: " + std::string(literal->image());
                     status.code = common::kSqlError;
                     return status;
                 }
@@ -350,11 +335,16 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                     interval_unit = node::DataType::kDay;
                     break;
                 }
+                default: {
+                    status.msg = "Invalid interval literal: " + std::string(literal->image());
+                    status.code = common::kSqlError;
+                    return status;
+                }
             }
             bool is_null;
             hybridse::udf::v1::string_to_bigint(&str, &interval_value, &is_null);
             if (is_null) {
-                status.msg = "Invalid floating point literal: " + std::string(literal->image());
+                status.msg = "Invalid interval literal: " + std::string(literal->image());
                 status.code = common::kSqlError;
                 return status;
             }
@@ -743,32 +733,26 @@ base::Status ConvertLimitOffsetNode(const zetasql::ASTLimitOffset* limit_offset,
         return base::Status::OK();
     }
 
-    CHECK_TRUE(nullptr == limit_offset->offset(), common::kSqlError,
-               "Un-support OFFSET")
+    CHECK_TRUE(nullptr == limit_offset->offset(), common::kSqlError, "Un-support OFFSET")
+    CHECK_TRUE(nullptr != limit_offset->limit(), common::kSqlError, "Un-support LIMIT with null expression")
 
-    if (nullptr != limit_offset->limit()) {
-        node::ExprNode* limit = nullptr;
-        CHECK_STATUS(ConvertExprNode(limit_offset->limit(), node_manager, &limit))
-        CHECK_TRUE(node::kExprPrimary == limit->GetExprType(), common::kSqlError,
-                   "Un-support LIMIT with expression type ", limit_offset->GetNodeKindString())
-        node::ConstNode * value = dynamic_cast<node::ConstNode*>(limit);
-        switch (value->GetDataType()) {
-            case node::kInt16:
-            case node::kInt32:
-            case node::kInt64: {
-                *output = node_manager->MakeLimitNode(value->GetAsInt64());
-                return base::Status::OK();
-            }
-            default: {
-                status.code = common::kSqlError;
-                status.msg = "Un-support LIMIT with expression type " + limit_offset->GetNodeKindString();
-                return status;
-            }
+    node::ExprNode* limit = nullptr;
+    CHECK_STATUS(ConvertExprNode(limit_offset->limit(), node_manager, &limit))
+    CHECK_TRUE(node::kExprPrimary == limit->GetExprType(), common::kSqlError, "Un-support LIMIT with expression type ",
+               limit_offset->GetNodeKindString())
+    node::ConstNode* value = dynamic_cast<node::ConstNode*>(limit);
+    switch (value->GetDataType()) {
+        case node::kInt16:
+        case node::kInt32:
+        case node::kInt64: {
+            *output = node_manager->MakeLimitNode(value->GetAsInt64());
+            return base::Status::OK();
         }
-    } else {
-        status.code = common::kSqlError;
-        status.msg = "Un-support LIMIT with null expression";
-        return status;
+        default: {
+            status.code = common::kSqlError;
+            status.msg = "Un-support LIMIT with expression type " + limit_offset->GetNodeKindString();
+            return status;
+        }
     }
 }
 base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* node_manager,
