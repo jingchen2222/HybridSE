@@ -106,6 +106,10 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                     op = node::FnOperator::kFnOpFDiv;
                     break;
                 }
+                case zetasql::ASTBinaryExpression::Op::IDIVIDE: {
+                    op = node::FnOperator::kFnOpDiv;
+                    break;
+                }
                 case zetasql::ASTBinaryExpression::Op::LIKE: {
                     op = node::FnOperator::kFnOpLike;
                     break;
