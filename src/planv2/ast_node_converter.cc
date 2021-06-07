@@ -110,6 +110,10 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                     op = node::FnOperator::kFnOpLike;
                     break;
                 }
+                case zetasql::ASTBinaryExpression::Op::MOD: {
+                    op = node::FnOperator::kFnOpMod;
+                    break;
+                }
                 default: {
                     status.msg = "Unsupport binary operator: " + binary_expression->GetSQLForOperator();
                     status.code = common::kSqlError;
