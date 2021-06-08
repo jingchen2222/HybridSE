@@ -524,6 +524,7 @@ ConstNode *NodeManager::MakeConstNode(const std::string &value) {
 ConstNode *NodeManager::MakeConstNode() {
     return RegisterNode(new ConstNode());
 }
+
 ConstNode *NodeManager::MakeConstNode(DataType type) {
     return RegisterNode(new ConstNode(type));
 }

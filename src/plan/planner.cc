@@ -21,7 +21,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "parser/parser.h"
 #include "plan/plan_api.h"
 #include "proto/fe_common.pb.h"
 

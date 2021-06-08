@@ -578,6 +578,7 @@ cases:
   -
     id: 19
     desc: case when window expression then window expression else null end
+    mode: zetasql-unsupport
     inputs:
       -
         columns: ["c1 string","c3 int","c4 bigint","c5 float","c6 double","c7 timestamp","c8 date"]
@@ -590,7 +591,7 @@ cases:
           - ["bb",24,34,1.5,2.5,1590738994000,"2020-05-05"]
     sql: |
       SELECT c1, c4,
-      case when at(c1, 0) OVER w1 == "aa" then sum(c4) over w1
+      case when lead(c1, 0) OVER w1 = "aa" then sum(c4) over w1
       else null end
       as sum_c1_w1 FROM {0}
       WINDOW w1 AS (PARTITION BY {0}.c1 ORDER BY {0}.c7 ROWS BETWEEN 2 PRECEDING AND CURRENT ROW);
@@ -605,6 +606,7 @@ cases:
         - ["bb",34,NULL]
   -
     id: 20
+    mode: zetasql-unsupport
     desc: case when window expr then window expr else window expr
     inputs:
       -
@@ -618,7 +620,7 @@ cases:
           - ["bb",24,34,1.5,2.5,1590738994000,"2020-05-05"]
     sql: |
       SELECT c1, c4,
-      case when at(c1, 0) OVER w1 == "aa" then sum(c4) over w1
+      case when lead(c1, 0) OVER w1 = "aa" then sum(c4) over w1
       else min(c4) over w1 end
       as sum_c1_w1 FROM {0}
       WINDOW w1 AS (PARTITION BY {0}.c1 ORDER BY {0}.c7 ROWS BETWEEN 2 PRECEDING AND CURRENT ROW);
@@ -633,6 +635,7 @@ cases:
         - ["bb",34,33]
   -
     id: 21
+    mode: zetasql-unsupport
     desc: case when simple expression then window expression else null end
     inputs:
       -

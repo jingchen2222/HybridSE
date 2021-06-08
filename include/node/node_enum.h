@@ -213,6 +213,7 @@ enum JoinType {
     kJoinTypeRight,
     kJoinTypeInner,
     kJoinTypeConcat,
+    kJoinTypeComma
 };
 
 enum UnionType { kUnionTypeDistinct, kUnionTypeAll };

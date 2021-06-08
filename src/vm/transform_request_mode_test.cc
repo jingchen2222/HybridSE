@@ -37,8 +37,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "node/node_manager.h"
-#include "parser/parser.h"
-#include "plan/planner.h"
+#include "plan/plan_api.h"
 #include "udf/default_udf_library.h"
 #include "udf/udf.h"
 #include "vm/sql_compiler.h"
@@ -55,6 +54,7 @@ namespace vm {
 
 using hybridse::sqlcase::SqlCase;
 const std::vector<std::string> FILTERS({"physical-plan-unsupport",
+                                        "zetasql-unsupport",
                                         "plan-unsupport", "parser-unsupport",
                                         "request-unsupport"});
 class TransformRequestModeTest : public ::testing::TestWithParam<SqlCase> {
@@ -75,21 +75,7 @@ void PhysicalPlanCheck(const std::shared_ptr<Catalog>& catalog, std::string sql,
     ::hybridse::node::PlanNodeList plan_trees;
     ::hybridse::base::Status base_status;
     {
-        ::hybridse::plan::SimplePlanner planner(&manager, false);
-        ::hybridse::parser::HybridSeParser parser;
-        ::hybridse::node::NodePointVector parser_trees;
-        parser.parse(sql, parser_trees, &manager, base_status);
-        ASSERT_EQ(0, base_status.code);
-        if (planner.CreatePlanTree(parser_trees, plan_trees, base_status) ==
-            0) {
-            std::ostringstream oss;
-            oss << *(plan_trees[0]);
-            LOG(INFO) << "logical plan:\n" << oss.str();
-        } else {
-            std::cout << base_status.str();
-        }
-
-        ASSERT_EQ(0, base_status.code);
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, &manager, base_status, false)) << base_status;
         std::cout.flush();
     }
 
@@ -209,21 +195,9 @@ void CheckTransformPhysicalPlan(const SqlCase& sql_case,
     ::hybridse::node::PlanNodeList plan_trees;
     ::hybridse::base::Status base_status;
     {
-        ::hybridse::plan::SimplePlanner planner(nm, false);
-        ::hybridse::parser::HybridSeParser parser;
-        ::hybridse::node::NodePointVector parser_trees;
-        parser.parse(sqlstr, parser_trees, nm, base_status);
-        ASSERT_EQ(0, base_status.code);
-        if (planner.CreatePlanTree(parser_trees, plan_trees, base_status) ==
-            0) {
-            std::ostringstream oss;
-            oss << *(plan_trees[0]) << std::endl;
-            std::cout << "logical plan:\n" << oss.str() << std::endl;
-        } else {
-            std::cout << base_status.str();
-        }
-
-        ASSERT_EQ(0, base_status.code);
+        ASSERT_TRUE(
+            plan::PlanAPI::CreatePlanTreeFromScript(sqlstr, plan_trees, nm, base_status, false, is_cluster_optimized))
+            << base_status;
         std::cout.flush();
     }
 
@@ -266,8 +240,7 @@ INSTANTIATE_TEST_CASE_P(
             "sum(col3) OVER w1 as w1_col3_sum, "
             "sum(col2) OVER w1 as w1_col2_sum "
             "FROM t1 WINDOW w1 AS (PARTITION BY col1 ORDER BY col5 ROWS_RANGE "
-            "BETWEEN 3 "
-            "PRECEDING AND CURRENT ROW) limit 10;",
+            "BETWEEN 3 PRECEDING AND CURRENT ROW) limit 10;",
             "LIMIT(limit=10, optimized)\n"
             "  PROJECT(type=Aggregation, limit=10)\n"
             "    REQUEST_UNION(partition_keys=(), orders=() ASC, "
@@ -295,7 +268,7 @@ INSTANTIATE_TEST_CASE_P(
             "*, "
             "sum(col2) OVER w1 as w1_col2_sum "
             "FROM t1 WINDOW w1 AS (PARTITION BY col3 ORDER BY col5 "
-            "ROWS_RANGE BETWEEN 3"
+            "ROWS_RANGE BETWEEN 3 "
             "PRECEDING AND CURRENT ROW) limit 10;",
             "LIMIT(limit=10, optimized)\n"
             "  PROJECT(type=Aggregation, limit=10)\n"

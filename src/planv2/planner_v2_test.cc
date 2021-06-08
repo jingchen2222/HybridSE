@@ -24,6 +24,7 @@
 #include "zetasql/parser/parser.h"
 #include "zetasql/public/error_helpers.h"
 #include "zetasql/public/error_location.pb.h"
+#include "plan/plan_api.h"
 namespace hybridse {
 namespace plan {
 
@@ -90,21 +91,9 @@ INSTANTIATE_TEST_CASE_P(SqlSubQueryParse, PlannerV2Test,
 TEST_P(PlannerV2Test, PlannerSucessTest) {
     std::string sqlstr = GetParam().sql_str();
     std::cout << sqlstr << std::endl;
-
-    std::unique_ptr<zetasql::ParserOutput> parser_output;
     base::Status status;
-    auto zetasql_status = zetasql::ParseScript(sqlstr, zetasql::ParserOptions(),
-                                               zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
-    zetasql::ErrorLocation location;
-    GetErrorLocation(zetasql_status, &location);
-    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:" << zetasql::FormatError(zetasql_status) << "\n"
-                                      << GetErrorStringWithCaret(sqlstr, location);
-    const zetasql::ASTScript *script = parser_output->script();
-    std::cout << "script node: \n" << script->DebugString();
-
-    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_);
     node::PlanNodeList plan_trees;
-    ASSERT_EQ(0, planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) << status;
+    ASSERT_TRUE(PlanAPI::CreatePlanTreeFromScript(sqlstr, plan_trees, manager_, status)) << status;
     LOG(INFO) << "logical plan:\n";
     for (auto tree : plan_trees) {
         LOG(INFO) << "statement : " << *tree << std::endl;
@@ -120,19 +109,9 @@ TEST_P(PlannerV2Test, PlannerClusterOptTest) {
         LOG(INFO) << "Skip mode " << sql_case.mode();
         return;
     }
-    std::unique_ptr<zetasql::ParserOutput> parser_output;
     base::Status status;
-    auto zetasql_status = zetasql::ParseScript(sqlstr, zetasql::ParserOptions(),
-                                               zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
-    zetasql::ErrorLocation location;
-    GetErrorLocation(zetasql_status, &location);
-    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:\n" << GetErrorStringWithCaret(sqlstr, location);
-    const zetasql::ASTScript *script = parser_output->script();
-    std::cout << "script node: \n" << script->DebugString();
-
-    SimplePlannerV2 *planner_ptr = new SimplePlannerV2(manager_, false, true);
     node::PlanNodeList plan_trees;
-    ASSERT_EQ(0, planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) << status;
+    plan::PlanAPI::CreatePlanTreeFromScript(sqlstr, plan_trees, manager_, status, false, true);
     LOG(INFO) << "logical plan:\n";
     for (auto tree : plan_trees) {
         LOG(INFO) << "statement : " << *tree << std::endl;

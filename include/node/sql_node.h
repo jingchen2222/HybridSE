@@ -726,6 +726,60 @@ class ConstNode : public ExprNode {
     ConstNode *ShadowCopy(NodeManager *) const override;
 
     const bool IsNull() const { return kNull == data_type_; }
+    const bool IsNumber() const {
+        switch (GetDataType()) {
+            case kBool:
+            case kInt16:
+            case kInt32:
+            case kInt64:
+            case kFloat:
+            case kDouble: {
+                return true;
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+    bool ConvertNegative() {
+        switch (GetDataType()) {
+            case kNull:
+            case kBool: {
+                return true;
+            }
+            case kInt16: {
+                val_.vsmallint = -val_.vsmallint;
+                return true;
+            }
+            case kInt32: {
+                val_.vint= -val_.vint;
+                return true;
+            }
+            case kInt64: {
+                val_.vlong= -val_.vlong;
+                return true;
+            }
+            case kFloat: {
+                val_.vfloat= -val_.vfloat;
+                return true;
+            }
+            case kDouble: {
+                val_.vdouble= -val_.vdouble;
+                return true;
+            }
+            case kSecond:
+            case kMinute:
+            case kHour:
+            case kDay: {
+                val_.vlong = - val_.vlong;
+            }
+
+            default: {
+                LOG(WARNING) << "Can't convert negative with const " + node::DataTypeName(data_type_);
+                return false;
+            }
+        }
+    }
     const bool IsPlaceholder() const { return kPlaceholder == data_type_; }
     const std::string GetExprString() const;
 

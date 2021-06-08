@@ -16,10 +16,42 @@
 #include "planv2/ast_node_converter.h"
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace hybridse {
 namespace plan {
+const std::unordered_map<std::string, node::DataType> &
+    ZETASQL_DATA_TYPE_MAP = {{"bool", node::kBool},
+                             {"int16", node::kInt16},
+                             {"int32", node::kInt32},
+                             {"float", node::kFloat},
+                             {"int64", node::kInt64},
+                             {"timestamp", node::kTimestamp},
+                             {"date", node::kDate},
+                             {"double", node::kDouble},
+                             {"string", node::kVarchar}};
+base::Status ConvertDataType(const zetasql::ASTType *ast_type, node::NodeManager* node_manager,
+                             node::DataType* output) {
+    CHECK_TRUE(nullptr != ast_type, common::kPlanError, "Un-support null ast type");
+    CHECK_TRUE(ast_type->IsType(), common::kPlanError, "Un-support ast node ", ast_type->DebugString());
 
+    switch (ast_type->node_kind()) {
+        case zetasql::AST_SIMPLE_TYPE: {
+            const zetasql::ASTSimpleType* simple_type = ast_type->GetAsOrDie<zetasql::ASTSimpleType>();
+            CHECK_TRUE(nullptr != simple_type, common::kPlanError, "Un-support nullptr simple type");
+            const std::string& type_name = simple_type->type_name()->ToIdentifierPathString();
+
+            CHECK_TRUE(ZETASQL_DATA_TYPE_MAP.find(type_name) != ZETASQL_DATA_TYPE_MAP.cend(), common::kPlanError,
+                       "Un-support type " + type_name)
+            *output = ZETASQL_DATA_TYPE_MAP.at(type_name);
+            return base::Status::OK();
+        }
+        default: {
+            return base::Status(common::kPlanError, "Un-support " + ast_type->GetNodeKindString());
+        }
+    }
+    return base::Status::OK();
+}
 base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node::NodeManager* node_manager,
                              node::ExprNode** output) {
     if (nullptr == ast_expression) {
@@ -56,12 +88,12 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             if (1 == num_names) {
                 *output = node_manager->MakeColumnRefNode(path_expression->first_name()->GetAsString(), "");
             } else if (2 == num_names) {
-                *output = node_manager->MakeColumnRefNode(path_expression->name(0)->GetAsString(),
-                                                          path_expression->name(1)->GetAsString());
+                *output = node_manager->MakeColumnRefNode(path_expression->name(1)->GetAsString(),
+                                                          path_expression->name(0)->GetAsString());
             } else if (3 == num_names) {
-                *output = node_manager->MakeColumnRefNode(path_expression->name(0)->GetAsString(),
+                *output = node_manager->MakeColumnRefNode(path_expression->name(2)->GetAsString(),
                                                           path_expression->name(1)->GetAsString(),
-                                                          path_expression->name(2)->GetAsString());
+                                                          path_expression->name(0)->GetAsString());
             } else {
                 status.code = common::kSqlError;
                 status.msg = "Invalid column path expression " + path_expression->ToIdentifierPathString();
@@ -140,6 +172,13 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             switch (unary_expression->op()) {
                 case zetasql::ASTUnaryExpression::Op::MINUS: {
                     op = node::FnOperator::kFnOpMinus;
+                    if (node::kExprPrimary == operand->expr_type_) {
+                        node::ConstNode* const_node = dynamic_cast<node::ConstNode*>(operand);
+                        CHECK_TRUE(const_node->ConvertNegative(), common::kPlanError, "Un-support negative ",
+                                   node::DataTypeName(const_node->GetDataType()))
+                        *output = const_node;
+                        return base::Status::OK();
+                    }
                     break;
                 }
                 case zetasql::ASTUnaryExpression::Op::NOT: {
@@ -147,11 +186,11 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                     break;
                 }
                 case zetasql::ASTUnaryExpression::Op::PLUS: {
-                    op = node::FnOperator::kFnOpAdd;
-                    break;
+                    *output = operand;
+                    return base::Status::OK();
                 }
                 default: {
-                    status.msg = "Unsupport unary operator: " + unary_expression->GetSQLForOperator();
+                    status.msg = "Un-support unary operator: " + unary_expression->GetSQLForOperator();
                     status.code = common::kSqlError;
                     return status;
                 }
@@ -224,6 +263,18 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                 dynamic_cast<node::CallExprNode*>(function_call)->SetOver(over_winodw);
             }
             *output = function_call;
+            return base::Status::OK();
+        }
+        case zetasql::AST_CAST_EXPRESSION: {
+            const zetasql::ASTCastExpression* cast_expression = ast_expression->GetAsOrDie<zetasql::ASTCastExpression>();
+            CHECK_TRUE(nullptr != cast_expression->expr(), common::kPlanError, "Invalid cast with null expr")
+            CHECK_TRUE(nullptr != cast_expression->type(), common::kPlanError, "Invalid cast with null type")
+
+            node::ExprNode* expr_node;
+            CHECK_STATUS(ConvertExprNode(cast_expression->expr(), node_manager, &expr_node))
+            node::DataType data_type = node::DataType::kNull;
+            ConvertDataType(cast_expression->type(), node_manager, &data_type);
+            *output = node_manager->MakeCastNode(data_type, expr_node);
             return base::Status::OK();
         }
         case zetasql::AST_INT_LITERAL: {
@@ -520,6 +571,8 @@ base::Status ConvertFrameNode(const zetasql::ASTWindowFrame* window_frame, node:
     }
     node::FrameBound* start = nullptr;
     node::FrameBound* end = nullptr;
+    CHECK_TRUE(nullptr != window_frame->start_expr(), common::kPlanError, "Un-support window frame with null start")
+    CHECK_TRUE(nullptr != window_frame->end_expr(), common::kPlanError, "Un-support window frame with null end")
     CHECK_STATUS(ConvertFrameBound(window_frame->start_expr(), node_manager, &start))
     CHECK_STATUS(ConvertFrameBound(window_frame->end_expr(), node_manager, &end))
     node::ExprNode* frame_size = nullptr;
@@ -640,7 +693,9 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
             CHECK_STATUS(ConvertTableExpressionNode(join->lhs(), node_manager, &left))
             CHECK_STATUS(ConvertTableExpressionNode(join->rhs(), node_manager, &right))
             CHECK_STATUS(ConvertOrderBy(join->order_by(), node_manager, &order_by))
-            CHECK_STATUS(ConvertExprNode(join->on_clause()->expression(), node_manager, &condition))
+            if (nullptr != join->on_clause()) {
+                CHECK_STATUS(ConvertExprNode(join->on_clause()->expression(), node_manager, &condition))
+            }
             switch (join->join_type()) {
                 case zetasql::ASTJoin::JoinType::FULL: {
                     join_type = node::JoinType::kJoinTypeFull;
@@ -660,6 +715,10 @@ base::Status ConvertTableExpressionNode(const zetasql::ASTTableExpression* root,
                 }
                 case zetasql::ASTJoin::JoinType::INNER: {
                     join_type = node::JoinType::kJoinTypeInner;
+                    break;
+                }
+                case zetasql::ASTJoin::JoinType::COMMA: {
+                    join_type = node::JoinType::kJoinTypeComma;
                     break;
                 }
                 default: {

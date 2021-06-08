@@ -21,6 +21,8 @@
 
 namespace hybridse {
 namespace plan {
+base::Status ConvertDataType(const zetasql::ASTType *ast_type, node::NodeManager* node_manager,
+                             node::DataType* output);
 base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node::NodeManager* node_manager,
                              node::ExprNode** output);
 base::Status ConvertOrderBy(const zetasql::ASTOrderBy* order_by, node::NodeManager* node_manager,
