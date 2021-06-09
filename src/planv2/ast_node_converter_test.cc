@@ -15,7 +15,6 @@
  */
 
 #include "planv2/ast_node_converter.h"
-#include "zetasql/parser/bison_parser.bison.h"
 #include "gtest/gtest.h"
 
 namespace hybridse {
