@@ -37,16 +37,14 @@ namespace codegen {
 
 class BlockIRBuilderTest : public ::testing::Test {
  public:
-    BlockIRBuilderTest() {
-        manager_ = new node::NodeManager();
-    }
+    BlockIRBuilderTest() { manager_ = new node::NodeManager(); }
     ~BlockIRBuilderTest() { delete manager_; }
 
  protected:
     node::NodeManager *manager_;
 };
 //
-//void CheckResult(node::NodeManager *manager, std::string test, int32_t res,
+// void CheckResult(node::NodeManager *manager, std::string test, int32_t res,
 //                 int32_t a, int32_t b) {
 //    node::NodePointVector trees;
 //    node::PlanNodeList plan_trees;
@@ -82,7 +80,7 @@ class BlockIRBuilderTest : public ::testing::Test {
 //    ASSERT_EQ(res, test_fn(a, b));
 //}
 //
-//TEST_F(BlockIRBuilderTest, test_mutable_variable_test) {
+// TEST_F(BlockIRBuilderTest, test_mutable_variable_test) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -96,7 +94,7 @@ class BlockIRBuilderTest : public ::testing::Test {
 //    CheckResult(manager_, test, 6, 2, 3);
 //}
 //
-//TEST_F(BlockIRBuilderTest, test_if_block) {
+// TEST_F(BlockIRBuilderTest, test_if_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -110,7 +108,7 @@ class BlockIRBuilderTest : public ::testing::Test {
 //    CheckResult(manager_, test, 2, 1, 2);
 //}
 //
-//TEST_F(BlockIRBuilderTest, test_if_else_block) {
+// TEST_F(BlockIRBuilderTest, test_if_else_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -125,7 +123,7 @@ class BlockIRBuilderTest : public ::testing::Test {
 //    CheckResult(manager_, test, 2, 1, 2);
 //}
 //
-//TEST_F(BlockIRBuilderTest, test_if_elif_else_block) {
+// TEST_F(BlockIRBuilderTest, test_if_elif_else_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -142,7 +140,7 @@ class BlockIRBuilderTest : public ::testing::Test {
 //    CheckResult(manager_, test, 2, 1, 2);
 //}
 //
-//TEST_F(BlockIRBuilderTest, test_if_else_block_redundant_ret) {
+// TEST_F(BlockIRBuilderTest, test_if_else_block_redundant_ret) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -160,7 +158,7 @@ class BlockIRBuilderTest : public ::testing::Test {
 //    CheckResult(manager_, test, 2, 1, 2);
 //}
 //
-//TEST_F(BlockIRBuilderTest, test_if_else_mutable_var_block) {
+// TEST_F(BlockIRBuilderTest, test_if_else_mutable_var_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"

@@ -27,6 +27,8 @@
 #include "proto/dbms.pb.h"
 #include "sdk/result_set_impl.h"
 #include "sdk/tablet_sdk.h"
+#include "plan/plan_api.h"
+#include "plan/planner.h"
 
 namespace hybridse {
 namespace sdk {
@@ -220,8 +222,7 @@ std::shared_ptr<ResultSet> DBMSSdkImpl::ExecuteQuery(const std::string &catalog,
 
     base::Status sql_status;
     node::PlanNodeList plan_trees;
-    ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, node_manager, sql_status)) << sql_status;
-
+    plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, &node_manager, sql_status);
     if (0 != sql_status.code) {
         status->code = sql_status.code;
         status->msg = sql_status.str();

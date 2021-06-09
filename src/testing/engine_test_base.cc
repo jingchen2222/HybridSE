@@ -316,7 +316,7 @@ Status EngineTestRunner::ExtractTableInfoFromCreateString(const std::string& cre
     base::Status status;
     node::PlanNodeList plan_trees;
     CHECK_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(create, plan_trees, &manager, status), common::kPlanError,
-               "Fail to resolve logical plan");
+               "Fail to resolve logical plan", status.msg);
     CHECK_TRUE(1u == plan_trees.size(), common::kPlanError, "Fail to extract table info with multi logical plan tree");
     CHECK_TRUE(nullptr != plan_trees[0] && node::kPlanTypeCreate == plan_trees[0]->type_, common::kPlanError,
                "Fail to extract table info with invalid SQL, CREATE SQL is required");

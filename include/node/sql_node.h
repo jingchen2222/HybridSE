@@ -533,9 +533,7 @@ class OrderByNode : public ExprNode {
     OrderByNode *ShadowCopy(NodeManager *) const override;
     const ExprListNode *order_by() const { return order_by_; }
     const std::vector<bool> &is_asc_list() const { return is_asc_list_; }
-    bool is_asc() const {
-        return is_asc_;
-    }
+    bool is_asc() const { return is_asc_; }
 
     const std::vector<bool> is_asc_list_;
     const bool is_asc_;
@@ -752,26 +750,26 @@ class ConstNode : public ExprNode {
                 return true;
             }
             case kInt32: {
-                val_.vint= -val_.vint;
+                val_.vint = -val_.vint;
                 return true;
             }
             case kInt64: {
-                val_.vlong= -val_.vlong;
+                val_.vlong = -val_.vlong;
                 return true;
             }
             case kFloat: {
-                val_.vfloat= -val_.vfloat;
+                val_.vfloat = -val_.vfloat;
                 return true;
             }
             case kDouble: {
-                val_.vdouble= -val_.vdouble;
+                val_.vdouble = -val_.vdouble;
                 return true;
             }
             case kSecond:
             case kMinute:
             case kHour:
             case kDay: {
-                val_.vlong = - val_.vlong;
+                val_.vlong = -val_.vlong;
             }
 
             default: {

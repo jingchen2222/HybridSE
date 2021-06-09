@@ -49,17 +49,15 @@ namespace codegen {
 
 class FnIRBuilderTest : public ::testing::Test {
  public:
-    FnIRBuilderTest() {
-        manager_ = new node::NodeManager();
-    }
+    FnIRBuilderTest() { manager_ = new node::NodeManager(); }
     ~FnIRBuilderTest() { delete manager_; }
 
  protected:
     node::NodeManager *manager_;
 };
 //
-//template <class R, class V1, class V2>
-//void CheckResult(std::string test, R exp, V1 a, V2 b) {
+// template <class R, class V1, class V2>
+// void CheckResult(std::string test, R exp, V1 a, V2 b) {
 //    node::NodePointVector trees;
 //    node::PlanNodeList plan_trees;
 //    base::Status status;
@@ -101,31 +99,31 @@ class FnIRBuilderTest : public ::testing::Test {
 //    ASSERT_EQ(exp, result);
 //}
 //
-//void CheckResult(std::string test, int32_t res, int32_t a, int32_t b) {
+// void CheckResult(std::string test, int32_t res, int32_t a, int32_t b) {
 //    CheckResult<int32_t, int32_t, int32_t>(test, res, a, b);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_add_int32) {
+// TEST_F(FnIRBuilderTest, test_add_int32) {
 //    const std::string test =
 //        "%%fun\ndef test(a:i32,b:i32):i32\n    c=a+b\n    d=c+1\n    return "
 //        "d\nend";
 //    CheckResult(test, 4, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_sub_int32) {
+// TEST_F(FnIRBuilderTest, test_sub_int32) {
 //    const std::string test =
 //        "%%fun\ndef test(a:i32,b:i32):i32\n    c=a-b\n    d=c+1\n    return "
 //        "d\nend";
 //    CheckResult(test, 0, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_bracket_int32) {
+// TEST_F(FnIRBuilderTest, test_bracket_int32) {
 //    const std::string test =
 //        "%%fun\ndef test(a:i32,b:i32):i32\n    c=a*(b+1)\n    return c\nend";
 //    CheckResult(test, 3, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_mutable_variable_test) {
+// TEST_F(FnIRBuilderTest, test_mutable_variable_test) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -138,7 +136,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //
 //    CheckResult(test, 6, 2, 3);
 //}
-//TEST_F(FnIRBuilderTest, test_if_block) {
+// TEST_F(FnIRBuilderTest, test_if_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -152,7 +150,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //    CheckResult(test, 2, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_if_else_block) {
+// TEST_F(FnIRBuilderTest, test_if_else_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -167,7 +165,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //    CheckResult(test, 2, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_if_elif_else_block) {
+// TEST_F(FnIRBuilderTest, test_if_elif_else_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -184,7 +182,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //    CheckResult(test, 2, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_if_else_block_redundant_ret) {
+// TEST_F(FnIRBuilderTest, test_if_else_block_redundant_ret) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -202,7 +200,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //    CheckResult(test, 2, 1, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_if_else_mutable_var_block) {
+// TEST_F(FnIRBuilderTest, test_if_else_mutable_var_block) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -232,15 +230,14 @@ class FnIRBuilderTest : public ::testing::Test {
 //    hybridse::codec::ArrayListV<int32_t> list(&vec);
 //    hybridse::codec::ListRef<> list_ref;
 //    list_ref.list = reinterpret_cast<int8_t *>(&list);
-//    CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 1,
-//&list_ref, 0); CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test,
-//3, &list_ref, 1); CheckResult<int32_t, hybridse::codec::ListRef<> *,
-//int32_t>(test, 5, &list_ref, 2); CheckResult<int32_t, hybridse::codec::ListRef<>
-//*, int32_t>(test, 7, &list_ref, 3); CheckResult<int32_t,
-//hybridse::codec::ListRef<> *, int32_t>(test, 9, &list_ref, 4);
+// CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 1, &list_ref, 0);
+// CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 3, &list_ref, 1);
+// CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 5, &list_ref, 2);
+// CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 7, &list_ref, 3);
+// CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 9, &list_ref, 4);
 //}*/
 //
-//TEST_F(FnIRBuilderTest, test_for_in_sum) {
+// TEST_F(FnIRBuilderTest, test_for_in_sum) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -258,7 +255,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //        test, 1 + 3 + 5 + 7 + 9, &list_ref, 0);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_for_in_sum_ret) {
+// TEST_F(FnIRBuilderTest, test_for_in_sum_ret) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -279,7 +276,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //        test, 1 + 3 + 5 + 7, &list_ref, 0);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_for_in_condition_sum) {
+// TEST_F(FnIRBuilderTest, test_for_in_condition_sum) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -304,7 +301,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //                                                                &list_ref, 3);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_for_in_condition2_sum) {
+// TEST_F(FnIRBuilderTest, test_for_in_condition2_sum) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -331,7 +328,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //        test, 4 + 2 + 1 + 2 + 2 + 2 + 2, &list_ref, 2);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_for_in_sum_add_assign) {
+// TEST_F(FnIRBuilderTest, test_for_in_sum_add_assign) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -348,7 +345,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //    CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(
 //        test, 1 + 3 + 5 + 7 + 9, &list_ref, 0);
 //}
-//TEST_F(FnIRBuilderTest, test_for_in_sum_minus_assign) {
+// TEST_F(FnIRBuilderTest, test_for_in_sum_minus_assign) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -366,7 +363,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //        test, -1 - 3 - 5 - 7 - 9, &list_ref, 0);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_for_in_sum_multi_assign) {
+// TEST_F(FnIRBuilderTest, test_for_in_sum_multi_assign) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -384,7 +381,7 @@ class FnIRBuilderTest : public ::testing::Test {
 //        test, 1 * 3 * 5 * 7 * 9, &list_ref, 0);
 //}
 //
-//TEST_F(FnIRBuilderTest, test_for_in_sum_fdiv_assign) {
+// TEST_F(FnIRBuilderTest, test_for_in_sum_fdiv_assign) {
 //    const std::string test =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):double\n"

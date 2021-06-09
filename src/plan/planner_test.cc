@@ -46,62 +46,62 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
     NodeManager *manager_;
 };
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlSimpleQueryParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/simple_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlRenameQueryParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/rename_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlWindowQueryParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/window_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlDistinctParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/distinct_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlWhereParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/where_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlGroupParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/group_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlHavingParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/having_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlOrderParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/order_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlJoinParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/join_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlUnionParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/union_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlSubQueryParse, PlannerTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/sub_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(UdfParse, PlannerTest,
+// INSTANTIATE_TEST_CASE_P(UdfParse, PlannerTest,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/udf.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerTest,
+// INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerTest,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerTest,
+// INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerTest,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerTest,
+// INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerTest,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
-//TEST_P(PlannerTest, PlannerSucessTest) {
+// TEST_P(PlannerTest, PlannerSucessTest) {
 //    std::string sqlstr = GetParam().sql_str();
 //    std::cout << sqlstr << std::endl;
 //
@@ -124,7 +124,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    }
 //}
 //
-//TEST_P(PlannerTest, PlannerClusterOptTest) {
+// TEST_P(PlannerTest, PlannerClusterOptTest) {
 //    auto sql_case = GetParam();
 //    std::string sqlstr = sql_case.sql_str();
 //    std::cout << sqlstr << std::endl;
@@ -153,7 +153,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    }
 //}
 //
-//TEST_F(PlannerTest, SimplePlannerCreatePlanTest) {
+// TEST_F(PlannerTest, SimplePlannerCreatePlanTest) {
 //    node::NodePointVector list;
 //    base::Status status;
 //    int ret = parser_->parse(
@@ -205,7 +205,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    delete planner_ptr;
 //}
 //
-//TEST_F(PlannerTest, SelectPlanWithWindowProjectTest) {
+// TEST_F(PlannerTest, SelectPlanWithWindowProjectTest) {
 //    node::NodePointVector list;
 //    node::PlanNodeList trees;
 //    base::Status status;
@@ -264,7 +264,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    delete planner_ptr;
 //}
 //
-//TEST_F(PlannerTest, SelectPlanWithMultiWindowProjectTest) {
+// TEST_F(PlannerTest, SelectPlanWithMultiWindowProjectTest) {
 //    node::NodePointVector list;
 //    node::PlanNodeList trees;
 //    base::Status status;
@@ -341,7 +341,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    delete planner_ptr;
 //}
 //
-//TEST_F(PlannerTest, WindowWithUnionTest) {
+// TEST_F(PlannerTest, WindowWithUnionTest) {
 //    node::NodePointVector list;
 //    node::PlanNodeList trees;
 //    base::Status status;
@@ -400,7 +400,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    delete planner_ptr;
 //}
 //
-//TEST_F(PlannerTest, MultiProjectListPlanPostTest) {
+// TEST_F(PlannerTest, MultiProjectListPlanPostTest) {
 //    node::NodePointVector list;
 //    node::PlanNodeList trees;
 //    base::Status status;
@@ -565,7 +565,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ("t1", relation_node->table_);
 //    delete planner_ptr;
 //}
-//TEST_F(PlannerTest, LastJoinPlanTest) {
+// TEST_F(PlannerTest, LastJoinPlanTest) {
 //    node::NodePointVector list;
 //    node::PlanNodeList trees;
 //    base::Status status;
@@ -662,7 +662,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    delete planner_ptr;
 //}
 //
-//TEST_F(PlannerTest, CreateStmtPlanTest) {
+// TEST_F(PlannerTest, CreateStmtPlanTest) {
 //    const std::string sql_str =
 //        "create table IF NOT EXISTS test(\n"
 //        "    column1 int NOT NULL,\n"
@@ -722,7 +722,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    //    ASSERT_EQ(3, index_node->GetVersionCount());
 //}
 //
-//TEST_F(PlannerTest, CmdStmtPlanTest) {
+// TEST_F(PlannerTest, CmdStmtPlanTest) {
 //    const std::string sql_str = "show databases;";
 //
 //    node::NodePointVector list;
@@ -747,7 +747,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(node::kCmdShowDatabases, cmd_plan->GetCmdType());
 //}
 //
-//TEST_F(PlannerTest, FunDefPlanTest) {
+// TEST_F(PlannerTest, FunDefPlanTest) {
 //    const std::string sql_str =
 //        "%%fun\ndef test(a:i32,b:i32):i32\n    c=a+b\n    d=c+1\n    return "
 //        "d\nend";
@@ -778,7 +778,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_TRUE(nullptr != plan->fn_def_->block_);
 //}
 //
-//TEST_F(PlannerTest, FunDefAndSelectPlanTest) {
+// TEST_F(PlannerTest, FunDefAndSelectPlanTest) {
 //    const std::string sql_str =
 //        "%%fun\ndef test(a:i32,b:i32):i32\n    c=a+b\n    d=c+1\n    return "
 //        "d\nend\n%%sql\nselect col1, test(col1, col2) from t1 limit 1;";
@@ -823,7 +823,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(1, limit_plan->GetLimitCnt());
 //}
 //
-//TEST_F(PlannerTest, FunDefIfElsePlanTest) {
+// TEST_F(PlannerTest, FunDefIfElsePlanTest) {
 //    const std::string sql_str =
 //        "%%fun\n"
 //        "def test(a:i32,b:i32):i32\n"
@@ -887,7 +887,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(1, limit_plan->GetLimitCnt());
 //}
 //
-//TEST_F(PlannerTest, FunDefIfElseComplexPlanTest) {
+// TEST_F(PlannerTest, FunDefIfElseComplexPlanTest) {
 //    const std::string sql_str =
 //        "%%fun\n"
 //        "def test(x:i32,y:i32):i32\n"
@@ -1032,7 +1032,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(1, limit_plan->GetLimitCnt());
 //}
 //
-//TEST_F(PlannerTest, FunDefForInPlanTest) {
+// TEST_F(PlannerTest, FunDefForInPlanTest) {
 //    const std::string sql_str =
 //        "%%fun\n"
 //        "def test(l:list<i32>, a:i32):i32\n"
@@ -1098,7 +1098,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(1, limit_plan->GetLimitCnt());
 //}
 //
-//TEST_F(PlannerTest, MergeWindowsTest) {
+// TEST_F(PlannerTest, MergeWindowsTest) {
 //    SimplePlanner planner_ptr(manager_, false);
 //    auto partitions =
 //        manager_->MakeExprList(manager_->MakeColumnRefNode("col1", "t1"));
@@ -1287,7 +1287,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    }
 //}
 //
-//TEST_F(PlannerTest, MergeWindowsWithMaxSizeTest) {
+// TEST_F(PlannerTest, MergeWindowsWithMaxSizeTest) {
 //    SimplePlanner planner_ptr(manager_, false);
 //    auto partitions =
 //        manager_->MakeExprList(manager_->MakeColumnRefNode("col1", "t1"));
@@ -1534,7 +1534,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //        ASSERT_FALSE(planner_ptr.MergeWindows(map, &windows));
 //    }
 //}
-//TEST_F(PlannerTest, WindowMergeOptTest) {
+// TEST_F(PlannerTest, WindowMergeOptTest) {
 //    const std::string sql =
 //        "      SELECT\n"
 //        "      sum(col1) OVER (PARTITION BY col1 ORDER BY col5 ROWS_RANGE "
@@ -1572,7 +1572,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ("range[-172800000,0],rows[-1000,0]",
 //              w->frame_node()->GetExprString());
 //}
-//TEST_F(PlannerTest, RowsWindowExpandTest) {
+// TEST_F(PlannerTest, RowsWindowExpandTest) {
 //    const std::string sql =
 //        "      SELECT\n"
 //        "      sum(col1) OVER (PARTITION BY col1 ORDER BY col5 ROWS_RANGE "
@@ -1623,7 +1623,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    }
 //}
 //
-//TEST_F(PlannerTest, CreatePlanLeakTest) {
+// TEST_F(PlannerTest, CreatePlanLeakTest) {
 //    const std::string sql =
 //        "      SELECT\n"
 //        "      sum(col1) OVER (PARTITION BY col1 ORDER BY col5 ROWS_RANGE "
@@ -1656,7 +1656,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    }
 //}
 //
-//TEST_F(PlannerTest, CreateSpParseTest) {
+// TEST_F(PlannerTest, CreateSpParseTest) {
 //    std::string sql =
 //        "create procedure sp1(const c1 string, const c3 int, c4 bigint,"
 //        "c5 float, c6 double, c7 timestamp, c8 date) "
@@ -1694,7 +1694,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(1, ret);
 //}
 //
-//class PlannerErrorTest : public ::testing::TestWithParam<SqlCase> {
+// class PlannerErrorTest : public ::testing::TestWithParam<SqlCase> {
 // public:
 //    PlannerErrorTest() {
 //        manager_ = new NodeManager();
@@ -1710,14 +1710,14 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    parser::HybridSeParser *parser_;
 //    NodeManager *manager_;
 //};
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlErrorQuery, PlannerErrorTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/error_query.yaml", FILTERS)));
 //
-//INSTANTIATE_TEST_CASE_P(
+// INSTANTIATE_TEST_CASE_P(
 //    SqlErrorRequestQuery, PlannerErrorTest,
 //    testing::ValuesIn(sqlcase::InitCases("cases/plan/error_request_query.yaml", FILTERS)));
-//TEST_P(PlannerErrorTest, ClusterRequestModePlanErrorTest) {
+// TEST_P(PlannerErrorTest, ClusterRequestModePlanErrorTest) {
 //    auto sql_case = GetParam();
 //    std::string sqlstr = sql_case.sql_str();
 //    std::cout << sqlstr << std::endl;
@@ -1736,7 +1736,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(common::kPlanError,
 //              planner_ptr.CreatePlanTree(parser_trees, plan_trees, status));
 //}
-//TEST_P(PlannerErrorTest, RequestModePlanErrorTest) {
+// TEST_P(PlannerErrorTest, RequestModePlanErrorTest) {
 //    auto sql_case = GetParam();
 //    std::string sqlstr = sql_case.sql_str();
 //    std::cout << sqlstr << std::endl;
@@ -1754,7 +1754,7 @@ class PlannerTest : public ::testing::TestWithParam<SqlCase> {
 //    ASSERT_EQ(common::kPlanError,
 //              planner_ptr.CreatePlanTree(parser_trees, plan_trees, status));
 //}
-//TEST_P(PlannerErrorTest, BatchModePlanErrorTest) {
+// TEST_P(PlannerErrorTest, BatchModePlanErrorTest) {
 //    auto sql_case = GetParam();
 //    std::string sqlstr = sql_case.sql_str();
 //    std::cout << sqlstr << std::endl;

@@ -70,8 +70,7 @@ TEST_F(FnLetIRBuilderTest, test_primary) {
     int8_t* row_ptr = reinterpret_cast<int8_t*>(&row);
     int8_t* window_ptr = nullptr;
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
     uint32_t out_size = *reinterpret_cast<uint32_t*>(output + 2);
     ASSERT_EQ(4, schema.size());
 
@@ -87,7 +86,7 @@ TEST_F(FnLetIRBuilderTest, test_primary) {
     free(buf);
 }
 // TODO(chenjing): cast expression
-//TEST_F(FnLetIRBuilderTest, test_column_cast_and_const_cast) {
+// TEST_F(FnLetIRBuilderTest, test_column_cast_and_const_cast) {
 //    // Create an LLJIT instance.
 //    std::string sql =
 //        "SELECT cast(col1 as bigint), col6, 1.0, date(\"2020-10-01\"), "
@@ -147,18 +146,15 @@ TEST_F(FnLetIRBuilderTest, test_multi_row_simple_query) {
     BuildT2Buf(table2, &buf2, &size2);
     int8_t* output = NULL;
 
-    Row row(1, Row(base::RefCountedSlice::Create(buf, size)), 1,
-            Row(base::RefCountedSlice::Create(buf2, size2)));
+    Row row(1, Row(base::RefCountedSlice::Create(buf, size)), 1, Row(base::RefCountedSlice::Create(buf2, size2)));
     int8_t* window_ptr = nullptr;
     int8_t* row_ptr = reinterpret_cast<int8_t*>(&row);
 
     vm::SchemasContext schemas_ctx;
-    schemas_ctx.BuildTrivial(
-        std::vector<const hybridse::type::TableDef*>({&table1, &table2}));
+    schemas_ctx.BuildTrivial(std::vector<const hybridse::type::TableDef*>({&table1, &table2}));
 
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, &schemas_ctx, "", sql, row_ptr, window_ptr,
-                      &schema, &output);
+    CheckFnLetBuilder(&manager, &schemas_ctx, "", sql, row_ptr, window_ptr, &schema, &output);
 
     ASSERT_EQ(4, schema.size());
     uint32_t out_size = *reinterpret_cast<uint32_t*>(output + 2);
@@ -201,8 +197,7 @@ TEST_F(FnLetIRBuilderTest, test_simple_project) {
     int8_t* output = NULL;
     int8_t* window_ptr = nullptr;
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
     ASSERT_EQ(1, schema.size());
     ASSERT_EQ(11u, *reinterpret_cast<uint32_t*>(output + 2));
     ASSERT_EQ(32u, *reinterpret_cast<uint32_t*>(output + 7));
@@ -220,8 +215,7 @@ TEST_F(FnLetIRBuilderTest, test_extern_udf_project) {
     int8_t* output = NULL;
     int8_t* window_ptr = nullptr;
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
     ASSERT_EQ(1, schema.size());
     ASSERT_EQ(11u, *reinterpret_cast<uint32_t*>(output + 2));
     ASSERT_EQ(33u, *reinterpret_cast<uint32_t*>(output + 7));
@@ -251,18 +245,12 @@ TEST_F(FnLetIRBuilderTest, test_extern_agg_sum_project) {
     codec::ListRef<> window_ref({ptr});
     int8_t* window_ptr = reinterpret_cast<int8_t*>(&window_ref);
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
-    ASSERT_EQ(1u + 11u + 111u + 1111u + 11111u,
-              *reinterpret_cast<uint32_t*>(output + 7));
-    ASSERT_EQ(3.1f + 33.1f + 333.1f + 3333.1f + 33333.1f,
-              *reinterpret_cast<float*>(output + 7 + 4));
-    ASSERT_EQ(4.1 + 44.1 + 444.1 + 4444.1 + 44444.1,
-              *reinterpret_cast<double*>(output + 7 + 4 + 4));
-    ASSERT_EQ(2 + 22 + 222 + 2222 + 22222,
-              *reinterpret_cast<int16_t*>(output + 7 + 4 + 4 + 8));
-    ASSERT_EQ(5L + 55L + 555L + 5555L + 55555L,
-              *reinterpret_cast<int64_t*>(output + 7 + 4 + 4 + 8 + 2));
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
+    ASSERT_EQ(1u + 11u + 111u + 1111u + 11111u, *reinterpret_cast<uint32_t*>(output + 7));
+    ASSERT_EQ(3.1f + 33.1f + 333.1f + 3333.1f + 33333.1f, *reinterpret_cast<float*>(output + 7 + 4));
+    ASSERT_EQ(4.1 + 44.1 + 444.1 + 4444.1 + 44444.1, *reinterpret_cast<double*>(output + 7 + 4 + 4));
+    ASSERT_EQ(2 + 22 + 222 + 2222 + 22222, *reinterpret_cast<int16_t*>(output + 7 + 4 + 4 + 8));
+    ASSERT_EQ(5L + 55L + 555L + 5555L + 55555L, *reinterpret_cast<int64_t*>(output + 7 + 4 + 4 + 8 + 2));
     free(ptr);
 }
 
@@ -290,22 +278,15 @@ TEST_F(FnLetIRBuilderTest, test_simple_window_project_mix) {
     codec::ListRef<> window_ref({ptr});
     int8_t* window_ptr = reinterpret_cast<int8_t*>(&window_ref);
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
     ASSERT_EQ(11111u, *reinterpret_cast<uint32_t*>(output + 7));
-    ASSERT_EQ(1u + 11u + 111u + 1111u + 11111u,
-              *reinterpret_cast<uint32_t*>(output + 7 + 4));
+    ASSERT_EQ(1u + 11u + 111u + 1111u + 11111u, *reinterpret_cast<uint32_t*>(output + 7 + 4));
     ASSERT_EQ(33333.1f, *reinterpret_cast<float*>(output + 7 + 4 + 4));
-    ASSERT_EQ(3.1f + 33.1f + 333.1f + 3333.1f + 33333.1f,
-              *reinterpret_cast<float*>(output + 7 + 4 + 4 + 4));
+    ASSERT_EQ(3.1f + 33.1f + 333.1f + 3333.1f + 33333.1f, *reinterpret_cast<float*>(output + 7 + 4 + 4 + 4));
     ASSERT_EQ(44444.1, *reinterpret_cast<double*>(output + 7 + 4 + 4 + 4 + 4));
-    ASSERT_EQ(4.1 + 44.1 + 444.1 + 4444.1 + 44444.1,
-              *reinterpret_cast<double*>(output + 7 + 4 + 4 + 4 + 4 + 8));
-    ASSERT_EQ(2 + 22 + 222 + 2222 + 22222,
-              *reinterpret_cast<int16_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8));
-    ASSERT_EQ(
-        5L + 55L + 555L + 5555L + 55555L,
-        *reinterpret_cast<int64_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8 + 2));
+    ASSERT_EQ(4.1 + 44.1 + 444.1 + 4444.1 + 44444.1, *reinterpret_cast<double*>(output + 7 + 4 + 4 + 4 + 4 + 8));
+    ASSERT_EQ(2 + 22 + 222 + 2222 + 22222, *reinterpret_cast<int16_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8));
+    ASSERT_EQ(5L + 55L + 555L + 5555L + 55555L, *reinterpret_cast<int64_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8 + 2));
     free(ptr);
 }
 
@@ -343,42 +324,32 @@ TEST_F(FnLetIRBuilderTest, test_join_window_project_mix) {
 
     ArrayListV<Row>* w = new ArrayListV<Row>(&window_t12);
     int8_t* output = NULL;
-    int8_t* row_ptr =
-        reinterpret_cast<int8_t*>(&window_t12[window_t12.size() - 1]);
+    int8_t* row_ptr = reinterpret_cast<int8_t*>(&window_t12[window_t12.size() - 1]);
     codec::ListRef<> window_ref({reinterpret_cast<int8_t*>(w)});
     int8_t* window_ptr = reinterpret_cast<int8_t*>(&window_ref);
 
     vm::SchemasContext schemas_ctx;
-    schemas_ctx.BuildTrivial(
-        std::vector<const type::TableDef*>({&table1, &table2}));
+    schemas_ctx.BuildTrivial(std::vector<const type::TableDef*>({&table1, &table2}));
     size_t sid = 111, cid = 222;
-    Status status =
-        schemas_ctx.ResolveColumnIndexByName("t1", "col1", &sid, &cid);
+    Status status = schemas_ctx.ResolveColumnIndexByName("t1", "col1", &sid, &cid);
     LOG(INFO) << status << " " << sid << " " << cid;
 
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, &schemas_ctx, "", sql, row_ptr, window_ptr,
-                      &schema, &output);
+    CheckFnLetBuilder(&manager, &schemas_ctx, "", sql, row_ptr, window_ptr, &schema, &output);
 
     // t1.col1
     ASSERT_EQ(11111u, *reinterpret_cast<uint32_t*>(output + 7));
     // sum(t1.col1)
-    ASSERT_EQ(1u + 11u + 111u + 1111u + 11111u,
-              *reinterpret_cast<uint32_t*>(output + 7 + 4));
+    ASSERT_EQ(1u + 11u + 111u + 1111u + 11111u, *reinterpret_cast<uint32_t*>(output + 7 + 4));
     // t1.col3
     ASSERT_EQ(33333.1f, *reinterpret_cast<float*>(output + 7 + 4 + 4));
     // sum(t1.col3)
-    ASSERT_EQ(3.1f + 33.1f + 333.1f + 3333.1f + 33333.1f,
-              *reinterpret_cast<float*>(output + 7 + 4 + 4 + 4));
+    ASSERT_EQ(3.1f + 33.1f + 333.1f + 3333.1f + 33333.1f, *reinterpret_cast<float*>(output + 7 + 4 + 4 + 4));
 
     ASSERT_EQ(55.5, *reinterpret_cast<double*>(output + 7 + 4 + 4 + 4 + 4));
-    ASSERT_EQ(11.1 + 22.2 + 33.3 + 44.4 + 55.5,
-              *reinterpret_cast<double*>(output + 7 + 4 + 4 + 4 + 4 + 8));
-    ASSERT_EQ(55 + 55 + 55 + 5 + 5,
-              *reinterpret_cast<int16_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8));
-    ASSERT_EQ(
-        5L + 55L + 555L + 5555L + 55555L,
-        *reinterpret_cast<int64_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8 + 2));
+    ASSERT_EQ(11.1 + 22.2 + 33.3 + 44.4 + 55.5, *reinterpret_cast<double*>(output + 7 + 4 + 4 + 4 + 4 + 8));
+    ASSERT_EQ(55 + 55 + 55 + 5 + 5, *reinterpret_cast<int16_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8));
+    ASSERT_EQ(5L + 55L + 555L + 5555L + 55555L, *reinterpret_cast<int64_t*>(output + 7 + 4 + 4 + 4 + 4 + 8 + 8 + 2));
     free(ptr);
 }
 
@@ -402,10 +373,8 @@ TEST_F(FnLetIRBuilderTest, test_extern_agg_min_project) {
     codec::ListRef<> window_ref({ptr});
     int8_t* window_ptr = reinterpret_cast<int8_t*>(&window_ref);
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
-    ASSERT_EQ(7u + 4u + 4u + 8u + 2u + 8u,
-              *reinterpret_cast<uint32_t*>(output + 2));
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
+    ASSERT_EQ(7u + 4u + 4u + 8u + 2u + 8u, *reinterpret_cast<uint32_t*>(output + 2));
     ASSERT_EQ(1u, *reinterpret_cast<uint32_t*>(output + 7));
     ASSERT_EQ(3.1f, *reinterpret_cast<float*>(output + 7 + 4));
     ASSERT_EQ(4.1, *reinterpret_cast<double*>(output + 7 + 4 + 4));
@@ -437,10 +406,8 @@ TEST_F(FnLetIRBuilderTest, test_extern_agg_max_project) {
     codec::ListRef<> window_ref({ptr});
     int8_t* window_ptr = reinterpret_cast<int8_t*>(&window_ref);
     vm::Schema schema;
-    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema,
-                      &output);
-    ASSERT_EQ(7u + 4u + 4u + 8u + 2u + 8u,
-              *reinterpret_cast<uint32_t*>(output + 2));
+    CheckFnLetBuilder(&manager, table1, "", sql, row_ptr, window_ptr, &schema, &output);
+    ASSERT_EQ(7u + 4u + 4u + 8u + 2u + 8u, *reinterpret_cast<uint32_t*>(output + 2));
     ASSERT_EQ(11111u, *reinterpret_cast<uint32_t*>(output + 7));
     ASSERT_EQ(33333.1f, *reinterpret_cast<float*>(output + 7 + 4));
     ASSERT_EQ(44444.1, *reinterpret_cast<double*>(output + 7 + 4 + 4));

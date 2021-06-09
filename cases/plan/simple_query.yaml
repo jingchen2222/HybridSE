@@ -87,7 +87,7 @@ cases:
     sql: SELECT COL1 != COL2 as col12 FROM t1;
   - id: 24-1
     desc: SELECT 逻辑关系表达式 '&&'
-    mode: zetasql-unsupport
+    tags: ["TODO", "zetasql-unsupport"]
     sql: SELECT COL1 >= COL2 && COL1 != COL2 as col12 FROM t1;
   - id: 24-2
     desc: SELECT 逻辑关系表达式 AND
@@ -97,7 +97,7 @@ cases:
     sql: SELECT COL1 >= COL2 and COL1 != COL2 and COL1 > COL2 as col12 FROM t1;
   - id: 26-1
     desc: SELECT 逻辑关系表达式 '||'
-    mode: zetasql-unsupport
+    tags: ["TODO", "zetasql-unsupport"]
     sql: SELECT COL1 >= COL2 || COL1 != COL2 as col12 FROM t1;
   - id: 26-2
     desc: SELECT 逻辑关系表达式 OR

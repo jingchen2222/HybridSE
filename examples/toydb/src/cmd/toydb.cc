@@ -24,7 +24,6 @@
 #include "base/texttable.h"
 #include "plan/plan_api.h"
 #include "sdk/tablet_sdk.h"
-
 #include "base/fe_linenoise.h"
 #include "base/fe_strings.h"
 #include "brpc/server.h"
@@ -308,9 +307,9 @@ void HandleSqlScript(
     {
         hybridse::node::NodeManager node_manager;
         hybridse::base::Status sql_status;
-        hybridse::node::NodePointVector parser_trees;
+        hybridse::node::PlanNodeList plan_trees;
         hybridse::plan::PlanAPI::CreateSyntaxTreeFromScript(
-            script, parser_trees, &node_manager, sql_status);
+            script, plan_trees, &node_manager, sql_status);
         if (0 != sql_status.code) {
             status.code = sql_status.code;
             status.msg = sql_status.str();
@@ -318,7 +317,7 @@ void HandleSqlScript(
             return;
         }
 
-        hybridse::node::SqlNode *node = parser_trees[0];
+        hybridse::node::PlanNode *node = plan_trees[0];
 
         if (nullptr == node) {
             status.msg = "fail to execute cmd: parser tree is null";
@@ -328,17 +327,17 @@ void HandleSqlScript(
         }
 
         switch (node->GetType()) {
-            case hybridse::node::kCmdStmt: {
+            case hybridse::node::kPlanTypeCreate: {
                 hybridse::node::CmdNode *cmd =
                     dynamic_cast<hybridse::node::CmdNode *>(node);
                 HandleCmd(cmd, status);
                 return;
             }
-            case hybridse::node::kCreateStmt: {
+            case hybridse::node::kPlanTypeCmd: {
                 dbms_sdk->ExecuteQuery(cmd_client_db.name, script, &status);
                 return;
             }
-            case hybridse::node::kInsertStmt: {
+            case hybridse::node::kPlanTypeInsert: {
                 if (!table_sdk) {
                     table_sdk =
                         ::hybridse::sdk::CreateTabletSdk(FLAGS_tablet_endpoint);
@@ -358,7 +357,8 @@ void HandleSqlScript(
                 std::cout << "Insert success" << std::endl;
                 return;
             }
-            case hybridse::node::kExplainStmt: {
+            case hybridse::node::kPlanTypeFuncDef:
+            case hybridse::node::kPlanTypeQuery: {
                 std::string empty;
                 std::string mu_script = script;
                 mu_script.replace(0u, 7u, empty);
@@ -370,8 +370,7 @@ void HandleSqlScript(
                 std::cout << info->GetPhysicalPlan() << std::endl;
                 return;
             }
-            case hybridse::node::kFnList:
-            case hybridse::node::kQuery: {
+            case hybridse::node::kPlanTypeQuery: {
                 if (!table_sdk) {
                     table_sdk =
                         ::hybridse::sdk::CreateTabletSdk(FLAGS_tablet_endpoint);

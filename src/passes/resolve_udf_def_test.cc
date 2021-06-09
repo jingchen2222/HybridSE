@@ -23,7 +23,7 @@ namespace passes {
 
 class ResolveUdfDefTest : public ::testing::Test {};
 //
-//TEST_F(ResolveUdfDefTest, TestResolve) {
+// TEST_F(ResolveUdfDefTest, TestResolve) {
 //    Status status;
 //    node::NodeManager nm;
 //    const std::string udf1 =
@@ -43,7 +43,7 @@ class ResolveUdfDefTest : public ::testing::Test {};
 //    ASSERT_TRUE(status.isOK());
 //}
 //
-//TEST_F(ResolveUdfDefTest, TestResolveFailed) {
+// TEST_F(ResolveUdfDefTest, TestResolveFailed) {
 //    Status status;
 //    node::NodeManager nm;
 //    const std::string udf1 =

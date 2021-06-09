@@ -15,22 +15,17 @@
  */
 #include "planv2/ast_node_converter.h"
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
+#include "boost/algorithm/string.hpp"
 
 namespace hybridse {
 namespace plan {
-const std::unordered_map<std::string, node::DataType> &
-    ZETASQL_DATA_TYPE_MAP = {{"bool", node::kBool},
-                             {"int16", node::kInt16},
-                             {"int32", node::kInt32},
-                             {"float", node::kFloat},
-                             {"int64", node::kInt64},
-                             {"timestamp", node::kTimestamp},
-                             {"date", node::kDate},
-                             {"double", node::kDouble},
-                             {"string", node::kVarchar}};
-base::Status ConvertDataType(const zetasql::ASTType *ast_type, node::NodeManager* node_manager,
+const std::unordered_map<std::string, node::DataType>& ZETASQL_DATA_TYPE_MAP = {
+    {"bool", node::kBool},           {"int16", node::kInt16}, {"smallint", node::kInt16}, {"int32", node::kInt32},
+    {"int", node::kInt32},           {"float", node::kFloat}, {"int64", node::kInt64},    {"bigint", node::kInt64},
+    {"timestamp", node::kTimestamp}, {"date", node::kDate},   {"double", node::kDouble},  {"string", node::kVarchar}};
+base::Status ConvertDataType(const zetasql::ASTType* ast_type, node::NodeManager* node_manager,
                              node::DataType* output) {
     CHECK_TRUE(nullptr != ast_type, common::kPlanError, "Un-support null ast type");
     CHECK_TRUE(ast_type->IsType(), common::kPlanError, "Un-support ast node ", ast_type->DebugString());
@@ -99,6 +94,56 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                 status.msg = "Invalid column path expression " + path_expression->ToIdentifierPathString();
                 return status;
             }
+            return base::Status::OK();
+        }
+        case zetasql::AST_CASE_VALUE_EXPRESSION: {
+            auto* case_expression = ast_expression->GetAsOrDie<zetasql::ASTCaseValueExpression>();
+            auto& arguments = case_expression->arguments();
+            CHECK_TRUE(arguments.size() >= 3, common::kPlanError,
+                       "Un-support case value expression with illegal argument size")
+            node::ExprNode* value = nullptr;
+            node::ExprListNode* when_list_expr = node_manager->MakeExprList();
+            node::ExprNode* else_expr = nullptr;
+            CHECK_STATUS(ConvertExprNode(arguments[0], node_manager, &value))
+            int i = 1;
+            while (i < arguments.size()) {
+                if (i < arguments.size() - 1) {
+                    node::ExprNode* when_expr = nullptr;
+                    node::ExprNode* then_expr = nullptr;
+                    CHECK_STATUS(ConvertExprNode(arguments[i], node_manager, &when_expr))
+                    CHECK_STATUS(ConvertExprNode(arguments[i + 1], node_manager, &then_expr))
+                    when_list_expr->PushBack(node_manager->MakeWhenNode(when_expr, then_expr));
+                    i += 2;
+                } else {
+                    CHECK_STATUS(ConvertExprNode(arguments[i], node_manager, &else_expr))
+                    i += 1;
+                }
+            }
+            *output = node_manager->MakeSimpleCaseWhenNode(value, when_list_expr, else_expr);
+            return base::Status::OK();
+        }
+        case zetasql::AST_CASE_NO_VALUE_EXPRESSION: {
+            auto* case_expression = ast_expression->GetAsOrDie<zetasql::ASTCaseNoValueExpression>();
+            auto& arguments = case_expression->arguments();
+            CHECK_TRUE(arguments.size() >= 2, common::kPlanError,
+                       "Un-support case value expression with ilegal argument size")
+            node::ExprListNode* when_list_expr = node_manager->MakeExprList();
+            node::ExprNode* else_expr = nullptr;
+            int i = 0;
+            while (i < arguments.size()) {
+                if (i < arguments.size() - 1) {
+                    node::ExprNode* when_expr = nullptr;
+                    node::ExprNode* then_expr = nullptr;
+                    CHECK_STATUS(ConvertExprNode(arguments[i], node_manager, &when_expr))
+                    CHECK_STATUS(ConvertExprNode(arguments[i + 1], node_manager, &then_expr))
+                    when_list_expr->PushBack(node_manager->MakeWhenNode(when_expr, then_expr));
+                    i += 2;
+                } else {
+                    CHECK_STATUS(ConvertExprNode(arguments[i], node_manager, &else_expr))
+                    i += 1;
+                }
+            }
+            *output = node_manager->MakeSearchedCaseWhenNode(when_list_expr, else_expr);
             return base::Status::OK();
         }
         case zetasql::AST_BINARY_EXPRESSION: {
@@ -246,17 +291,28 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             CHECK_STATUS(ConvertExprNode(between_expression->lhs(), node_manager, &expr))
             CHECK_STATUS(ConvertExprNode(between_expression->low(), node_manager, &low))
             CHECK_STATUS(ConvertExprNode(between_expression->high(), node_manager, &high))
-            *output =  node_manager->MakeBetweenExpr(expr, low, high, between_expression->is_not());
+            *output = node_manager->MakeBetweenExpr(expr, low, high, between_expression->is_not());
 
             return base::Status();
         }
         case zetasql::AST_FUNCTION_CALL: {
             auto* function_call = ast_expression->GetAsOrDie<zetasql::ASTFunctionCall>();
-            node::ExprListNode* args = nullptr;
             CHECK_TRUE(false == function_call->HasModifiers(), common::kSqlError,
                        "Un-support Modifiers for function call")
-            CHECK_STATUS(ConvertExprNodeList(function_call->arguments(), node_manager, &args))
-            *output = node_manager->MakeFuncNode(function_call->function()->ToIdentifierPathString(), args, nullptr);
+            auto function_name = function_call->function()->ToIdentifierPathString();
+            boost::to_lower(function_name);
+            // Convert function call TYPE(value) to cast expression CAST(value as TYPE)
+            if (ZETASQL_DATA_TYPE_MAP.find(function_name) != ZETASQL_DATA_TYPE_MAP.cend() &&
+                1 == function_call->arguments().size()) {
+                node::ExprNode* arg;
+                CHECK_STATUS(ConvertExprNode(function_call->arguments()[0], node_manager, &arg))
+                *output = node_manager->MakeCastNode(ZETASQL_DATA_TYPE_MAP.at(function_name), arg);
+            } else {
+                node::ExprListNode* args = nullptr;
+                CHECK_STATUS(ConvertExprNodeList(function_call->arguments(), node_manager, &args))
+                *output = node_manager->MakeFuncNode(function_name, args, nullptr);
+            }
+
             return base::Status::OK();
         }
         case zetasql::AST_ANALYTIC_FUNCTION_CALL: {
@@ -274,7 +330,8 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             return base::Status::OK();
         }
         case zetasql::AST_CAST_EXPRESSION: {
-            const zetasql::ASTCastExpression* cast_expression = ast_expression->GetAsOrDie<zetasql::ASTCastExpression>();
+            const zetasql::ASTCastExpression* cast_expression =
+                ast_expression->GetAsOrDie<zetasql::ASTCastExpression>();
             CHECK_TRUE(nullptr != cast_expression->expr(), common::kPlanError, "Invalid cast with null expr")
             CHECK_TRUE(nullptr != cast_expression->type(), common::kPlanError, "Invalid cast with null type")
 
@@ -793,7 +850,7 @@ base::Status ConvertWindowClause(const zetasql::ASTWindowClause* window_clause, 
     return base::Status::OK();
 }
 base::Status ConvertLimitOffsetNode(const zetasql::ASTLimitOffset* limit_offset, node::NodeManager* node_manager,
-                                    node::SqlNode ** output) {
+                                    node::SqlNode** output) {
     base::Status status;
     if (nullptr == limit_offset) {
         *output = nullptr;
@@ -869,9 +926,8 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
             if (nullptr != select_query->window_clause()) {
                 CHECK_STATUS(ConvertWindowClause(select_query->window_clause(), node_manager, &window_list_ptr))
             }
-            *output =
-                node_manager->MakeSelectQueryNode(is_distinct, select_list_ptr, tableref_list_ptr, where_expr,
-                                                  group_expr_list, having_expr, order_by, window_list_ptr, limit);
+            *output = node_manager->MakeSelectQueryNode(is_distinct, select_list_ptr, tableref_list_ptr, where_expr,
+                                                        group_expr_list, having_expr, order_by, window_list_ptr, limit);
             return base::Status::OK();
         }
         default: {

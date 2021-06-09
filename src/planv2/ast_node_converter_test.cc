@@ -15,6 +15,7 @@
  */
 
 #include "planv2/ast_node_converter.h"
+#include "zetasql/parser/bison_parser.bison.h"
 #include "gtest/gtest.h"
 
 namespace hybridse {
@@ -25,6 +26,7 @@ class ASTNodeConverterTest : public ::testing::Test {
     ASTNodeConverterTest() {}
 
     ~ASTNodeConverterTest() {}
+    const zetasql_bison_parser::location location_;
 };
 
 TEST_F(ASTNodeConverterTest, UnSupportBinaryOp) {
@@ -258,17 +260,17 @@ TEST_F(ASTNodeConverterTest, ConvertFrameBoundTest) {
 TEST_F(ASTNodeConverterTest, ConvertFrameNodeTest) {
     node::NodeManager node_manager;
     {
-        zetasql::ASTWindowFrame expression;
         zetasql::ASTWindowFrameExpr start;
         zetasql::ASTWindowFrameExpr end;
         start.set_boundary_type(zetasql::ASTWindowFrameExpr::BoundaryType::UNBOUNDED_PRECEDING);
-        start.set_boundary_type(zetasql::ASTWindowFrameExpr::BoundaryType::UNBOUNDED_FOLLOWING);
         end.set_boundary_type(zetasql::ASTWindowFrameExpr::BoundaryType::CURRENT_ROW);
-        expression.AddChildren({&start, &end});
+        zetasql::ASTWindowFrame expression;
         expression.set_unit(zetasql::ASTWindowFrame::ROWS_RANGE);
+        expression.AddChildren({&start, &end});
+        dynamic_cast<zetasql::ASTNode*>(&expression)->InitFields();
         node::FrameNode* output = nullptr;
         base::Status status = ConvertFrameNode(&expression, &node_manager, &output);
-        ASSERT_TRUE(status.isOK());
+        ASSERT_TRUE(status.isOK()) << status;
     }
     {
         zetasql::ASTWindowFrame expression;
@@ -279,6 +281,7 @@ TEST_F(ASTNodeConverterTest, ConvertFrameNodeTest) {
         end.set_boundary_type(zetasql::ASTWindowFrameExpr::BoundaryType::CURRENT_ROW);
         expression.AddChildren({&start, &end});
         expression.set_unit(zetasql::ASTWindowFrame::RANGE);
+        dynamic_cast<zetasql::ASTNode*>(&expression)->InitFields();
         node::FrameNode* output = nullptr;
         base::Status status = ConvertFrameNode(&expression, &node_manager, &output);
         ASSERT_TRUE(status.isOK());
@@ -292,6 +295,7 @@ TEST_F(ASTNodeConverterTest, ConvertFrameNodeTest) {
         end.set_boundary_type(zetasql::ASTWindowFrameExpr::BoundaryType::CURRENT_ROW);
         expression.AddChildren({&start, &end});
         expression.set_unit(zetasql::ASTWindowFrame::ROWS);
+        dynamic_cast<zetasql::ASTNode*>(&expression)->InitFields();
         node::FrameNode* output = nullptr;
         base::Status status = ConvertFrameNode(&expression, &node_manager, &output);
         ASSERT_TRUE(status.isOK());
