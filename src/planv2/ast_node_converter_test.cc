@@ -26,7 +26,6 @@ class ASTNodeConverterTest : public ::testing::Test {
     ASTNodeConverterTest() {}
 
     ~ASTNodeConverterTest() {}
-    const zetasql_bison_parser::location location_;
 };
 
 TEST_F(ASTNodeConverterTest, UnSupportBinaryOp) {

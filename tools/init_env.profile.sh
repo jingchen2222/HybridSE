@@ -36,11 +36,6 @@ then
     popd
 
     ln -sf /depends/thirdparty thirdparty
-
-    if [ -r /etc/profile.d/enable-thirdparty.sh ]; then
-        # shellcheck disable=SC1091
-        source /etc/profile.d/enable-thirdparty.sh
-    fi
 else
     # shellcheck disable=SC1090
     source ~/.bash_profile
