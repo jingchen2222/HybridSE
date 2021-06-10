@@ -32,7 +32,7 @@ jobs:
       - name: Build Core
         run: |
           ./tools/hybridse_build.sh
-      - name: Core Test
+          
       - name: Core Test
         run: |
           ./tools/hybridse_core_test.sh
