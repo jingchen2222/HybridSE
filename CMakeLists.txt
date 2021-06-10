@@ -195,7 +195,6 @@ list(APPEND file_based_test_driver_LIBS
         alternations
         test_case_options
         test_case_outputs
-        file_based_test_driver
         test_case_mode
         logging
         path
@@ -203,14 +202,15 @@ list(APPEND file_based_test_driver_LIBS
         unified_diff_oss
         ret_check
         )
-set(ZETASQL_LIBS zetasql
+set(ZETASQL_LIBS
     re2
     ${ICU_LIBS}
     ${Protobuf_LIBRARIES}
     ${ABSL_LIBS}
+        ${file_based_test_driver_LIBS}
     date_proto
     timeofday_proto
-    latlng_proto
+    latlng_proto zetasql
     )
 if (PYSDK_ENABLE)
     set(Python_ADDITIONAL_VERSIONS "3.8;3.7;3.6;3.5;2.7" CACHE STRING "Python to use for binding")

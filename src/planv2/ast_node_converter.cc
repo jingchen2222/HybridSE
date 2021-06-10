@@ -105,7 +105,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             node::ExprListNode* when_list_expr = node_manager->MakeExprList();
             node::ExprNode* else_expr = nullptr;
             CHECK_STATUS(ConvertExprNode(arguments[0], node_manager, &value))
-            int i = 1;
+            size_t i = 1;
             while (i < arguments.size()) {
                 if (i < arguments.size() - 1) {
                     node::ExprNode* when_expr = nullptr;
@@ -129,7 +129,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                        "Un-support case value expression with ilegal argument size")
             node::ExprListNode* when_list_expr = node_manager->MakeExprList();
             node::ExprNode* else_expr = nullptr;
-            int i = 0;
+            size_t i = 0;
             while (i < arguments.size()) {
                 if (i < arguments.size() - 1) {
                     node::ExprNode* when_expr = nullptr;

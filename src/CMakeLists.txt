@@ -88,8 +88,8 @@ if (TESTING_ENABLE AND CORE_TESTING_ENABLE)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${TEST_TARGET_DIR})
 
         add_executable(${TEST_TARGET_NAME} ${TEST_SCRIPT} testing/engine_test_base.cc testing/test_base.cc)
-        target_link_libraries(${TEST_TARGET_NAME} gtest ${HYBRIDSE_CORE_LIBS} hybridse_flags
-                ${yaml_libs} ${BRPC_LIBS})
+        target_link_libraries(${TEST_TARGET_NAME} ${GTEST_LIBRARIES} ${HYBRIDSE_CORE_LIBS} hybridse_flags
+                ${yaml_libs} ${BRPC_LIBS} ${ZETASQL_LIBS})
         add_test(${TEST_TARGET_NAME}
                 ${CMAKE_CURRENT_BINARY_DIR}/${TEST_TARGET_DIR}/${TEST_TARGET_NAME}
                 --gtest_output=xml:${CMAKE_BINARY_DIR}/${TEST_TARGET_NAME}.xml)
@@ -110,8 +110,8 @@ endif ()
 
 # udf exporter
 add_executable(export_udf_info cmd/export_udf_info.cc)
-target_link_libraries(export_udf_info hybridse_core)
+target_link_libraries(export_udf_info hybridse_core ${ZETASQL_LIBS})
 
 # simple engine demo
 add_executable(simple_engine_demo cmd/simple_engine_demo.cc)
-target_link_libraries(simple_engine_demo hybridse_core)
+target_link_libraries(simple_engine_demo hybridse_core ${ZETASQL_LIBS} ${GTEST_LIBRARIES})

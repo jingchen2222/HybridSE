@@ -20,7 +20,6 @@
 #include <vector>
 #include "case/sql_case.h"
 #include "gtest/gtest.h"
-#include "zetasql/base/testing/status_matchers.h"
 #include "zetasql/parser/parser.h"
 #include "zetasql/public/error_helpers.h"
 #include "zetasql/public/error_location.pb.h"
@@ -147,7 +146,7 @@ TEST_P(PlannerV2ErrorTest, RequestModePlanErrorTest) {
                                                zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
     zetasql::ErrorLocation location;
     GetErrorLocation(zetasql_status, &location);
-    ZETASQL_ASSERT_OK(zetasql_status) << "ERROR:" << zetasql::FormatError(zetasql_status) << "\n"
+    ASSERT_TRUE(zetasql_status.ok()) << "ERROR:" << zetasql::FormatError(zetasql_status) << "\n"
                                       << GetErrorStringWithCaret(sqlstr, location);
     const zetasql::ASTScript *script = parser_output->script();
     std::cout << "script node: \n" << script->DebugString();
