@@ -51,6 +51,8 @@ base::Status ConvertLimitOffsetNode(const zetasql::ASTLimitOffset* limit_offset,
 base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* node_manager,
                               node::QueryNode** output);
 
+base::Status ConvertInsertStatement(const zetasql::ASTInsertStatement* root, node::NodeManager* node_manager,
+                                    node::InsertStmt** output);
 }  // namespace plan
 }  // namespace hybridse
 #endif  // SRC_PLANV2_AST_NODE_CONVERTER_H_

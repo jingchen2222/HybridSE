@@ -50,6 +50,7 @@ class SimplePlannerV2 : public SimplePlanner {
                        PlanNodeList &plan_trees,  // NOLINT
                        Status &status);           // NOLINT (runtime/references)
     base::Status CreateASTQueryPlan(const zetasql::ASTQuery *root, PlanNode **plan_tree);
+    base::Status CreateASTInsertPlan(const zetasql::ASTInsertStatement *root, PlanNode **plan_tree);
 };
 
 }  // namespace plan

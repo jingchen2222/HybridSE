@@ -110,14 +110,27 @@ int SimplePlannerV2::CreateASTScriptPlan(const zetasql::ASTScript *script, PlanN
                 //                plan_trees.push_back(cmd_plan);
                 //                break;
                 //            }
-                //            case node::kInsertStmt: {
-                //                node::PlanNode *insert_plan = nullptr;
-                //                if (!CreateInsertPlan(parser_tree, &insert_plan, status)) {
-                //                    return status.code;
-                //                }
-                //                plan_trees.push_back(insert_plan);
-                //                break;
-                //            }
+            case zetasql::AST_INSERT_STATEMENT: {
+                const zetasql::ASTInsertStatement *insert_statement =
+                    statement->GetAsOrNull<zetasql::ASTInsertStatement>();
+                if (insert_statement == nullptr) {
+                    status.msg = "fail to create plan tree: insert statement is illegal";
+                    status.code = common::kPlanError;
+                    LOG(WARNING) << status;
+                    return status.code;
+                }
+
+                PlanNode *insert_plan = nullptr;
+
+                status = CreateASTInsertPlan(insert_statement, &insert_plan);
+                if (!status.isOK()) {
+                    LOG(WARNING) << status;
+                    return status.code;
+                }
+
+                plan_trees.push_back(insert_plan);
+                break;
+            }
                 //            case ::hybridse::node::kFnDef: {
                 //                node::PlanNode *fn_plan = nullptr;
                 //                if (!CreateFuncDefPlan(parser_tree, &fn_plan, status)) {
@@ -151,6 +164,22 @@ base::Status SimplePlannerV2::CreateASTQueryPlan(const zetasql::ASTQuery *root, 
     CHECK_STATUS(ConvertQueryNode(root, node_manager_, &query_node))
     std::cout << *query_node << std::endl;
     if (CreateQueryPlan(query_node, plan_tree, status)) {
+        return base::Status::OK();
+    } else {
+        return status;
+    }
+}
+base::Status SimplePlannerV2::CreateASTInsertPlan(const zetasql::ASTInsertStatement *root, PlanNode **plan_tree) {
+    base::Status status;
+    if (nullptr == root) {
+        status.msg = "can not create query plan node with null query node";
+        status.code = common::kPlanError;
+        LOG(WARNING) << status;
+        return status;
+    }
+    node::InsertStmt *insert_stmt = nullptr;
+    CHECK_STATUS(ConvertInsertStatement(root, node_manager_, &insert_stmt))
+    if (CreateInsertPlan(insert_stmt, plan_tree, status)) {
         return base::Status::OK();
     } else {
         return status;

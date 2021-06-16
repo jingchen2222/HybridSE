@@ -939,5 +939,40 @@ base::Status ConvertQueryNode(const zetasql::ASTQuery* root, node::NodeManager* 
     }
     return base::Status::OK();
 }
+
+base::Status ConvertInsertStatement(const zetasql::ASTInsertStatement* root, node::NodeManager* node_manager,
+                                    node::InsertStmt** output) {
+    base::Status status;
+    if (nullptr == root) {
+        *output = nullptr;
+        return base::Status::OK();
+    }
+    CHECK_TRUE(nullptr == root->query(), common::kPlanError, "Un-support insert statement with query");
+
+    CHECK_TRUE(zetasql::ASTInsertStatement::InsertMode::DEFAULT_MODE == root->insert_mode(), common::kPlanError,
+               "Un-support insert mode ", root->GetSQLForInsertMode());
+    CHECK_TRUE(nullptr == root->returning(), common::kPlanError,
+               "Un-support insert statement with return clause currently", root->GetSQLForInsertMode());
+    CHECK_TRUE(nullptr == root->assert_rows_modified(), common::kPlanError,
+               "Un-support insert statement with assert_rows_modified currently", root->GetSQLForInsertMode());
+
+    node::ExprListNode* column_list = node_manager->MakeExprList();
+    if (nullptr != root->column_list()) {
+        for (auto column : root->column_list()->identifiers()) {
+            column_list->PushBack(node_manager->MakeColumnRefNode(column->GetAsString(), ""));
+        }
+    }
+
+    CHECK_TRUE(nullptr != root->rows(), common::kPlanError, "Un-support insert statement with empty values")
+    CHECK_TRUE(1 == root->rows()->rows().size(), common::kPlanError, "Un-support insert with multi-rows currently")
+    CHECK_TRUE(nullptr != root->rows()->rows()[0], common::kPlanError, "Un-support insert statement with null row")
+    node::ExprListNode* values;
+    CHECK_STATUS(ConvertExprNodeList(root->rows()->rows()[0]->values(), node_manager, &values))
+    CHECK_TRUE(root->GetTargetPathForNonNested().ok(), common::kPlanError,
+               "Un-support insert statement with illegal target table path")
+    *output = dynamic_cast<node::InsertStmt*>(node_manager->MakeInsertTableNode(
+        root->GetTargetPathForNonNested().value()->ToIdentifierPathString(), column_list, values));
+    return base::Status::OK();
+}
 }  // namespace plan
 }  // namespace hybridse

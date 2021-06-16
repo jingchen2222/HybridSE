@@ -79,8 +79,8 @@ INSTANTIATE_TEST_CASE_P(SqlSubQueryParse, PlannerV2Test,
 // INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerV2Test,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
 //
-// INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerV2Test,
-//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
+INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerV2Test,
+                        testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
 //
 // INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerV2Test,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
