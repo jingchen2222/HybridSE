@@ -308,7 +308,7 @@ void HandleSqlScript(
         hybridse::node::NodeManager node_manager;
         hybridse::base::Status sql_status;
         hybridse::node::PlanNodeList plan_trees;
-        hybridse::plan::PlanAPI::CreateSyntaxTreeFromScript(
+        hybridse::plan::PlanAPI::CreatePlanTreeFromScript(
             script, plan_trees, &node_manager, sql_status);
         if (0 != sql_status.code) {
             status.code = sql_status.code;
@@ -358,7 +358,7 @@ void HandleSqlScript(
                 return;
             }
             case hybridse::node::kPlanTypeFuncDef:
-            case hybridse::node::kPlanTypeQuery: {
+            case hybridse::node::kPlanTypeExplain: {
                 std::string empty;
                 std::string mu_script = script;
                 mu_script.replace(0u, 7u, empty);
@@ -393,7 +393,7 @@ void HandleSqlScript(
             }
             default: {
                 status.msg = "Fail to execute script with unSuppurt type" +
-                             hybridse::node::NameOfSqlNodeType(node->GetType());
+                             hybridse::node::PlanType(node->GetType());
                 status.code = hybridse::common::kUnSupport;
                 return;
             }

@@ -31,7 +31,6 @@ then
         curl -SL -o libzetasql.tar.gz https://github.com/jingchen2222/zetasql/releases/download/v0.2.0-beta16/libzetasql-0.2.0-beta16-linux-x86_64.tar.gz
         tar xzf libzetasql.tar.gz -C  thirdparty --strip-components 1
         rm libzetasql.tar.gz
-
     fi
     popd
 
