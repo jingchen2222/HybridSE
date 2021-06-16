@@ -100,7 +100,7 @@ cases:
           column3 int NOT NULL,
           column4 string NOT NULL,
           column5 int NOT NULL,
-          index(key=column1, ts=column2)) replicanum=2;
+          index(key=column1, ts=column2)) OPTIONS (replicanum=2);
   - id: 9
     desc: Create 指定副本数与节点分布
     sql: |
@@ -110,9 +110,16 @@ cases:
           column3 int NOT NULL,
           column4 string NOT NULL,
           column5 int NOT NULL,
-          index(key=column1, ts=column2)) replicanum=2, distribution(leader="127.0.0.1:9927", follower="127.0.0.1:9926");
+          index(key=column1, ts=column2))
+          OPTIONS (
+            replicanum=2,
+            distribution = [
+              ("127.0.0.1:9927", ["127.0.0.1:9926"])
+              ]
+          );
   - id: 10
-    desc: create procedure 
+    desc: create procedure
+    mode: zetasql-unsupport
     sql: |
         create procedure sp1(const c1 string, const c3 int, c4 bigint, c5 float, c6 double, c7 timestamp, c8 date)
         begin

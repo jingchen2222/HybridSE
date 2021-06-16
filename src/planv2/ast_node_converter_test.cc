@@ -311,7 +311,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeTest) {
         const std::string sql =
             "create table t1 (a int, b string, index(key=(a, b), dump='12', ts=column2, ttl=1d, ttl_type=absolute, "
             "version=(column5, 3) ) ) options (replicanum = 3, partitionnum = 3, ignored_option = 'abc', distribution "
-            "= [ ('leader1', ['fo1', 'fo2']), ('leader2', ['fo1', 'fo2']) ]);";
+            "= [ ('leader1', ['fo1', 'fo2']) ]);";
 
         std::unique_ptr<zetasql::ParserOutput> parser_output;
         ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
@@ -326,12 +326,32 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeTest) {
         EXPECT_EQ(false, output->GetOpIfNotExist());
         EXPECT_EQ(3, output->GetPartitionNum());
         EXPECT_EQ(3, output->GetReplicaNum());
+        EXPECT_EQ(3, output->GetDistributionList().size());
+        {
+            EXPECT_EQ(node::kPartitionMeta, output->GetDistributionList()[0]->GetType());
+            node::PartitionMetaNode * partition_mata = dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[0]);
+            ASSERT_EQ(node::RoleType::kLeader, partition_mata->GetRoleType());
+            ASSERT_EQ("leader1", partition_mata->GetEndpoint());
+        }
+        {
+            EXPECT_EQ(node::kPartitionMeta, output->GetDistributionList()[0]->GetType());
+            node::PartitionMetaNode * partition_mata = dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[1]);
+            ASSERT_EQ(node::RoleType::kFollower, partition_mata->GetRoleType());
+            ASSERT_EQ("fo1", partition_mata->GetEndpoint());
+        }
+        {
+            EXPECT_EQ(node::kPartitionMeta, output->GetDistributionList()[0]->GetType());
+            node::PartitionMetaNode * partition_mata = dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[2]);
+            ASSERT_EQ(node::RoleType::kFollower, partition_mata->GetRoleType());
+            ASSERT_EQ("fo2", partition_mata->GetEndpoint());
+        }
+
     }
     {
         const std::string sql =
             "create table if not exists t1 (a i16, b float32, index(key=a, ignored_key='seb', ts=b, ttl=(1h, 1800), "
             "ttl_type=latest, version=a ) ) options (replicanum = 2, partitionnum = 5, ignored_option = 'abc', "
-            "distribution = [ ('leader1', ['fo1', 'fo2']), ('leader2', ['fo1', 'fo2']) ]);";
+            "distribution = [ ('leader1', ['fo1', 'fo2']) ]);";
 
         std::unique_ptr<zetasql::ParserOutput> parser_output;
         ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
@@ -351,7 +371,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeTest) {
         const std::string sql =
             "create table if not exists t3 (a int32, b timestamp, index(key=a, ignored_key='seb', ts=b, ttl=1800, "
             "ttl_type=absorlat, version=a ) ) options (replicanum = 4, partitionnum = 5, ignored_option = 'abc', "
-            "distribution = [ ('leader1', ['fo1', 'fo2']), ('leader2', ['fo1', 'fo2']) ]);";
+            "distribution = [ ('leader1', ['fo1', 'fo2']) ]);";
 
         std::unique_ptr<zetasql::ParserOutput> parser_output;
         ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
@@ -381,6 +401,23 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeTest) {
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
         EXPECT_EQ(common::kOk, status.code) << status.msg << status.trace;
         EXPECT_STREQ("t4", output->GetTableName().c_str());
+    }
+
+    {
+        const std::string sql =
+            "create table if not exists t3 (a int32, b timestamp, index(key=a, ignored_key='seb', ts=b, ttl=1800, "
+            "ttl_type=absorlat, version=a ) ) options (replicanum = 4, partitionnum = 5, ignored_option = 'abc', "
+            "distribution = [ ('leader1', ['fo1', 'fo2']), ('leader2', ['fo3', 'fo4']) ]);";
+
+        std::unique_ptr<zetasql::ParserOutput> parser_output;
+        ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
+        const auto* statement = parser_output->statement();
+        ASSERT_TRUE(statement->Is<zetasql::ASTCreateTableStatement>());
+
+        const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
+        node::CreateStmt* output = nullptr;
+        auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
+        EXPECT_EQ(common::kPlanError, status.code);
     }
 }
 

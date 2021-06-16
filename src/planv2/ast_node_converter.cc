@@ -199,6 +199,10 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
                     op = node::FnOperator::kFnOpMod;
                     break;
                 }
+                case zetasql::ASTBinaryExpression::Op::XOR: {
+                    op = node::FnOperator::kFnOpXor;
+                    break;
+                }
                 default: {
                     status.msg = "Unsupport binary operator: " + binary_expression->GetSQLForOperator();
                     status.code = common::kSqlError;
@@ -293,11 +297,12 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             auto function_name = function_call->function()->ToIdentifierPathString();
             boost::to_lower(function_name);
             // Convert function call TYPE(value) to cast expression CAST(value as TYPE)
-            if (ZETASQL_DATA_TYPE_MAP.find(function_name) != ZETASQL_DATA_TYPE_MAP.cend() &&
-                1 == function_call->arguments().size()) {
+            node::DataType data_type;
+            base::Status status = node::StringToDataType(function_name, &data_type);
+            if (status.isOK() && 1 == function_call->arguments().size()) {
                 node::ExprNode* arg;
                 CHECK_STATUS(ConvertExprNode(function_call->arguments()[0], node_manager, &arg))
-                *output = node_manager->MakeCastNode(ZETASQL_DATA_TYPE_MAP.at(function_name), arg);
+                *output = node_manager->MakeCastNode(data_type, arg);
             } else {
                 node::ExprListNode* args = nullptr;
                 CHECK_STATUS(ConvertExprNodeList(function_call->arguments(), node_manager, &args))
@@ -910,7 +915,7 @@ base::Status ConvertCreateTableNode(const zetasql::ASTCreateTableStatement* ast_
         option_list = node_manager->MakeNodeList();
         for (const auto entry : ast_option_list->options_entries()) {
             node::SqlNode* node = nullptr;
-            CHECK_STATUS(ConvertTableOption(entry, node_manager, &node));
+            CHECK_STATUS(ConvertTableOption(entry, node_manager, &node))
             if (node != nullptr) {
                 // NOTE: unhandled option will return OK, but node is not set
                 option_list->PushBack(node);
@@ -1153,31 +1158,32 @@ base::Status ConvertTableOption(const zetasql::ASTOptionsEntry* entry, node::Nod
         CHECK_STATUS(ASTIntLiteralToNum(entry->value(), &value));
         *output = node_manager->MakeReplicaNumNode(value);
     } else if (boost::equals("distribution", identifier)) {
-        node::SqlNodeList* distribution_list = node_manager->MakeNodeList();
         const auto arry_expr = entry->value()->GetAsOrNull<zetasql::ASTArrayConstructor>();
         CHECK_TRUE(arry_expr != nullptr, common::kPlanError, "distribution not and ASTArrayConstructor");
+        CHECK_TRUE(!arry_expr->elements().empty(), common::kPlanError, "Un-support empty distributions currently")
+        CHECK_TRUE(1 == arry_expr->elements().size(), common::kPlanError, "Un-support multiple distributions currently")
         for (const auto e : arry_expr->elements()) {
             const auto ele = e->GetAsOrNull<zetasql::ASTStructConstructorWithParens>();
             CHECK_TRUE(ele != nullptr, common::kPlanError,
                        "distribution element is not ASTStructConstructorWithParens");
             CHECK_TRUE(ele->field_expressions().size() == 2, common::kPlanError, "distribution element has size != 2");
 
+            node::SqlNodeList* partition_mata_nodes = node_manager->MakeNodeList();
             std::string leader;
             CHECK_STATUS(AstStringLiteralToString(ele->field_expression(0), &leader));
-            distribution_list->PushBack(node_manager->MakePartitionMetaNode(node::RoleType::kLeader, leader));
+            partition_mata_nodes->PushBack(node_manager->MakePartitionMetaNode(node::RoleType::kLeader, leader));
             // FIXME: distribution_list not constructed correctly
 
-            std::vector<std::string> followers;
             const auto follower_list = ele->field_expression(1)->GetAsOrNull<zetasql::ASTArrayConstructor>();
             for (const auto fo_node : follower_list->elements()) {
                 std::string follower;
                 CHECK_STATUS(AstStringLiteralToString(fo_node, &follower));
-                followers.push_back(follower);
+                partition_mata_nodes->PushBack(node_manager->MakePartitionMetaNode(node::RoleType::kFollower,
+                                                                                   follower));
             }
-            distribution_list->PushBack(node_manager->MakePartitionMetaNode(node::RoleType::kFollower,
-                                                                            followers.empty() ? "" : followers.back()));
+            *output = node_manager->MakeDistributionsNode(partition_mata_nodes);
+            return base::Status::OK();
         }
-        *output = node_manager->MakeDistributionsNode(distribution_list);
     } else {
         return base::Status(common::kOk, "create table option ignored");
     }

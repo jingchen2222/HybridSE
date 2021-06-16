@@ -76,9 +76,9 @@ INSTANTIATE_TEST_CASE_P(SqlSubQueryParse, PlannerV2Test,
 // INSTANTIATE_TEST_CASE_P(UdfParse, PlannerV2Test,
 //                        testing::ValuesIn(sqlcase::InitCases("cases/plan/udf.yaml", FILTERS)));
 //
-// INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerV2Test,
-//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
-//
+INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerV2Test,
+                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
+
 INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerV2Test,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
 //
@@ -538,66 +538,86 @@ TEST_F(PlannerV2Test, LastJoinPlanTest) {
     }
 }
 
-// TEST_F(PlannerTest, CreateStmtPlanTest) {
-//    const std::string sql_str =
-//        "create table IF NOT EXISTS test(\n"
-//        "    column1 int NOT NULL,\n"
-//        "    column2 timestamp NOT NULL,\n"
-//        "    column3 int NOT NULL,\n"
-//        "    column4 string NOT NULL,\n"
-//        "    column5 int NOT NULL,\n"
-//        "    index(key=(column4, column3), ts=column2, ttl=60d)\n"
-//        ");";
-//
-//    node::NodePointVector list;
-//    node::PlanNodeList trees;
-//    base::Status status;
-//    int ret = parser_->parse(sql_str, list, manager_, status);
-//    ASSERT_EQ(0, ret);
-//    ASSERT_EQ(1u, list.size());
-//    std::cout << *(list[0]) << std::endl;
-//
-//    Planner *planner_ptr = new SimplePlanner(manager_);
-//    ASSERT_EQ(0, planner_ptr->CreatePlanTree(list, trees, status));
-//    ASSERT_EQ(1u, trees.size());
-//    PlanNode *plan_ptr = trees[0];
-//    ASSERT_TRUE(NULL != plan_ptr);
-//
-//    std::cout << *plan_ptr << std::endl;
-//
-//    // validate create plan
-//    ASSERT_EQ(node::kPlanTypeCreate, plan_ptr->GetType());
-//    node::CreatePlanNode *createStmt = (node::CreatePlanNode *)plan_ptr;
-//
-//    type::TableDef table_def;
-//    ASSERT_TRUE(Planner::TransformTableDef(createStmt->GetTableName(),
-//                                           createStmt->GetColumnDescList(),
-//                                           &table_def, status));
-//
-//    type::TableDef *table = &table_def;
-//    ASSERT_EQ("test", table->name());
-//    ASSERT_EQ(5, table->columns_size());
-//    ASSERT_EQ("column1", table->columns(0).name());
-//    ASSERT_EQ("column2", table->columns(1).name());
-//    ASSERT_EQ("column3", table->columns(2).name());
-//    ASSERT_EQ("column4", table->columns(3).name());
-//    ASSERT_EQ("column5", table->columns(4).name());
-//    ASSERT_EQ(type::Type::kInt32, table->columns(0).type());
-//    ASSERT_EQ(type::Type::kTimestamp, table->columns(1).type());
-//    ASSERT_EQ(type::Type::kInt32, table->columns(2).type());
-//    ASSERT_EQ(type::Type::kVarchar, table->columns(3).type());
-//    ASSERT_EQ(type::Type::kInt32, table->columns(4).type());
-//    ASSERT_EQ(1, table->indexes_size());
-//    ASSERT_EQ(60 * 86400000UL, table->indexes(0).ttl(0));
-//    ASSERT_EQ(2, table->indexes(0).first_keys_size());
-//    ASSERT_EQ("column4", table->indexes(0).first_keys(0));
-//    ASSERT_EQ("column3", table->indexes(0).first_keys(1));
-//    ASSERT_EQ("column2", table->indexes(0).second_key());
-//    // TODO(chenjing): version and version count test
-//    //    ASSERT_EQ("column5", index_node->GetVersion());
-//    //    ASSERT_EQ(3, index_node->GetVersionCount());
-//}
-//
+TEST_F(PlannerV2Test, CreateTableStmtPlanTest) {
+    const std::string sql_str =
+        "create table IF NOT EXISTS test(\n"
+        "    column1 int NOT NULL,\n"
+        "    column2 timestamp NOT NULL,\n"
+        "    column3 int NOT NULL,\n"
+        "    column4 string NOT NULL,\n"
+        "    column5 int NOT NULL,\n"
+        "    index(key=(column4, column3), ts=column2, ttl=60d, version = (column4, 10))\n"
+        ") OPTIONS (\n"
+        "            partitionnum=8, replicanum=3,\n"
+        "            distribution = [\n"
+        "              (\"127.0.0.1:9927\", [\"127.0.0.1:9926\", \"127.0.0.1:9928\"])\n"
+        "              ]\n"
+        "          );";
+
+    node::PlanNodeList trees;
+    base::Status status;
+
+    ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+    ASSERT_EQ(1u, trees.size());
+    PlanNode *plan_ptr = trees[0];
+    ASSERT_TRUE(NULL != plan_ptr);
+
+    std::cout << *plan_ptr << std::endl;
+
+    // validate create plan
+    ASSERT_EQ(node::kPlanTypeCreate, plan_ptr->GetType());
+    node::CreatePlanNode *createStmt = (node::CreatePlanNode *)plan_ptr;
+
+    ASSERT_EQ(3, createStmt->GetReplicaNum());
+    ASSERT_EQ(8, createStmt->GetPartitionNum());
+    ASSERT_EQ(3, createStmt->GetDistributionList().size());
+    {
+        ASSERT_EQ(node::kPartitionMeta, createStmt->GetDistributionList()[0]->GetType());
+        node::PartitionMetaNode *partition =
+            dynamic_cast<node::PartitionMetaNode *>(createStmt->GetDistributionList()[0]);
+        ASSERT_EQ(node::RoleType::kLeader, partition->GetRoleType());
+        ASSERT_EQ("127.0.0.1:9927", partition->GetEndpoint());
+    }
+    {
+        ASSERT_EQ(node::kPartitionMeta, createStmt->GetDistributionList()[1]->GetType());
+        node::PartitionMetaNode *partition =
+            dynamic_cast<node::PartitionMetaNode *>(createStmt->GetDistributionList()[1]);
+        ASSERT_EQ(node::RoleType::kFollower, partition->GetRoleType());
+        ASSERT_EQ("127.0.0.1:9926", partition->GetEndpoint());
+    }
+    {
+        ASSERT_EQ(node::kPartitionMeta, createStmt->GetDistributionList()[2]->GetType());
+        node::PartitionMetaNode *partition =
+            dynamic_cast<node::PartitionMetaNode *>(createStmt->GetDistributionList()[2]);
+        ASSERT_EQ(node::RoleType::kFollower, partition->GetRoleType());
+        ASSERT_EQ("127.0.0.1:9928", partition->GetEndpoint());
+    }
+
+    type::TableDef table_def;
+    ASSERT_TRUE(
+        Planner::TransformTableDef(createStmt->GetTableName(), createStmt->GetColumnDescList(), &table_def, status));
+
+    type::TableDef *table = &table_def;
+    ASSERT_EQ("test", table->name());
+    ASSERT_EQ(5, table->columns_size());
+    ASSERT_EQ("column1", table->columns(0).name());
+    ASSERT_EQ("column2", table->columns(1).name());
+    ASSERT_EQ("column3", table->columns(2).name());
+    ASSERT_EQ("column4", table->columns(3).name());
+    ASSERT_EQ("column5", table->columns(4).name());
+    ASSERT_EQ(type::Type::kInt32, table->columns(0).type());
+    ASSERT_EQ(type::Type::kTimestamp, table->columns(1).type());
+    ASSERT_EQ(type::Type::kInt32, table->columns(2).type());
+    ASSERT_EQ(type::Type::kVarchar, table->columns(3).type());
+    ASSERT_EQ(type::Type::kInt32, table->columns(4).type());
+    ASSERT_EQ(1, table->indexes_size());
+    ASSERT_EQ(60 * 86400000UL, table->indexes(0).ttl(0));
+    ASSERT_EQ(2, table->indexes(0).first_keys_size());
+    ASSERT_EQ("column4", table->indexes(0).first_keys(0));
+    ASSERT_EQ("column3", table->indexes(0).first_keys(1));
+    ASSERT_EQ("column2", table->indexes(0).second_key());
+}
+
 // TEST_F(PlannerTest, CmdStmtPlanTest) {
 //    const std::string sql_str = "show databases;";
 //
