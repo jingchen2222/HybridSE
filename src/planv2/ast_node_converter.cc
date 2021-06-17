@@ -345,7 +345,7 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             int64_t int_value;
             CHECK_STATUS(ASTIntLiteralToNum(ast_expression, &int_value), "Invalid integer literal: ", literal->image());
 
-            if (int_value <= INT_MAX && int_value >= INT_MIN) {
+            if (!literal->is_long() && int_value <= INT_MAX && int_value >= INT_MIN) {
                 *output = node_manager->MakeConstNode(static_cast<int>(int_value));
             } else {
                 *output = node_manager->MakeConstNode(int_value);
@@ -1312,14 +1312,17 @@ base::Status ConvertInsertStatement(const zetasql::ASTInsertStatement* root, nod
     }
 
     CHECK_TRUE(nullptr != root->rows(), common::kPlanError, "Un-support insert statement with empty values")
-    CHECK_TRUE(1 == root->rows()->rows().size(), common::kPlanError, "Un-support insert with multi-rows currently")
-    CHECK_TRUE(nullptr != root->rows()->rows()[0], common::kPlanError, "Un-support insert statement with null row")
-    node::ExprListNode* values;
-    CHECK_STATUS(ConvertExprNodeList(root->rows()->rows()[0]->values(), node_manager, &values))
-    CHECK_TRUE(root->GetTargetPathForNonNested().ok(), common::kPlanError,
-               "Un-support insert statement with illegal target table path")
+    node::ExprListNode* rows = node_manager->MakeExprList();
+    for (auto row : root->rows()->rows()) {
+        CHECK_TRUE(nullptr != row, common::kPlanError, "Un-support insert statement with null row")
+        node::ExprListNode* row_values;
+        CHECK_STATUS(ConvertExprNodeList(row->values(), node_manager, &row_values))
+        CHECK_TRUE(root->GetTargetPathForNonNested().ok(), common::kPlanError,
+                   "Un-support insert statement with illegal target table path")
+        rows->AddChild(row_values);
+    }
     *output = dynamic_cast<node::InsertStmt*>(node_manager->MakeInsertTableNode(
-        root->GetTargetPathForNonNested().value()->ToIdentifierPathString(), column_list, values));
+        root->GetTargetPathForNonNested().value()->ToIdentifierPathString(), column_list, rows));
     return base::Status::OK();
 }
 
