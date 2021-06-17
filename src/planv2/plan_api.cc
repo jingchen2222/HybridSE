@@ -38,10 +38,8 @@ bool PlanAPI::CreatePlanTreeFromScript(const std::string &sql, PlanNodeList &pla
     const zetasql::ASTScript *script = parser_output->script();
     SimplePlannerV2 *planner_ptr =
         new SimplePlannerV2(node_manager, is_batch_mode, is_cluster, enable_batch_window_parallelization);
-    if (0 != planner_ptr->CreateASTScriptPlan(script, plan_trees, status)) {
-        return false;
-    }
-    return true;
+    status = planner_ptr->CreateASTScriptPlan(script, plan_trees);
+    return status.isOK();
 }
 
 const std::string PlanAPI::GenerateName(const std::string prefix, int id) {
