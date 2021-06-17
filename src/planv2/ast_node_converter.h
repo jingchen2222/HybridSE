@@ -23,8 +23,7 @@
 
 namespace hybridse {
 namespace plan {
-base::Status ConvertDataType(const zetasql::ASTType *ast_type, node::NodeManager* node_manager,
-                             node::DataType* output);
+base::Status ConvertDataType(const zetasql::ASTType* ast_type, node::NodeManager* node_manager, node::DataType* output);
 base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node::NodeManager* node_manager,
                              node::ExprNode** output);
 base::Status ConvertOrderBy(const zetasql::ASTOrderBy* order_by, node::NodeManager* node_manager,
@@ -73,12 +72,17 @@ base::Status ConvertTableOption(const zetasql::ASTOptionsEntry* entry, node::Nod
 
 // utility function
 base::Status AstStringLiteralToString(const zetasql::ASTExpression* ast_expr, std::string* str);
-base::Status AstPathExpressionToString(const zetasql::ASTExpression* ast_expr, std::string* str);
+base::Status AstPathExpressionToString(const zetasql::ASTPathExpression* ast_expr, std::string* str);
+base::Status AstPathExpressionToStringList(const zetasql::ASTPathExpression* ast_expr,
+                                           std::vector<std::string>& strs);  // NOLINT
+
 base::Status ASTIntLiteralToNum(const zetasql::ASTExpression* ast_expr, int64_t* val);
 base::Status ASTIntervalLIteralToNum(const zetasql::ASTExpression* ast_expr, int64_t* val, node::DataType* unit);
 
 base::Status ConvertInsertStatement(const zetasql::ASTInsertStatement* root, node::NodeManager* node_manager,
                                     node::InsertStmt** output);
+base::Status ConvertCmdStatement(const zetasql::ASTStatement* root, node::NodeManager* node_manager,
+                                 node::CmdNode** output);
 }  // namespace plan
 }  // namespace hybridse
 #endif  // SRC_PLANV2_AST_NODE_CONVERTER_H_

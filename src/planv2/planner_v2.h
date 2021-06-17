@@ -49,6 +49,8 @@ class SimplePlannerV2 : public SimplePlanner {
     base::Status CreateASTQueryPlan(const zetasql::ASTQuery *root, PlanNode **plan_tree);
     base::Status CreateASTInsertPlan(const zetasql::ASTInsertStatement *root, PlanNode **plan_tree);
     base::Status CreateASTCreatetTablePlan(const zetasql::ASTCreateTableStatement *root, PlanNode **plan_tree);
+    base::Status CreateAstCmdStatementPlan(const zetasql::ASTStatement* root,
+                                                             PlanNode **plan_tree);
 };
 
 }  // namespace plan

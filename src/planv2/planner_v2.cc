@@ -113,14 +113,20 @@ int SimplePlannerV2::CreateASTScriptPlan(const zetasql::ASTScript *script, PlanN
                 //                plan_trees.push_back(create_sp_plan);
                 //                break;
                 //            }
-                //            case node::kCmdStmt: {
-                //                node::PlanNode *cmd_plan = nullptr;
-                //                if (!CreateCmdPlan(parser_tree, &cmd_plan, status)) {
-                //                    return status.code;
-                //                }
-                //                plan_trees.push_back(cmd_plan);
-                //                break;
-                //            }
+            case zetasql::AST_CREATE_DATABASE_STATEMENT:
+            case zetasql::AST_DESCRIBE_STATEMENT:
+            case zetasql::AST_DROP_STATEMENT:
+            case zetasql::AST_SHOW_STATEMENT: {
+                node::PlanNode *cmd_plan = nullptr;
+                status = CreateAstCmdStatementPlan(statement, &cmd_plan);
+
+                if (!status.isOK()) {
+                    LOG(WARNING) << status;
+                    return status.code;
+                }
+                plan_trees.push_back(cmd_plan);
+                break;
+            }
             case zetasql::AST_INSERT_STATEMENT: {
                 const zetasql::ASTInsertStatement *insert_statement =
                     statement->GetAsOrNull<zetasql::ASTInsertStatement>();
@@ -154,6 +160,7 @@ int SimplePlannerV2::CreateASTScriptPlan(const zetasql::ASTScript *script, PlanN
                 status.msg = "can not handle statement " + statement->GetNodeKindString();
                 status.code = common::kPlanError;
                 LOG(WARNING) << status;
+                LOG(INFO) << statement->DebugString();
                 return status.code;
                 //            }
             }
@@ -208,6 +215,22 @@ base::Status SimplePlannerV2::CreateASTCreatetTablePlan(const zetasql::ASTCreate
     node::CreateStmt *create_stmt = nullptr;
     CHECK_STATUS(ConvertCreateTableNode(root, node_manager_, &create_stmt))
     if (CreateCreateTablePlan(create_stmt, plan_tree, status)) {
+        return base::Status::OK();
+    } else {
+        return status;
+    }
+}
+base::Status SimplePlannerV2::CreateAstCmdStatementPlan(const zetasql::ASTStatement *root, PlanNode **plan_tree) {
+    base::Status status;
+    if (nullptr == root) {
+        status.msg = "can not generate create table plan node with null create statement node";
+        status.code = common::kPlanError;
+        LOG(WARNING) << status;
+        return status;
+    }
+    node::CmdNode *cmd_node = nullptr;
+    CHECK_STATUS(ConvertCmdStatement(root, node_manager_, &cmd_node))
+    if (CreateCmdPlan(cmd_node, plan_tree, status)) {
         return base::Status::OK();
     } else {
         return status;

@@ -329,23 +329,25 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeTest) {
         EXPECT_EQ(3, output->GetDistributionList().size());
         {
             EXPECT_EQ(node::kPartitionMeta, output->GetDistributionList()[0]->GetType());
-            node::PartitionMetaNode * partition_mata = dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[0]);
+            node::PartitionMetaNode* partition_mata =
+                dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[0]);
             ASSERT_EQ(node::RoleType::kLeader, partition_mata->GetRoleType());
             ASSERT_EQ("leader1", partition_mata->GetEndpoint());
         }
         {
             EXPECT_EQ(node::kPartitionMeta, output->GetDistributionList()[0]->GetType());
-            node::PartitionMetaNode * partition_mata = dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[1]);
+            node::PartitionMetaNode* partition_mata =
+                dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[1]);
             ASSERT_EQ(node::RoleType::kFollower, partition_mata->GetRoleType());
             ASSERT_EQ("fo1", partition_mata->GetEndpoint());
         }
         {
             EXPECT_EQ(node::kPartitionMeta, output->GetDistributionList()[0]->GetType());
-            node::PartitionMetaNode * partition_mata = dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[2]);
+            node::PartitionMetaNode* partition_mata =
+                dynamic_cast<node::PartitionMetaNode*>(output->GetDistributionList()[2]);
             ASSERT_EQ(node::RoleType::kFollower, partition_mata->GetRoleType());
             ASSERT_EQ("fo2", partition_mata->GetEndpoint());
         }
-
     }
     {
         const std::string sql =
@@ -467,8 +469,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
     }
     {
         // not supported index key option value type
-        const std::string sql =
-            "create table t (a int64, index(key=['a'])) ";
+        const std::string sql = "create table t (a int64, index(key=['a'])) ";
 
         std::unique_ptr<zetasql::ParserOutput> parser_output;
         ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
@@ -482,8 +483,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
     }
     {
         // not supported index ttl option value type
-        const std::string sql =
-            "create table t (a int64, index(ttl=['12'])) ";
+        const std::string sql = "create table t (a int64, index(ttl=['12'])) ";
 
         std::unique_ptr<zetasql::ParserOutput> parser_output;
         ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
@@ -497,8 +497,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
     }
     {
         // not supported index version option value type
-        const std::string sql =
-            "create table t (a int64, index(version=['nonon'])) ";
+        const std::string sql = "create table t (a int64, index(version=['nonon'])) ";
 
         std::unique_ptr<zetasql::ParserOutput> parser_output;
         ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));

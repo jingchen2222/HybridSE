@@ -81,9 +81,9 @@ INSTANTIATE_TEST_CASE_P(SQLCreate, PlannerV2Test,
 
 INSTANTIATE_TEST_CASE_P(SQLInsert, PlannerV2Test,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
-//
-// INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerV2Test,
-//                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
+
+INSTANTIATE_TEST_CASE_P(SQLCmdParserTest, PlannerV2Test,
+                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
 TEST_P(PlannerV2Test, PlannerSucessTest) {
     std::string sqlstr = GetParam().sql_str();
     std::cout << sqlstr << std::endl;
@@ -618,30 +618,141 @@ TEST_F(PlannerV2Test, CreateTableStmtPlanTest) {
     ASSERT_EQ("column2", table->indexes(0).second_key());
 }
 
-// TEST_F(PlannerTest, CmdStmtPlanTest) {
-//    const std::string sql_str = "show databases;";
-//
-//    node::NodePointVector list;
-//    node::PlanNodeList trees;
-//    base::Status status;
-//    int ret = parser_->parse(sql_str, list, manager_, status);
-//    ASSERT_EQ(0, ret);
-//    ASSERT_EQ(1u, list.size());
-//    std::cout << *(list[0]) << std::endl;
-//
-//    Planner *planner_ptr = new SimplePlanner(manager_);
-//    ASSERT_EQ(0, planner_ptr->CreatePlanTree(list, trees, status));
-//    ASSERT_EQ(1u, trees.size());
-//    PlanNode *plan_ptr = trees[0];
-//    ASSERT_TRUE(NULL != plan_ptr);
-//
-//    std::cout << *plan_ptr << std::endl;
-//
-//    // validate create plan
-//    ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
-//    node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
-//    ASSERT_EQ(node::kCmdShowDatabases, cmd_plan->GetCmdType());
-//}
+TEST_F(PlannerV2Test, CmdStmtPlanTest) {
+    {
+        const std::string sql_str = "show databases;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdShowDatabases, cmd_plan->GetCmdType());
+    }
+    {
+        const std::string sql_str = "show tables;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdShowTables, cmd_plan->GetCmdType());
+    }
+    {
+        const std::string sql_str = "show procedures;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdShowProcedures, cmd_plan->GetCmdType());
+    }
+    {
+        const std::string sql_str = "drop procedure sp1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropSp, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"sp1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop procedure db1.sp1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropSp, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"sp1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop table db1.t1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropTable, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"t1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop table t1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropTable, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"t1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop database db1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropDatabase, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"db1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop index db1.t1.index1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropIndex, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"t1", "index1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop index t1.index1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+        ASSERT_EQ(1u, trees.size());
+        PlanNode *plan_ptr = trees[0];
+        // validate create plan
+        ASSERT_EQ(node::kPlanTypeCmd, plan_ptr->GetType());
+        node::CmdPlanNode *cmd_plan = (node::CmdPlanNode *)plan_ptr;
+        ASSERT_EQ(node::kCmdDropIndex, cmd_plan->GetCmdType());
+        ASSERT_EQ(std::vector<std::string>({"t1", "index1"}), cmd_plan->GetArgs());
+    }
+    {
+        const std::string sql_str = "drop index index1;";
+        node::PlanNodeList trees;
+        base::Status status;
+        ASSERT_FALSE(plan::PlanAPI::CreatePlanTreeFromScript(sql_str, trees, manager_, status)) << status;
+    }
+}
 //
 // TEST_F(PlannerTest, FunDefPlanTest) {
 //    const std::string sql_str =
