@@ -595,7 +595,7 @@ TEST_F(PlannerV2Test, CreateTableStmtPlanTest) {
 
     type::TableDef table_def;
     ASSERT_TRUE(
-        Planner::TransformTableDef(createStmt->GetTableName(), createStmt->GetColumnDescList(), &table_def, status));
+        Planner::TransformTableDef(createStmt->GetTableName(), createStmt->GetColumnDescList(), &table_def).isOK());
 
     type::TableDef *table = &table_def;
     ASSERT_EQ("test", table->name());

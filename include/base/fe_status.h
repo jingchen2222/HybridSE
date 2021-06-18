@@ -71,7 +71,21 @@ static inline std::initializer_list<int> __output_literal_args(STREAM& stream,  
         }                                                                                            \
         break;                                                                                       \
     }
-
+#define FAIL_STATUS(errcode, ...)                                                                \
+    while (true) {                                                                               \
+        std::stringstream _msg;                                                                  \
+        hybridse::base::__output_literal_args(_msg, ##__VA_ARGS__);                              \
+        std::stringstream _trace;                                                                \
+        hybridse::base::__output_literal_args(_trace, "    (At ", __FILE__, ":", __LINE__, ")"); \
+                                                                                                 \
+        if (!_msg.str().empty()) {                                                               \
+            _trace << "\n"                                                                       \
+                   << "    (Caused by) " << _msg.str();                                          \
+        }                                                                                        \
+        hybridse::base::Status _status(errcode, _msg.str(), _trace.str());                       \
+        return _status;                                                                          \
+        break;                                                                                   \
+    }
 struct Status {
     Status() : code(common::kOk), msg("ok") {}
 
