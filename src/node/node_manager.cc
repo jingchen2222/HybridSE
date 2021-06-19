@@ -516,36 +516,6 @@ ConstNode *NodeManager::MakeConstNode() {
 ConstNode *NodeManager::MakeConstNode(DataType type) {
     return RegisterNode(new ConstNode(type));
 }
-ConstNode *NodeManager::MakeConstNodeINT16MAX() {
-    return MakeConstNode(static_cast<int16_t>(INT16_MAX));
-}
-ConstNode *NodeManager::MakeConstNodeINT32MAX() {
-    return MakeConstNode(static_cast<int32_t>(INT32_MAX));
-}
-ConstNode *NodeManager::MakeConstNodeINT64MAX() {
-    return MakeConstNode(static_cast<int64_t>(INT64_MAX));
-}
-ConstNode *NodeManager::MakeConstNodeFLOATMAX() {
-    return MakeConstNode(static_cast<float>(FLT_MAX));
-}
-ConstNode *NodeManager::MakeConstNodeDOUBLEMAX() {
-    return MakeConstNode(static_cast<double>(DBL_MAX));
-}
-ConstNode *NodeManager::MakeConstNodeINT16MIN() {
-    return MakeConstNode(static_cast<int16_t>(INT16_MIN));
-}
-ConstNode *NodeManager::MakeConstNodeINT32MIN() {
-    return MakeConstNode(static_cast<int32_t>(INT32_MIN));
-}
-ConstNode *NodeManager::MakeConstNodeINT64MIN() {
-    return MakeConstNode(static_cast<int64_t>(INT64_MIN));
-}
-ConstNode *NodeManager::MakeConstNodeFLOATMIN() {
-    return MakeConstNode(static_cast<float>(FLT_MIN));
-}
-ConstNode *NodeManager::MakeConstNodeDOUBLEMIN() {
-    return MakeConstNode(static_cast<double>(DBL_MIN));
-}
 ConstNode *NodeManager::MakeConstNodePlaceHolder() {
     return MakeConstNode(hybridse::node::kPlaceholder);
 }

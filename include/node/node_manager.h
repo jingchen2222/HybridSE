@@ -209,16 +209,6 @@ class NodeManager {
     ConstNode *MakeConstNode(const char *value);
     ConstNode *MakeConstNode();
     ConstNode *MakeConstNode(DataType type);
-    ConstNode *MakeConstNodeINT16MAX();
-    ConstNode *MakeConstNodeINT32MAX();
-    ConstNode *MakeConstNodeINT64MAX();
-    ConstNode *MakeConstNodeFLOATMAX();
-    ConstNode *MakeConstNodeDOUBLEMAX();
-    ConstNode *MakeConstNodeINT16MIN();
-    ConstNode *MakeConstNodeINT32MIN();
-    ConstNode *MakeConstNodeINT64MIN();
-    ConstNode *MakeConstNodeFLOATMIN();
-    ConstNode *MakeConstNodeDOUBLEMIN();
     ConstNode *MakeConstNodePlaceHolder();
 
     AllNode *MakeAllNode(const std::string &relation_name);
