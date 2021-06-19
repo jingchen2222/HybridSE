@@ -99,7 +99,6 @@ class NodeManager {
                                      ExprNode *else_expr);
     ExprNode *MakeSearchedCaseWhenNode(ExprListNode *when_list_expr,
                                        ExprNode *else_expr);
-    ExprNode *MakeTimeFuncNode(const TimeUnit time_unit, ExprListNode *args);
     CallExprNode *MakeFuncNode(const std::string &name, ExprListNode *args,
                                const SqlNode *over);
     CallExprNode *MakeFuncNode(FnDefNode *fn, ExprListNode *args,

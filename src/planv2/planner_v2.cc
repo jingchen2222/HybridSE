@@ -140,6 +140,7 @@ base::Status SimplePlannerV2::CreateASTQueryPlan(const zetasql::ASTQuery *root, 
     }
     node::QueryNode *query_node = nullptr;
     CHECK_STATUS(ConvertQueryNode(root, node_manager_, &query_node))
+    DLOG(INFO) << *query_node << std::endl;
     CHECK_STATUS(CreateQueryPlan(query_node, plan_tree))
     return base::Status::OK();
 }
@@ -153,6 +154,7 @@ base::Status SimplePlannerV2::CreateASTInsertPlan(const zetasql::ASTInsertStatem
     }
     node::InsertStmt *insert_stmt = nullptr;
     CHECK_STATUS(ConvertInsertStatement(root, node_manager_, &insert_stmt))
+    DLOG(INFO) << *insert_stmt << std::endl;
     CHECK_STATUS(CreateInsertPlan(insert_stmt, plan_tree))
     return base::Status::OK();
 }
@@ -163,6 +165,7 @@ base::Status SimplePlannerV2::CreateASTCreatetTablePlan(const zetasql::ASTCreate
                "can not generate create table plan node with null create statement node")
     node::CreateStmt *create_stmt = nullptr;
     CHECK_STATUS(ConvertCreateTableNode(root, node_manager_, &create_stmt))
+    DLOG(INFO) << *create_stmt << std::endl;
     CHECK_STATUS(CreateCreateTablePlan(create_stmt, plan_tree))
     return base::Status::OK();
 }
@@ -171,6 +174,7 @@ base::Status SimplePlannerV2::CreateAstCmdStatementPlan(const zetasql::ASTStatem
     node::CmdNode *cmd_node = nullptr;
     CHECK_STATUS(ConvertCmdStatement(root, node_manager_, &cmd_node))
     CHECK_TRUE(nullptr != cmd_node, common::kPlanError, "fail to create plan tree: cmd statement node is illegal")
+    DLOG(INFO) << *cmd_node << std::endl;
     CHECK_STATUS(CreateCmdPlan(cmd_node, plan_tree))
     return base::Status::OK();
 }

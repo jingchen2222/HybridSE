@@ -424,19 +424,7 @@ ExprNode *NodeManager::MakeSearchedCaseWhenNode(ExprListNode *when_list_expr,
         new CaseWhenExprNode(when_list_expr, else_expr);
     return RegisterNode(node_ptr);
 }
-ExprNode *NodeManager::MakeTimeFuncNode(const TimeUnit time_unit,
-                                        ExprListNode *list_ptr) {
-    std::string fn_name = TimeUnitName(time_unit);
 
-    if (fn_name.empty() || fn_name == "unknow") {
-        LOG(WARNING) << "Fail to build time function node" << fn_name;
-        return nullptr;
-    }
-    FnDefNode *def_node =
-        dynamic_cast<FnDefNode *>(MakeUnresolvedFnDefNode(fn_name));
-    CallExprNode *node_ptr = new CallExprNode(def_node, list_ptr, NULL);
-    return RegisterNode(node_ptr);
-}
 
 CallExprNode *NodeManager::MakeFuncNode(const std::string &name,
                                         const std::vector<ExprNode *> &args,
