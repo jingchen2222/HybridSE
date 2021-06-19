@@ -46,21 +46,17 @@ TEST_F(PlanNodeTest, PlanNodeEqualsTest) {
     ASSERT_TRUE(rename1->Equals(rename2));
     ASSERT_FALSE(rename1->Equals(rename3));
 
-    ExprNode *expr1 = manager_->MakeBinaryExprNode(
-        manager_->MakeColumnRefNode("col1", ""),
-        manager_->MakeColumnRefNode("col2", ""), node::kFnOpEq);
+    ExprNode *expr1 = manager_->MakeBinaryExprNode(manager_->MakeColumnRefNode("col1", ""),
+                                                   manager_->MakeColumnRefNode("col2", ""), node::kFnOpEq);
 
-    ExprNode *expr2 = manager_->MakeBinaryExprNode(
-        manager_->MakeColumnRefNode("col1", ""),
-        manager_->MakeColumnRefNode("col2", ""), node::kFnOpEq);
+    ExprNode *expr2 = manager_->MakeBinaryExprNode(manager_->MakeColumnRefNode("col1", ""),
+                                                   manager_->MakeColumnRefNode("col2", ""), node::kFnOpEq);
 
-    ExprNode *expr3 = manager_->MakeBinaryExprNode(
-        manager_->MakeColumnRefNode("col1", ""),
-        manager_->MakeColumnRefNode("col3", ""), node::kFnOpEq);
+    ExprNode *expr3 = manager_->MakeBinaryExprNode(manager_->MakeColumnRefNode("col1", ""),
+                                                   manager_->MakeColumnRefNode("col3", ""), node::kFnOpEq);
 
-    ExprNode *expr4 = manager_->MakeBinaryExprNode(
-        manager_->MakeColumnRefNode("col1", ""),
-        manager_->MakeColumnRefNode("col2", ""), node::kFnOpGt);
+    ExprNode *expr4 = manager_->MakeBinaryExprNode(manager_->MakeColumnRefNode("col1", ""),
+                                                   manager_->MakeColumnRefNode("col2", ""), node::kFnOpGt);
     ASSERT_TRUE(expr1->Equals(expr1));
     ASSERT_TRUE(expr1->Equals(expr2));
     ASSERT_FALSE(expr1->Equals(expr3));
@@ -103,14 +99,10 @@ TEST_F(PlanNodeTest, PlanNodeEqualsTest) {
     ASSERT_FALSE(order1->Equals(order4));
 
     // sort
-    PlanNode *sort1 = manager_->MakeSortPlanNode(
-        table1, dynamic_cast<const OrderByNode *>(order1));
-    PlanNode *sort2 = manager_->MakeSortPlanNode(
-        table1, dynamic_cast<const OrderByNode *>(order2));
-    PlanNode *sort3 = manager_->MakeSortPlanNode(
-        table1, dynamic_cast<const OrderByNode *>(order3));
-    PlanNode *sort4 = manager_->MakeSortPlanNode(
-        table1, dynamic_cast<const OrderByNode *>(order4));
+    PlanNode *sort1 = manager_->MakeSortPlanNode(table1, dynamic_cast<const OrderByNode *>(order1));
+    PlanNode *sort2 = manager_->MakeSortPlanNode(table1, dynamic_cast<const OrderByNode *>(order2));
+    PlanNode *sort3 = manager_->MakeSortPlanNode(table1, dynamic_cast<const OrderByNode *>(order3));
+    PlanNode *sort4 = manager_->MakeSortPlanNode(table1, dynamic_cast<const OrderByNode *>(order4));
     ASSERT_TRUE(sort1->Equals(sort1));
     ASSERT_TRUE(sort1->Equals(sort2));
     ASSERT_FALSE(sort1->Equals(sort3));
@@ -187,6 +179,28 @@ TEST_F(PlanNodeTest, MultiPlanNodeTest) {
     ASSERT_EQ(3, multi_node_ptr->GetChildrenSize());
 }
 
+TEST_F(PlanNodeTest, ExtractColumnsAndIndexsTest) {
+    SqlNodeList *index_items = manager_->MakeNodeList();
+    index_items->PushBack(manager_->MakeIndexKeyNode("col4"));
+    index_items->PushBack(manager_->MakeIndexTsNode("col5"));
+    ColumnIndexNode *index_node = dynamic_cast<ColumnIndexNode *>(manager_->MakeColumnIndexNode(index_items));
+    index_node->SetName("index1");
+    CreatePlanNode *node =
+        manager_->MakeCreateTablePlanNode("t1", 3, 8,
+                                          {manager_->MakeColumnDescNode("col1", node::kInt32, true),
+                                           manager_->MakeColumnDescNode("col2", node::kInt32, true),
+                                           manager_->MakeColumnDescNode("col3", node::kFloat, true),
+                                           manager_->MakeColumnDescNode("col4", node::kVarchar, true),
+                                           manager_->MakeColumnDescNode("col5", node::kTimestamp, true), index_node},
+                                          {});
+    ASSERT_TRUE(nullptr != node);
+    std::vector<std::string> columns;
+    std::vector<std::string> indexes;
+    ASSERT_TRUE(node->ExtractColumnsAndIndexs(columns, indexes));
+    ASSERT_EQ(std::vector<std::string>({"col1 int32", "col2 int32", "col3 float", "col4 string", "col5 timestamp"}),
+              columns);
+    ASSERT_EQ(std::vector<std::string>({"index1:col4:col5"}), indexes);
+}
 }  // namespace node
 }  // namespace hybridse
 
