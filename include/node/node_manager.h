@@ -150,8 +150,6 @@ class NodeManager {
     SqlNode *MakeColumnIndexNode(SqlNodeList *keys, SqlNode *ts, SqlNode *ttl,
                                  SqlNode *version);
     SqlNode *MakeColumnIndexNode(SqlNodeList *index_item_list);
-    SqlNode *MakeKeyNode(SqlNodeList *key_list);
-    SqlNode *MakeKeyNode(const std::string &key);
     SqlNode *MakeIndexKeyNode(const std::string &key);
     SqlNode *MakeIndexTsNode(const std::string &ts);
     SqlNode *MakeIndexTTLNode(ExprListNode *ttl_expr);
@@ -251,7 +249,6 @@ class NodeManager {
     SqlNodeList *MakeNodeList();
 
     ExprListNode *MakeExprList(ExprNode *node_ptr);
-    ExprListNode *MakeExprList(ExprNode *node_ptr_1, ExprNode *node_ptr_2);
     ExprListNode *MakeExprList();
 
     DatasetNode *MakeDataset(const std::string &table);

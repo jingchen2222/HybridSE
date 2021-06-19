@@ -680,14 +680,6 @@ ExprListNode *NodeManager::MakeExprList(ExprNode *expr_node) {
     return new_list_ptr;
 }
 
-ExprListNode *NodeManager::MakeExprList(ExprNode *expr_node_1,
-                                        ExprNode *expr_node_2) {
-    ExprListNode *new_list_ptr = new ExprListNode();
-    new_list_ptr->AddChild(expr_node_1);
-    new_list_ptr->AddChild(expr_node_2);
-    RegisterNode(new_list_ptr);
-    return new_list_ptr;
-}
 
 PlanNode *NodeManager::MakeLeafPlanNode(const PlanType &type) {
     PlanNode *node_ptr = new LeafPlanNode(type);
@@ -837,16 +829,6 @@ FnParaNode *NodeManager::MakeFnParaNode(const std::string &name,
         new ::hybridse::node::FnParaNode(expr_id);
     return RegisterNode(para_node);
 }
-
-SqlNode *NodeManager::MakeKeyNode(SqlNodeList *key_list) {
-    SqlNode *node_ptr = new SqlNode(kIndexKey, 0, 0);
-    return RegisterNode(node_ptr);
-}
-SqlNode *NodeManager::MakeKeyNode(const std::string &key) {
-    SqlNode *node_ptr = new SqlNode(kIndexKey, 0, 0);
-    return RegisterNode(node_ptr);
-}
-
 SqlNode *NodeManager::MakeIndexKeyNode(const std::string &key) {
     SqlNode *node_ptr = new IndexKeyNode(key);
     return RegisterNode(node_ptr);
