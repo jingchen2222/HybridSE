@@ -636,7 +636,26 @@ TEST_F(SqlNodeTest, CreateIndexNodeTest) {
               columns);
     ASSERT_EQ(std::vector<std::string>({"index1:col4:col5"}), indexes);
 
-    node_manager_->MakeCreateIndexNode("index1", "t1", index_node);
+    CreateIndexNode *create_index_node =
+        dynamic_cast<node::CreateIndexNode *>(node_manager_->MakeCreateIndexNode("index1", "t1", index_node));
+
+    ASSERT_TRUE(nullptr != create_index_node);
+    std::ostringstream oss;
+    create_index_node->Print(oss, "");
+    ASSERT_EQ(
+        "+-node[kCreateIndexStmt]\n"
+        "  +-index_name: index1\n"
+        "  +-table_name: t1\n"
+        "  +-index:\n"
+        "    +-node[kColumnIndex]\n"
+        "      +-keys: col4\n"
+        "      +-ts_col: col5\n"
+        "      +-abs_ttl: -2\n"
+        "      +-lat_ttl: -2\n"
+        "      +-ttl_type: \n"
+        "      +-version_column: \n"
+        "      +-version_count: 0",
+        oss.str());
 }
 TEST_F(SqlNodeTest, FnNodeTest) {
     node::FnNodeList *params = node_manager_->MakeFnListNode();
@@ -769,6 +788,28 @@ TEST_F(SqlNodeTest, FnNodeTest) {
         oss.str());
 }
 
+TEST_F(SqlNodeTest, ExprIsConstTest) {
+    ASSERT_TRUE(node::ExprIsConst(node_manager_->MakeConstNode(1)));
+
+    ASSERT_TRUE(node::ExprIsConst(node_manager_->MakeBetweenExpr(
+        node_manager_->MakeConstNode(10), node_manager_->MakeConstNode(0), node_manager_->MakeConstNode(100), true)));
+    ASSERT_FALSE(node::ExprIsConst(node_manager_->MakeBetweenExpr(node_manager_->MakeColumnRefNode("col1", ""),
+                                                                  node_manager_->MakeConstNode(0),
+                                                                  node_manager_->MakeConstNode(100), true)));
+
+    {
+        node::ExprListNode *args = node_manager_->MakeExprList();
+        args->AddChild(node_manager_->MakeConstNode("s1"));
+        args->AddChild(node_manager_->MakeConstNode("s2"));
+        ASSERT_TRUE(node::ExprIsConst(node_manager_->MakeFuncNode("concat", args, nullptr)));
+    }
+    {
+        node::ExprListNode *args = node_manager_->MakeExprList();
+        args->AddChild(node_manager_->MakeConstNode("s1"));
+        args->AddChild(node_manager_->MakeColumnRefNode("col1", ""));
+        ASSERT_FALSE(node::ExprIsConst(node_manager_->MakeFuncNode("concat", args, nullptr)));
+    }
+}
 }  // namespace node
 }  // namespace hybridse
 
