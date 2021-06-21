@@ -805,10 +805,66 @@ TEST_F(SqlNodeTest, ExprIsConstTest) {
     }
     {
         node::ExprListNode *args = node_manager_->MakeExprList();
+        args->AddChild(node_manager_->MakeColumnRefNode("col1", ""));
+        node::SqlNode *over = node_manager_->MakeWindowDefNode(
+            node_manager_->MakeExprList(node_manager_->MakeColumnRefNode("key1", "")),
+            node_manager_->MakeOrderByNode(node_manager_->MakeExprList(node_manager_->MakeColumnRefNode("std_ts", "")),
+                                           true),
+            node_manager_->MakeFrameNode(node::FrameType::kFrameRows,
+                                         node_manager_->MakeFrameExtent(node_manager_->MakeFrameBound(kPreceding, 100),
+                                                                        node_manager_->MakeFrameBound(kCurrent))));
+        ASSERT_FALSE(node::ExprIsConst(node_manager_->MakeFuncNode("sum", args, over)));
+    }
+    {
+        node::ExprListNode *args = node_manager_->MakeExprList();
         args->AddChild(node_manager_->MakeConstNode("s1"));
         args->AddChild(node_manager_->MakeColumnRefNode("col1", ""));
         ASSERT_FALSE(node::ExprIsConst(node_manager_->MakeFuncNode("concat", args, nullptr)));
     }
+}
+TEST_F(SqlNodeTest, CallExprTest) {
+    node::ExprListNode *args = node_manager_->MakeExprList();
+    args->AddChild(node_manager_->MakeConstNode("s1"));
+    args->AddChild(node_manager_->MakeColumnRefNode("col1", ""));
+    node::CallExprNode *node = node_manager_->MakeFuncNode("concat", args, nullptr);
+    ASSERT_EQ("concat", node->GetFnDef()->GetName());
+    ASSERT_EQ(2, node->GetChildNum());
+    std::ostringstream oss;
+    node->Print(oss, "");
+    std::cout << oss.str();
+    ASSERT_EQ(
+        "+-expr[function]\n"
+        "  +-function:\n"
+        "  |  [Unresolved](concat)\n"
+        "  +-arg[0]:\n"
+        "  |  +-expr[primary]\n"
+        "  |    +-value: s1\n"
+        "  |    +-type: string\n"
+        "  +-arg[1]:\n"
+        "    +-expr[column ref]\n"
+        "      +-relation_name: \n"
+        "      +-column_name: col1",
+        oss.str());
+}
+TEST_F(SqlNodeTest, ColumnIdTest) {
+    node::ColumnIdNode *node = node_manager_->MakeColumnIdNode(1);
+    ASSERT_EQ(1, node->GetColumnID());
+    ASSERT_EQ("#1", node->GenerateExpressionName());
+    ASSERT_EQ("#1", node->GetExprString());
+
+    ASSERT_TRUE(node::ExprEquals(node, node));
+    ASSERT_TRUE(node::ExprEquals(node, node_manager_->MakeColumnIdNode(1)));
+
+    ASSERT_FALSE(node::ExprEquals(node, node_manager_->MakeColumnIdNode(2)));
+    ASSERT_FALSE(node::ExprEquals(node, nullptr));
+    ASSERT_FALSE(node::ExprEquals(node, node_manager_->MakeColumnRefNode("col1", "")));
+    std::ostringstream oss;
+    node->Print(oss, "");
+    std::cout << oss.str();
+    ASSERT_EQ(
+        "+-expr[column id]\n"
+        "  +-column_id: 1",
+        oss.str());
 }
 }  // namespace node
 }  // namespace hybridse
