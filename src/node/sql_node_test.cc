@@ -638,6 +638,137 @@ TEST_F(SqlNodeTest, CreateIndexNodeTest) {
 
     node_manager_->MakeCreateIndexNode("index1", "t1", index_node);
 }
+TEST_F(SqlNodeTest, FnNodeTest) {
+    node::FnNodeList *params = node_manager_->MakeFnListNode();
+    params->AddChild(node_manager_->MakeFnParaNode("x", node_manager_->MakeTypeNode(node::kInt32)));
+    params->AddChild(node_manager_->MakeFnParaNode("y", node_manager_->MakeTypeNode(node::kInt32)));
+
+    node::FnIfNode *if_node =
+        dynamic_cast<node::FnIfNode *>(node_manager_->MakeIfStmtNode(node_manager_->MakeBinaryExprNode(
+            node_manager_->MakeUnresolvedExprId("x"), node_manager_->MakeConstNode(1), node::kFnOpGt)));
+    node::FnIfBlock *if_block = node_manager_->MakeFnIfBlock(
+        if_node,
+        node_manager_->MakeFnListNode(node_manager_->MakeReturnStmtNode(node_manager_->MakeBinaryExprNode(
+            node_manager_->MakeUnresolvedExprId("x"), node_manager_->MakeUnresolvedExprId("y"), node::kFnOpAdd))));
+    std::vector<node::FnNode *> elif_blocks;
+    node::FnElifBlock *elif_block = node_manager_->MakeFnElifBlock(
+        dynamic_cast<node::FnElifNode *>(node_manager_->MakeElifStmtNode(node_manager_->MakeBinaryExprNode(
+            node_manager_->MakeUnresolvedExprId("y"), node_manager_->MakeConstNode(2), node::kFnOpGt))),
+        node_manager_->MakeFnListNode(node_manager_->MakeReturnStmtNode(node_manager_->MakeBinaryExprNode(
+            node_manager_->MakeUnresolvedExprId("x"), node_manager_->MakeUnresolvedExprId("y"), node::kFnOpMinus))));
+    elif_blocks.push_back(elif_block);
+    node::FnElseBlock *else_block = node_manager_->MakeFnElseBlock(
+        node_manager_->MakeFnListNode(node_manager_->MakeReturnStmtNode(node_manager_->MakeBinaryExprNode(
+            node_manager_->MakeUnresolvedExprId("x"), node_manager_->MakeUnresolvedExprId("y"), node::kFnOpMulti))));
+
+    node::FnNodeFnDef *fn_def = dynamic_cast<node::FnNodeFnDef *>(node_manager_->MakeFnDefNode(
+        node_manager_->MakeFnHeaderNode("test", params, node_manager_->MakeTypeNode(node::kInt32)),
+        node_manager_->MakeFnListNode(node_manager_->MakeFnIfElseBlock(if_block, elif_blocks, else_block))));
+
+    std::ostringstream oss;
+    fn_def->Print(oss, "");
+    ASSERT_EQ(
+        "+-node[kFnDef]\n"
+        "  +-header:\n"
+        "  |  +-node[kFnHeader]\n"
+        "  |    +-func_name: test\n"
+        "  |    +-return_type:\n"
+        "  |      +-node[kType]\n"
+        "  |        +-type: int32\n"
+        "  |    +-parameters:\n"
+        "  |      +-node[kFnList]\n"
+        "  |        +-list[list]: \n"
+        "  |          +-0:\n"
+        "  |          |  +-node[kFnPara]\n"
+        "  |          |    +-x:\n"
+        "  |          |      +-node[kType]\n"
+        "  |          |        +-type: int32\n"
+        "  |          +-1:\n"
+        "  |            +-node[kFnPara]\n"
+        "  |              +-y:\n"
+        "  |                +-node[kType]\n"
+        "  |                  +-type: int32\n"
+        "  +-block:\n"
+        "    +-node[kFnList]\n"
+        "      +-list[list]: \n"
+        "        +-0:\n"
+        "          +-node[kFnIfElseBlock]\n"
+        "            +-if:\n"
+        "            |  +-node[kFnIfBlock]\n"
+        "            |    +-if:\n"
+        "            |    |  +-node[kFnIfStmt]\n"
+        "            |    |    +-if:\n"
+        "            |    |      +-expr[binary]\n"
+        "            |    |        +->[list]: \n"
+        "            |    |          +-0:\n"
+        "            |    |          |  +-expr[id]\n"
+        "            |    |          |    +-var: %-1(x)\n"
+        "            |    |          +-1:\n"
+        "            |    |            +-expr[primary]\n"
+        "            |    |              +-value: 1\n"
+        "            |    |              +-type: int32\n"
+        "            |    +-block:\n"
+        "            |      +-node[kFnList]\n"
+        "            |        +-list[list]: \n"
+        "            |          +-0:\n"
+        "            |            +-node[kFnReturnStmt]\n"
+        "            |              +-return:\n"
+        "            |                +-expr[binary]\n"
+        "            |                  +-+[list]: \n"
+        "            |                    +-0:\n"
+        "            |                    |  +-expr[id]\n"
+        "            |                    |    +-var: %-1(x)\n"
+        "            |                    +-1:\n"
+        "            |                      +-expr[id]\n"
+        "            |                        +-var: %-1(y)\n"
+        "            +-elif_list[list]: \n"
+        "            |  +-0:\n"
+        "            |    +-node[kFnElIfBlock]\n"
+        "            |      +-elif:\n"
+        "            |      |  +-node[kFnElseifStmt]\n"
+        "            |      |    +-elif:\n"
+        "            |      |      +-expr[binary]\n"
+        "            |      |        +->[list]: \n"
+        "            |      |          +-0:\n"
+        "            |      |          |  +-expr[id]\n"
+        "            |      |          |    +-var: %-1(y)\n"
+        "            |      |          +-1:\n"
+        "            |      |            +-expr[primary]\n"
+        "            |      |              +-value: 2\n"
+        "            |      |              +-type: int32\n"
+        "            |      +-block:\n"
+        "            |        +-node[kFnList]\n"
+        "            |          +-list[list]: \n"
+        "            |            +-0:\n"
+        "            |              +-node[kFnReturnStmt]\n"
+        "            |                +-return:\n"
+        "            |                  +-expr[binary]\n"
+        "            |                    +--[list]: \n"
+        "            |                      +-0:\n"
+        "            |                      |  +-expr[id]\n"
+        "            |                      |    +-var: %-1(x)\n"
+        "            |                      +-1:\n"
+        "            |                        +-expr[id]\n"
+        "            |                          +-var: %-1(y)\n"
+        "            +-else:\n"
+        "              +-node[kFnElseBlock]\n"
+        "                +-block:\n"
+        "                  +-node[kFnList]\n"
+        "                    +-list[list]: \n"
+        "                      +-0:\n"
+        "                        +-node[kFnReturnStmt]\n"
+        "                          +-return:\n"
+        "                            +-expr[binary]\n"
+        "                              +-*[list]: \n"
+        "                                +-0:\n"
+        "                                |  +-expr[id]\n"
+        "                                |    +-var: %-1(x)\n"
+        "                                +-1:\n"
+        "                                  +-expr[id]\n"
+        "                                    +-var: %-1(y)",
+        oss.str());
+}
+
 }  // namespace node
 }  // namespace hybridse
 

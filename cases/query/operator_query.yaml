@@ -151,7 +151,6 @@ cases:
         4, 5, false
   - id: 6
     desc: 逻辑运算XOR
-    tags: ["TODO", "zetasql-unsupport"]
     mode: request
     db: db1
     sql: select col1, col2, (col1 > 2) XOR (col2 > 2) as flag from t1;

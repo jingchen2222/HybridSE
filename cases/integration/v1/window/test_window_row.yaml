@@ -578,7 +578,6 @@ cases:
   -
     id: 19
     desc: case when window expression then window expression else null end
-    mode: zetasql-unsupport
     inputs:
       -
         columns: ["c1 string","c3 int","c4 bigint","c5 float","c6 double","c7 timestamp","c8 date"]
@@ -606,7 +605,6 @@ cases:
         - ["bb",34,NULL]
   -
     id: 20
-    mode: zetasql-unsupport
     desc: case when window expr then window expr else window expr
     inputs:
       -
@@ -635,7 +633,6 @@ cases:
         - ["bb",34,33]
   -
     id: 21
-    mode: zetasql-unsupport
     desc: case when simple expression then window expression else null end
     inputs:
       -
