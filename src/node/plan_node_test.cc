@@ -147,6 +147,13 @@ TEST_F(PlanNodeTest, UnaryPlanNodeTest) {
 
     ASSERT_EQ(false, unary_node_ptr->AddChild(node_ptr));
     ASSERT_EQ(1, unary_node_ptr->GetChildrenSize());
+    std::ostringstream oss;
+    unary_node_ptr->Print(oss, "");
+    std::cout << oss.str();
+    ASSERT_EQ(
+        "+-[kUnknow]\n"
+        "+-[kUnknow]",
+        oss.str());
 }
 
 TEST_F(PlanNodeTest, BinaryPlanNodeTest) {
@@ -162,6 +169,14 @@ TEST_F(PlanNodeTest, BinaryPlanNodeTest) {
 
     ASSERT_EQ(false, binary_node_ptr->AddChild(node_ptr));
     ASSERT_EQ(2, binary_node_ptr->GetChildrenSize());
+    std::ostringstream oss;
+    binary_node_ptr->Print(oss, "");
+    ASSERT_EQ(
+        "\n"
+        "+-[kUnknow]\n"
+        "  +-[kUnknow]\n"
+        "  +-[kUnknow]",
+        oss.str());
 }
 
 TEST_F(PlanNodeTest, MultiPlanNodeTest) {
@@ -177,6 +192,16 @@ TEST_F(PlanNodeTest, MultiPlanNodeTest) {
 
     ASSERT_EQ(true, multi_node_ptr->AddChild(node_ptr));
     ASSERT_EQ(3, multi_node_ptr->GetChildrenSize());
+    std::ostringstream oss;
+    multi_node_ptr->Print(oss, "");
+    std::cout << oss.str();
+    ASSERT_EQ(
+        "+-[kUnknow]\n"
+        "  +-children[list]: \n"
+        "    +-[kUnknow]\n"
+        "    +-[kUnknow]\n"
+        "    +-[kUnknow]",
+        oss.str());
 }
 
 TEST_F(PlanNodeTest, ExtractColumnsAndIndexsTest) {
