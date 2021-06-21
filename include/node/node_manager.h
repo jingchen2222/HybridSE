@@ -215,6 +215,7 @@ class NodeManager {
 
     FnNode *MakeFnNode(const SqlNodeType &type);
     FnNodeList *MakeFnListNode();
+    FnNodeList *MakeFnListNode(FnNode* fn_node);
     FnNode *MakeFnDefNode(const FnNode *header, FnNodeList *block);
     FnNode *MakeFnHeaderNode(const std::string &name, FnNodeList *plist,
                              const TypeNode *return_type);
@@ -228,6 +229,7 @@ class NodeManager {
     FnIfBlock *MakeFnIfBlock(FnIfNode *if_node, FnNodeList *block);
     FnElifBlock *MakeFnElifBlock(FnElifNode *elif_node, FnNodeList *block);
     FnIfElseBlock *MakeFnIfElseBlock(FnIfBlock *if_block,
+                                     const std::vector<FnNode *>& elif_blocks,
                                      FnElseBlock *else_block);
     FnElseBlock *MakeFnElseBlock(FnNodeList *block);
     FnNode *MakeIfStmtNode(ExprNode *value);

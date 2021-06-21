@@ -55,53 +55,44 @@ class FnIRBuilderTest : public ::testing::Test {
  protected:
     node::NodeManager *manager_;
 };
-//
-// template <class R, class V1, class V2>
-// void CheckResult(std::string test, R exp, V1 a, V2 b) {
-//    node::NodePointVector trees;
-//    node::PlanNodeList plan_trees;
-//    base::Status status;
-//    parser::HybridSeParser parser;
-//    node::NodeManager manager;
-//    int ret = parser.parse(test, trees, &manager, status);
-//    ASSERT_EQ(0, ret);
-//    // Create an LLJIT instance.
-//    auto ctx = llvm::make_unique<LLVMContext>();
-//    auto m = make_unique<Module>("custom_fn", *ctx);
-//    FnIRBuilder fn_ir_builder(m.get());
-//    node::FnNodeFnDef *fn_def = dynamic_cast<node::FnNodeFnDef *>(trees[0]);
-//    LOG(INFO) << *fn_def;
-//    ::llvm::Function *func = nullptr;
-//    bool ok = fn_ir_builder.Build(fn_def, &func, status);
-//    ASSERT_TRUE(ok);
-//    m->print(::llvm::errs(), NULL, true, true);
-//    LOG(INFO) << "before opt with ins cnt " << m->getInstructionCount();
-//    ::llvm::legacy::FunctionPassManager fpm(m.get());
-//    fpm.add(::llvm::createPromoteMemoryToRegisterPass());
-//    fpm.doInitialization();
-//    ::llvm::Module::iterator it;
-//    ::llvm::Module::iterator end = m->end();
-//    for (it = m->begin(); it != end; ++it) {
-//        fpm.run(*it);
-//    }
-//    LOG(INFO) << "after opt with ins cnt " << m->getInstructionCount();
-//    m->print(::llvm::errs(), NULL, true, true);
-//    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(
-//        vm::HybridSeJitWrapper::Create());
-//    jit->Init();
-//    vm::HybridSeJitWrapper::InitJitSymbols(jit.get());
-//    ASSERT_TRUE(jit->AddModule(std::move(m), std::move(ctx)));
-//    auto test_fn =
-//        (R(*)(V1, V2))jit->FindFunction(fn_def->header_->GeIRFunctionName());
-//    R result = test_fn(a, b);
-//    LOG(INFO) << "exp: " << std::to_string(exp)
-//              << ", result: " << std::to_string(result);
-//    ASSERT_EQ(exp, result);
-//}
-//
-// void CheckResult(std::string test, int32_t res, int32_t a, int32_t b) {
-//    CheckResult<int32_t, int32_t, int32_t>(test, res, a, b);
-//}
+
+template <class R, class V1, class V2>
+void CheckResult(node::FnNodeFnDef *fn_def, R exp, V1 a, V2 b) {
+    base::Status status;
+    node::NodeManager manager;
+    // Create an LLJIT instance.
+    auto ctx = llvm::make_unique<LLVMContext>();
+    auto m = make_unique<Module>("custom_fn", *ctx);
+    FnIRBuilder fn_ir_builder(m.get());
+    LOG(INFO) << *fn_def;
+    ::llvm::Function *func = nullptr;
+    bool ok = fn_ir_builder.Build(fn_def, &func, status);
+    ASSERT_TRUE(ok);
+    m->print(::llvm::errs(), NULL, true, true);
+    LOG(INFO) << "before opt with ins cnt " << m->getInstructionCount();
+    ::llvm::legacy::FunctionPassManager fpm(m.get());
+    fpm.add(::llvm::createPromoteMemoryToRegisterPass());
+    fpm.doInitialization();
+    ::llvm::Module::iterator it;
+    ::llvm::Module::iterator end = m->end();
+    for (it = m->begin(); it != end; ++it) {
+        fpm.run(*it);
+    }
+    LOG(INFO) << "after opt with ins cnt " << m->getInstructionCount();
+    m->print(::llvm::errs(), NULL, true, true);
+    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(vm::HybridSeJitWrapper::Create());
+    jit->Init();
+    vm::HybridSeJitWrapper::InitJitSymbols(jit.get());
+    ASSERT_TRUE(jit->AddModule(std::move(m), std::move(ctx)));
+    auto test_fn = (R(*)(V1, V2))jit->FindFunction(fn_def->header_->GeIRFunctionName());
+    R result = test_fn(a, b);
+    LOG(INFO) << "exp: " << std::to_string(exp) << ", result: " << std::to_string(result);
+    ASSERT_EQ(exp, result);
+}
+
+void CheckResult(node::FnNodeFnDef *fn_def, int32_t res, int32_t a, int32_t b) {
+    CheckResult<int32_t, int32_t, int32_t>(fn_def, res, a, b);
+}
 //
 // TEST_F(FnIRBuilderTest, test_add_int32) {
 //    const std::string test =
@@ -237,23 +228,40 @@ class FnIRBuilderTest : public ::testing::Test {
 // CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(test, 9, &list_ref, 4);
 //}*/
 //
-// TEST_F(FnIRBuilderTest, test_for_in_sum) {
-//    const std::string test =
-//        "%%fun\n"
-//        "def test(l:list<i32>, a:i32):i32\n"
-//        "    sum=0\n"
-//        "    for x in l\n"
-//        "        sum = sum + x\n"
-//        "    return sum\n"
-//        "end";
-//
-//    std::vector<int32_t> vec = {1, 3, 5, 7, 9};
-//    hybridse::codec::ArrayListV<int32_t> list(&vec);
-//    hybridse::codec::ListRef<> list_ref;
-//    list_ref.list = reinterpret_cast<int8_t *>(&list);
-//    CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(
-//        test, 1 + 3 + 5 + 7 + 9, &list_ref, 0);
-//}
+TEST_F(FnIRBuilderTest, test_for_in_sum) {
+    //    const std::string test =
+    //        "%%fun\n"
+    //        "def test(l:list<i32>, a:i32):i32\n"
+    //        "    sum=0\n"
+    //        "    for x in l\n"
+    //        "        sum = sum + x\n"
+    //        "    return sum\n"
+    //        "end";
+
+    node::FnNodeList *params = manager_->MakeFnListNode();
+    params->AddChild(
+        manager_->MakeFnParaNode("l", manager_->MakeTypeNode(node::kList, manager_->MakeTypeNode(node::kInt32))));
+    params->AddChild(manager_->MakeFnParaNode("a", manager_->MakeTypeNode(node::kInt32)));
+
+    node::FnNodeList *block = manager_->MakeFnListNode();
+    block->AddChild(manager_->MakeAssignNode("sum", manager_->MakeConstNode(0)));
+    node::FnForInBlock *for_in_block = manager_->MakeForInBlock(
+        dynamic_cast<node::FnForInNode *>(manager_->MakeForInStmtNode("x", manager_->MakeUnresolvedExprId("l"))),
+        manager_->MakeFnListNode(manager_->MakeAssignNode(
+            "sum", manager_->MakeBinaryExprNode(manager_->MakeUnresolvedExprId("sum"),
+                                                manager_->MakeUnresolvedExprId("x"), node::kFnOpAdd))));
+    block->AddChild(for_in_block);
+    block->AddChild(manager_->MakeReturnStmtNode(manager_->MakeUnresolvedExprId("sum")));
+
+    node::FnNodeFnDef *fn_def = dynamic_cast<node::FnNodeFnDef *>(manager_->MakeFnDefNode(
+        manager_->MakeFnHeaderNode("test", params, manager_->MakeTypeNode(node::kInt32)), block));
+
+    std::vector<int32_t> vec = {1, 3, 5, 7, 9};
+    hybridse::codec::ArrayListV<int32_t> list(&vec);
+    hybridse::codec::ListRef<> list_ref;
+    list_ref.list = reinterpret_cast<int8_t *>(&list);
+    CheckResult<int32_t, hybridse::codec::ListRef<> *, int32_t>(fn_def, 1 + 3 + 5 + 7 + 9, &list_ref, 0);
+}
 //
 // TEST_F(FnIRBuilderTest, test_for_in_sum_ret) {
 //    const std::string test =

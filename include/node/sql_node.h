@@ -1952,8 +1952,8 @@ class FnElseBlock : public FnNode {
 };
 class FnIfElseBlock : public FnNode {
  public:
-    FnIfElseBlock(FnIfBlock *if_block, FnElseBlock *else_block)
-        : FnNode(kFnIfElseBlock), if_block_(if_block), else_block_(else_block) {}
+    FnIfElseBlock(FnIfBlock *if_block, const std::vector<FnNode *> &elif_blocks, FnElseBlock *else_block)
+        : FnNode(kFnIfElseBlock), if_block_(if_block), elif_blocks_(elif_blocks), else_block_(else_block) {}
     void Print(std::ostream &output, const std::string &org_tab) const;
     FnIfBlock *if_block_;
     std::vector<FnNode *> elif_blocks_;

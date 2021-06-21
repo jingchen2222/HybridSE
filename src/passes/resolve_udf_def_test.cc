@@ -22,46 +22,55 @@ namespace hybridse {
 namespace passes {
 
 class ResolveUdfDefTest : public ::testing::Test {};
-//
-// TEST_F(ResolveUdfDefTest, TestResolve) {
-//    Status status;
-//    node::NodeManager nm;
-//    const std::string udf1 =
-//        "%%fun\n"
-//        "def test(x:i32, y:i32):i32\n"
-//        "    return x+y\n"
-//        "end\n";
-//    node::PlanNodeList trees;
-//    ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(udf1, trees, &nm, status)) << status;
-//    ASSERT_EQ(1u, trees.size());
-//
-//    auto def_plan = dynamic_cast<node::FuncDefPlanNode *>(trees[0]);
-//    ASSERT_TRUE(def_plan != nullptr);
-//
-//    ResolveUdfDef resolver;
-//    status = resolver.Visit(def_plan->fn_def_);
-//    ASSERT_TRUE(status.isOK());
-//}
-//
-// TEST_F(ResolveUdfDefTest, TestResolveFailed) {
-//    Status status;
-//    node::NodeManager nm;
-//    const std::string udf1 =
-//        "%%fun\n"
-//        "def test(x:i32, y:i32):i32\n"
-//        "    return x+z\n"
-//        "end\n";
-//    node::PlanNodeList trees;
-//    ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(udf1, trees, &nm, status)) << status;
-//    ASSERT_EQ(1u, trees.size());
-//
-//    auto def_plan = dynamic_cast<node::FuncDefPlanNode *>(trees[0]);
-//    ASSERT_TRUE(def_plan != nullptr);
-//
-//    ResolveUdfDef resolver;
-//    status = resolver.Visit(def_plan->fn_def_);
-//    ASSERT_TRUE(!status.isOK());
-//}
+
+TEST_F(ResolveUdfDefTest, TestResolve) {
+    Status status;
+    node::NodeManager nm;
+    //    const std::string udf1 =
+    //        "%%fun\n"
+    //        "def test(x:i32, y:i32):i32\n"
+    //        "    return x+y\n"
+    //        "end\n";
+    node::FnNodeList *params = nm.MakeFnListNode();
+    params->AddChild(nm.MakeFnParaNode("x", nm.MakeTypeNode(node::kInt32)));
+    params->AddChild(nm.MakeFnParaNode("y", nm.MakeTypeNode(node::kInt32)));
+
+    node::FnNodeFnDef *fn_def = dynamic_cast<node::FnNodeFnDef *>(
+        nm.MakeFnDefNode(nm.MakeFnHeaderNode("test", params, nm.MakeTypeNode(node::kInt32)),
+                         nm.MakeFnListNode(nm.MakeReturnStmtNode(nm.MakeBinaryExprNode(
+                             nm.MakeUnresolvedExprId("x"), nm.MakeUnresolvedExprId("y"), node::kFnOpAdd)))));
+    auto def_plan = nm.MakeFuncPlanNode(fn_def);
+
+    ResolveUdfDef resolver;
+    status = resolver.Visit(def_plan->fn_def_);
+    ASSERT_TRUE(status.isOK());
+}
+
+TEST_F(ResolveUdfDefTest, TestResolveFailed) {
+    Status status;
+    node::NodeManager nm;
+    //    const std::string udf1 =
+    //        "%%fun\n"
+    //        "def test(x:i32, y:i32):i32\n"
+    //        "    return x+z\n"
+    //        "end\n";
+
+    node::FnNodeList *params = nm.MakeFnListNode();
+    params->AddChild(nm.MakeFnParaNode("x", nm.MakeTypeNode(node::kInt32)));
+    params->AddChild(nm.MakeFnParaNode("y", nm.MakeTypeNode(node::kInt32)));
+
+    node::FnNodeFnDef *fn_def = dynamic_cast<node::FnNodeFnDef *>(
+        nm.MakeFnDefNode(nm.MakeFnHeaderNode("test", params, nm.MakeTypeNode(node::kInt32)),
+                         nm.MakeFnListNode(nm.MakeReturnStmtNode(nm.MakeBinaryExprNode(
+                             nm.MakeUnresolvedExprId("x"), nm.MakeUnresolvedExprId("z"), node::kFnOpAdd)))));
+
+    auto def_plan = nm.MakeFuncPlanNode(fn_def);
+    ASSERT_TRUE(def_plan != nullptr);
+
+    ResolveUdfDef resolver;
+    status = resolver.Visit(def_plan->fn_def_);
+    ASSERT_TRUE(!status.isOK());
+}
 
 }  // namespace passes
 }  // namespace hybridse
