@@ -167,8 +167,9 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         working-directory: java
         run: |
-          mvn --batch-mode -pl hybridse-native -P macos deploy
-          mvn --batch-mode -pl hybridse-sdk -P macos deploy
+          mvn --batch-mode -P macos clean install
+          mvn --batch-mode -P macos -pl hybridse-native deploy
+          mvn --batch-mode -P macos -pl hybridse-sdk deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_TOKEN: ${{ secrets.OSSRH_TOKEN }}
@@ -227,6 +228,7 @@ jobs:
       - name: Publish Java Library
         working-directory: java
         run: |
+          mvn --batch-mode -P allinone clean install
           mvn --batch-mode -P allinone -pl hybridse-native deploy
           mvn --batch-mode -P allinone -pl hybridse-sdk deploy
         env:
