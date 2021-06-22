@@ -991,6 +991,16 @@ SqlNode *NodeManager::MakeCreateProcedureNode(const std::string &sp_name, SqlNod
     return RegisterNode(node_ptr);
 }
 
+SqlNode *NodeManager::MakeCreateProcedureNode(const std::string &sp_name,
+                                              SqlNodeList *input_parameter_list,
+                                              SqlNodeList *inner_node_list) {
+    CreateSpStmt *node_ptr = new CreateSpStmt(sp_name);
+    FillSqlNodeList2NodeVector(input_parameter_list,
+                               node_ptr->GetInputParameterList());
+    FillSqlNodeList2NodeVector(inner_node_list, node_ptr->GetInnerNodeList());
+    return RegisterNode(node_ptr);
+}
+
 SqlNode *NodeManager::MakeInputParameterNode(bool is_constant, const std::string &column_name, DataType data_type) {
     SqlNode *node_ptr = new InputParameterNode(column_name, data_type, is_constant);
     return RegisterNode(node_ptr);
