@@ -137,7 +137,7 @@ TEST_F(SqlNodeTest, MakeConstTimeTest) {
     {
         ConstNode *node_ptr = dynamic_cast<ConstNode *>(node_manager_->MakeConstNode(10, node::kMinute));
         std::cout << *node_ptr << std::endl;
-        ASSERT_EQ(hybridse::node::kSecond, node_ptr->GetDataType());
+        ASSERT_EQ(hybridse::node::kMinute, node_ptr->GetDataType());
         ASSERT_EQ(10000 * 60, node_ptr->GetMillis());
 
         ASSERT_TRUE(node_ptr->ConvertNegative());
