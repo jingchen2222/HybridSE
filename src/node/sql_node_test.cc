@@ -83,6 +83,9 @@ TEST_F(SqlNodeTest, MakeConstNodeIntTest) {
     std::cout << *node_ptr << std::endl;
     ASSERT_EQ(hybridse::node::kInt32, node_ptr->GetDataType());
     ASSERT_EQ(1, node_ptr->GetInt());
+
+    ASSERT_TRUE(node_ptr->ConvertNegative());
+    ASSERT_EQ(-1, node_ptr->GetInt());
 }
 
 TEST_F(SqlNodeTest, MakeConstNodeLongTest) {
@@ -97,6 +100,9 @@ TEST_F(SqlNodeTest, MakeConstNodeLongTest) {
     std::cout << *node_ptr << std::endl;
     ASSERT_EQ(hybridse::node::kInt64, node_ptr->GetDataType());
     ASSERT_EQ(val2, node_ptr->GetLong());
+
+    ASSERT_TRUE(node_ptr->ConvertNegative());
+    ASSERT_EQ(-val2, node_ptr->GetLong());
 }
 
 TEST_F(SqlNodeTest, MakeConstNodeDoubleTest) {
@@ -104,6 +110,9 @@ TEST_F(SqlNodeTest, MakeConstNodeDoubleTest) {
     std::cout << *node_ptr << std::endl;
     ASSERT_EQ(hybridse::node::kDouble, node_ptr->GetDataType());
     ASSERT_EQ(1.989E30, node_ptr->GetDouble());
+
+    ASSERT_TRUE(node_ptr->ConvertNegative());
+    ASSERT_EQ(-1.989E30, node_ptr->GetDouble());
 }
 
 TEST_F(SqlNodeTest, MakeConstNodeFloatTest) {
@@ -111,6 +120,47 @@ TEST_F(SqlNodeTest, MakeConstNodeFloatTest) {
     std::cout << *node_ptr << std::endl;
     ASSERT_EQ(hybridse::node::kFloat, node_ptr->GetDataType());
     ASSERT_EQ(1.234f, node_ptr->GetFloat());
+
+    ASSERT_TRUE(node_ptr->ConvertNegative());
+    ASSERT_EQ(-1.234f, node_ptr->GetFloat());
+}
+TEST_F(SqlNodeTest, MakeConstTimeTest) {
+    {
+        ConstNode *node_ptr = dynamic_cast<ConstNode *>(node_manager_->MakeConstNode(10, node::kSecond));
+        std::cout << *node_ptr << std::endl;
+        ASSERT_EQ(hybridse::node::kSecond, node_ptr->GetDataType());
+        ASSERT_EQ(10000, node_ptr->GetMillis());
+
+        ASSERT_TRUE(node_ptr->ConvertNegative());
+        ASSERT_EQ(-10000, node_ptr->GetMillis());
+    }
+    {
+        ConstNode *node_ptr = dynamic_cast<ConstNode *>(node_manager_->MakeConstNode(10, node::kMinute));
+        std::cout << *node_ptr << std::endl;
+        ASSERT_EQ(hybridse::node::kSecond, node_ptr->GetDataType());
+        ASSERT_EQ(10000 * 60, node_ptr->GetMillis());
+
+        ASSERT_TRUE(node_ptr->ConvertNegative());
+        ASSERT_EQ(-10000 * 60, node_ptr->GetMillis());
+    }
+    {
+        ConstNode *node_ptr = dynamic_cast<ConstNode *>(node_manager_->MakeConstNode(10, node::kHour));
+        std::cout << *node_ptr << std::endl;
+        ASSERT_EQ(hybridse::node::kHour, node_ptr->GetDataType());
+        ASSERT_EQ(10000 * 3600, node_ptr->GetMillis());
+
+        ASSERT_TRUE(node_ptr->ConvertNegative());
+        ASSERT_EQ(-10000 * 3600, node_ptr->GetMillis());
+    }
+    {
+        ConstNode *node_ptr = dynamic_cast<ConstNode *>(node_manager_->MakeConstNode(10, node::kDay));
+        std::cout << *node_ptr << std::endl;
+        ASSERT_EQ(hybridse::node::kDay, node_ptr->GetDataType());
+        ASSERT_EQ(10000 * 3600 * 24, node_ptr->GetMillis());
+
+        ASSERT_TRUE(node_ptr->ConvertNegative());
+        ASSERT_EQ(-10000 * 3600 * 24, node_ptr->GetMillis());
+    }
 }
 
 TEST_F(SqlNodeTest, MakeConstNodeTTLTypeTest) {
@@ -865,6 +915,12 @@ TEST_F(SqlNodeTest, ColumnIdTest) {
         "+-expr[column id]\n"
         "  +-column_id: 1",
         oss.str());
+}
+
+TEST_F(SqlNodeTest, QueryTypeNameTest) {
+    ASSERT_EQ("kQuerySelect", node::QueryTypeName(node::kQuerySelect));
+    ASSERT_EQ("kQueryUnion", node::QueryTypeName(node::kQueryUnion));
+    ASSERT_EQ("kQuerySub", node::QueryTypeName(node::kQuerySub));
 }
 }  // namespace node
 }  // namespace hybridse

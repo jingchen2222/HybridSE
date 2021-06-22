@@ -219,9 +219,7 @@ enum JoinType {
 enum UnionType { kUnionTypeDistinct, kUnionTypeAll };
 
 enum CmdType {
-    kCmdCreateGroup,
     kCmdCreateDatabase,
-    kCmdSource,
     kCmdUseDatabase,
     kCmdShowDatabases,
     kCmdShowTables,

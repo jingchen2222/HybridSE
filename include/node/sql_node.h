@@ -54,10 +54,6 @@ inline const std::string CmdTypeName(const CmdType &type) {
             return "drop database";
         case kCmdCreateDatabase:
             return "create database";
-        case kCmdSource:
-            return "create table";
-        case kCmdCreateGroup:
-            return "create group";
         case kCmdDescTable:
             return "desc table";
         case kCmdDropTable:
@@ -758,6 +754,7 @@ class ConstNode : public ExprNode {
             case kHour:
             case kDay: {
                 val_.vlong = -val_.vlong;
+                return true;
             }
 
             default: {
