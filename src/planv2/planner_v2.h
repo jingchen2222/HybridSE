@@ -45,11 +45,6 @@ class SimplePlannerV2 : public SimplePlanner {
         : SimplePlanner(manager, is_batch_mode, is_cluster_optimized, enable_batch_window_parallelization) {}
     base::Status CreateASTScriptPlan(const zetasql::ASTScript *script,
                             PlanNodeList &plan_trees);           // NOLINT (runtime/references)
-    base::Status CreateASTQueryPlan(const zetasql::ASTQuery *root, PlanNode **plan_tree);
-    base::Status CreateASTInsertPlan(const zetasql::ASTInsertStatement *root, PlanNode **plan_tree);
-    base::Status CreateASTCreatetTablePlan(const zetasql::ASTCreateTableStatement *root, PlanNode **plan_tree);
-    base::Status CreateAstCmdStatementPlan(const zetasql::ASTStatement* root,
-                                                             PlanNode **plan_tree);
 };
 
 }  // namespace plan

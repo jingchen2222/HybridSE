@@ -702,10 +702,10 @@ TEST_F(SqlNodeTest, CreateIndexNodeTest) {
         "      +-ts_col: col5\n"
         "      +-abs_ttl: -2\n"
         "      +-lat_ttl: -2\n"
-        "      +-ttl_type: \n"
-        "      +-version_column: \n"
+        "      +-ttl_type: <nil>\n"
+        "      +-version_column: <nil>\n"
         "      +-version_count: 0",
-        oss.str());
+        oss.str()) << oss.str();
 }
 TEST_F(SqlNodeTest, FnNodeTest) {
     node::FnNodeList *params = node_manager_->MakeFnListNode();
@@ -892,7 +892,7 @@ TEST_F(SqlNodeTest, CallExprTest) {
         "  |    +-type: string\n"
         "  +-arg[1]:\n"
         "    +-expr[column ref]\n"
-        "      +-relation_name: \n"
+        "      +-relation_name: <nil>\n"
         "      +-column_name: col1",
         oss.str());
 }

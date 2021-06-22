@@ -18,20 +18,22 @@
 #include <ctime>
 #include <memory>
 #include <random>
+#include <vector>
 #include "gtest/gtest.h"
 #include "zetasql/base/testing//status_matchers.h"
 #include "zetasql/parser/ast_node.h"
+#include "case/sql_case.h"
 
 namespace hybridse {
 namespace plan {
-
-class ASTNodeConverterTest : public ::testing::Test {
+class ASTNodeConverterTest : public ::testing::TestWithParam<sqlcase::SqlCase> {
  public:
-    ASTNodeConverterTest() {}
+    ASTNodeConverterTest() { manager_ = new node::NodeManager(); }
+    ~ASTNodeConverterTest() { delete manager_; }
 
-    ~ASTNodeConverterTest() {}
+ protected:
+    node::NodeManager* manager_;
 };
-
 TEST_F(ASTNodeConverterTest, UnSupportBinaryOp) {
     zetasql::ASTNullLiteral null1;
     zetasql::ASTNullLiteral null2;
@@ -506,7 +508,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateProcedureFailTest) {
         node::CreateSpStmt* stmt;
         auto s = ConvertCreateProcedureNode(create_sp, &node_manager, &stmt);
         EXPECT_EQ(code, s.code);
-        EXPECT_TRUE(boost::contains(s.trace, msg)) << s.trace;
+        EXPECT_TRUE(boost::contains(s.msg, msg)) << s << "\nexpect msg: " << msg;
     };
 
     // unsupported param type
@@ -535,7 +537,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateProcedureFailTest) {
           SELECT 1 UNION DISTINCT SELECT 2 UNION DISTINCT SELECT 3;
         END;
         )sql",
-                     common::kTypeError, "unknow DataType identifier: unknown_type");
+                     common::kTypeError, "Unknow DataType identifier: unknown_type");
 
     // unsupport param type
     expect_converted(R"sql(
@@ -594,14 +596,15 @@ TEST_F(ASTNodeConverterTest, ConvertStmtFailTest) {
         const auto* statement = parser_output->statement();
 
         node::SqlNode* stmt;
-        auto s = ConvertStmt(statement, &node_manager, &stmt);
+        auto s = ConvertStatement(statement, &node_manager, &stmt);
         EXPECT_EQ(code, s.code);
         EXPECT_STREQ(msg.c_str(), s.msg.c_str()) << s.msg << s.trace;
     };
 
     expect_converted(R"sql(
         ALTER TABLE foo ALTER COLUMN bar SET DATA TYPE STRING;
-    )sql", common::kSqlError, "Un-support statement type: AlterTableStatement");
+    )sql",
+                     common::kSqlError, "Un-support statement type: AlterTableStatement");
 }
 
 TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
@@ -813,6 +816,27 @@ TEST_F(ASTNodeConverterTest, ASTIntervalLiteralToNumberTest) {
         ASSERT_EQ(common::kTypeError, status.code);
     }
 }
+
+// expect tree string equal for converted CreateStmt
+TEST_P(ASTNodeConverterTest, SqlNodeTreeEqual) {
+    auto& sql = GetParam().sql_str();
+
+    std::unique_ptr<zetasql::ParserOutput> parser_output;
+    ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
+    const auto* statement = parser_output->statement();
+
+    node::SqlNode* output;
+    base::Status status;
+    status = ConvertStatement(statement, manager_, &output);
+    EXPECT_EQ(common::kOk, status.code) << status.msg << status.trace;
+    if (GetParam().expect().node_tree_str_.has_value()) {
+        EXPECT_EQ(GetParam().expect().node_tree_str_.value(), output->GetTreeString());
+    }
+}
+const std::vector<std::string> FILTERS({"logical-plan-unsupport", "parser-unsupport", "zetasql-unsupport"});
+INSTANTIATE_TEST_CASE_P(PlannerV2Test, ASTNodeConverterTest,
+                        testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
+
 }  // namespace plan
 }  // namespace hybridse
 

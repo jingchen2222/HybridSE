@@ -360,7 +360,6 @@ base::Status Planner::ValidatePrimaryPath(node::PlanNode *node, node::PlanNode *
 }
 
 base::Status SimplePlanner::CreatePlanTree(const NodePointVector &parser_trees, PlanNodeList &plan_trees) {
-    CHECK_TRUE(!parser_trees.empty(), common::kPlanError, "fail to create plan tree: parser trees is empty")
     for (auto parser_tree : parser_trees) {
         switch (parser_tree->GetType()) {
             case node::kQuery: {

@@ -435,11 +435,11 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
     }
     return status;
 }
-
-base::Status ConvertStmt(const zetasql::ASTStatement* stmt, node::NodeManager* node_manager, node::SqlNode** output) {
-    switch (stmt->node_kind()) {
+base::Status ConvertStatement(const zetasql::ASTStatement* statement, node::NodeManager* node_manager,
+                              node::SqlNode** output) {
+    switch (statement->node_kind()) {
         case zetasql::AST_QUERY_STATEMENT: {
-            auto const query_stmt = stmt->GetAsOrNull<zetasql::ASTQueryStatement>();
+            auto const query_stmt = statement->GetAsOrNull<zetasql::ASTQueryStatement>();
             CHECK_TRUE(query_stmt != nullptr, common::kSqlError, "not an ASTQueryStatement");
             node::QueryNode* query_node = nullptr;
             CHECK_STATUS(ConvertQueryNode(query_stmt->query(), node_manager, &query_node));
@@ -447,7 +447,7 @@ base::Status ConvertStmt(const zetasql::ASTStatement* stmt, node::NodeManager* n
             break;
         }
         case zetasql::AST_BEGIN_END_BLOCK: {
-            auto const begin_end_block = stmt->GetAsOrNull<zetasql::ASTBeginEndBlock>();
+            auto const begin_end_block = statement->GetAsOrNull<zetasql::ASTBeginEndBlock>();
             CHECK_TRUE(begin_end_block != nullptr, common::kSqlError, "not and ASTBeginEndBlock");
             CHECK_TRUE(begin_end_block->statement_list().size() <= 1, common::kSqlError,
                        "Un-support multiple statements inside ASTBeginEndBlock");
@@ -456,16 +456,90 @@ base::Status ConvertStmt(const zetasql::ASTStatement* stmt, node::NodeManager* n
                 CHECK_TRUE(sub_stmt->node_kind() == zetasql::AST_QUERY_STATEMENT, common::kSqlError,
                            "Un-support statement type inside ASTBeginEndBlock: ", sub_stmt->GetNodeKindString())
                 node::SqlNode* stmt_node = nullptr;
-                CHECK_STATUS(ConvertStmt(sub_stmt, node_manager, &stmt_node));
+                CHECK_STATUS(ConvertStatement(sub_stmt, node_manager, &stmt_node));
                 stmt_node_list->PushBack(stmt_node);
             }
             *output = stmt_node_list;
             break;
         }
+        case zetasql::AST_CREATE_TABLE_STATEMENT: {
+            const zetasql::ASTCreateTableStatement* create_statement =
+                statement->GetAsOrNull<zetasql::ASTCreateTableStatement>();
+            CHECK_TRUE(nullptr != create_statement, common::kSqlError, "not an ASTCreateTableStatement")
+            node::CreateStmt* create_node;
+            CHECK_STATUS(ConvertCreateTableNode(create_statement, node_manager, &create_node))
+            *output = create_node;
+            break;
+        }
+        case zetasql::AST_CREATE_PROCEDURE_STATEMENT: {
+            const zetasql::ASTCreateProcedureStatement* procedure_statement =
+                statement->GetAsOrNull<zetasql::ASTCreateProcedureStatement>();
+            CHECK_TRUE(nullptr != procedure_statement, common::kSqlError, "not an ASTCreateProcedureStatement");
+            node::CreateSpStmt* create_sp_tree = nullptr;
+            CHECK_STATUS(ConvertCreateProcedureNode(procedure_statement, node_manager, &create_sp_tree))
+            *output = create_sp_tree;
+            break;
+        }
+        case zetasql::AST_INSERT_STATEMENT: {
+            const zetasql::ASTInsertStatement* insert_statement = statement->GetAsOrNull<zetasql::ASTInsertStatement>();
+            CHECK_TRUE(nullptr != insert_statement, common::kSqlError, "not and ASTInsertStatement")
+            node::InsertStmt* insert_node;
+            CHECK_STATUS(ConvertInsertStatement(insert_statement, node_manager, &insert_node))
+            *output = insert_node;
+            break;
+        }
+        case zetasql::AST_SHOW_STATEMENT: {
+            const zetasql::ASTShowStatement* show_statement = statement->GetAsOrNull<zetasql::ASTShowStatement>();
+            CHECK_TRUE(nullptr != show_statement->identifier(), common::kSqlError, "not an ASTShowStatement")
+            std::string show_id = show_statement->identifier()->GetAsString();
+            boost::to_lower(show_id);
+            if (show_id == "databases") {
+                *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdShowDatabases));
+            } else if (show_id == "tables") {
+                *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdShowTables));
+            } else if (show_id == "procedures") {
+                *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdShowProcedures));
+            } else {
+                FAIL_STATUS(common::kSqlError, "Un-support SHOW ", show_id)
+            }
+            break;
+        }
+        case zetasql::AST_CREATE_DATABASE_STATEMENT: {
+            const zetasql::ASTCreateDatabaseStatement* create_database_statement =
+                statement->GetAsOrNull<zetasql::ASTCreateDatabaseStatement>();
+            CHECK_TRUE(nullptr != create_database_statement->name(), common::kSqlError,
+                       "not an AST_CREATE_DATABASE_STATEMENT")
+
+            std::vector<std::string> names;
+            CHECK_STATUS(AstPathExpressionToStringList(create_database_statement->name(), names))
+            CHECK_TRUE(1 == names.size(), common::kSqlError, "Invalid database path expression ",
+                       create_database_statement->name()->ToIdentifierPathString())
+            *output =
+                dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdCreateDatabase, names[0]));
+            break;
+        }
+        case zetasql::AST_DESCRIBE_STATEMENT: {
+            const zetasql::ASTDescribeStatement* describe_statement =
+                statement->GetAsOrNull<zetasql::ASTDescribeStatement>();
+            CHECK_TRUE(nullptr != describe_statement->name(), common::kPlanError,
+                       "can't create plan for desc with null name")
+            std::vector<std::string> names;
+            CHECK_STATUS(AstPathExpressionToStringList(describe_statement->name(), names))
+            *output =
+                dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdDescTable, names.back()));
+            break;
+        }
+        case zetasql::AST_DROP_STATEMENT: {
+            const zetasql::ASTDropStatement* drop_statement = statement->GetAsOrNull<zetasql::ASTDropStatement>();
+            CHECK_TRUE(nullptr != drop_statement->name(), common::kSqlError, "not an ASTDropStatement")
+            node::CmdNode* cmd_node;
+            CHECK_STATUS(ConvertDropStatement(drop_statement, node_manager, &cmd_node));
+            *output = cmd_node;
+            break;
+        }
         default: {
-            // TODO(aceforeverd): support more statement type
             return base::Status(common::kSqlError,
-                                absl::StrCat("Un-support statement type: ", stmt->GetNodeKindString()));
+                                absl::StrCat("Un-support statement type: ", statement->GetNodeKindString()));
         }
     }
     return base::Status::OK();
@@ -1353,15 +1427,31 @@ base::Status ConvertParamter(const zetasql::ASTFunctionParameter* param, node::N
 base::Status ConvertProcedureBody(const zetasql::ASTScript* body, node::NodeManager* node_manager,
                                   node::SqlNodeList** output) {
     // HACK: for Procedure Body, there is only one statement which is BeginEndBlock
-    CHECK_TRUE(body->statement_list().size() == 1, common::kSqlError, "procedure body must have one BeginEndBlock");
+    CHECK_TRUE(
+        body->statement_list().size() == 1 && zetasql::AST_BEGIN_END_BLOCK == body->statement_list()[0]->node_kind(),
+        common::kSqlError, "procedure body must have one BeginEndBlock");
     node::SqlNode* body_node = nullptr;
-    CHECK_STATUS(ConvertStmt(body->statement_list().at(0), node_manager, &body_node));
+    const zetasql::ASTBeginEndBlock* begin_end_block =
+        body->statement_list()[0]->GetAsOrNull<zetasql::ASTBeginEndBlock>();
+    CHECK_STATUS(ConvertStatement(body->statement_list()[0], node_manager, &body_node));
     CHECK_TRUE(body_node->GetType() == node::kNodeList, common::kSqlError,
                "Inner error: procedure body is not converted to SqlNodeList");
-    *output = static_cast<node::SqlNodeList*>(body_node);
+    *output = dynamic_cast<node::SqlNodeList*>(body_node);
     return base::Status::OK();
 }
 
+base::Status ConvertASTScript(const zetasql::ASTScript* script, node::NodeManager* node_manager,
+                              node::SqlNodeList** output) {
+    CHECK_TRUE(nullptr != script, common::kPlanError, "Fail to convert ASTScript, script is null")
+    *output = node_manager->MakeNodeList();
+    for (auto statement : script->statement_list()) {
+        CHECK_TRUE(nullptr != statement && statement->IsSqlStatement(), common::kPlanError, "not an SQL Statement")
+        node::SqlNode* stmt;
+        CHECK_STATUS(ConvertStatement(statement, node_manager, &stmt));
+        (*output)->PushBack(stmt);
+    }
+    return base::Status::OK();
+}
 // transform zetasql::ASTStringLiteral into string
 base::Status AstStringLiteralToString(const zetasql::ASTExpression* ast_expr, std::string* str) {
     auto string_literal = ast_expr->GetAsOrNull<zetasql::ASTStringLiteral>();
@@ -1480,110 +1570,45 @@ base::Status ConvertInsertStatement(const zetasql::ASTInsertStatement* root, nod
         root->GetTargetPathForNonNested().value()->ToIdentifierPathString(), column_list, rows));
     return base::Status::OK();
 }
-
-base::Status ConvertCmdStatement(const zetasql::ASTStatement* root, node::NodeManager* node_manager,
-                                 node::CmdNode** output) {
+base::Status ConvertDropStatement(const zetasql::ASTDropStatement* root, node::NodeManager* node_manager,
+                                  node::CmdNode** output) {
+    base::Status status;
     if (nullptr == root) {
         *output = nullptr;
         return base::Status::OK();
     }
-    base::Status status;
-    switch (root->node_kind()) {
-        case zetasql::AST_SHOW_STATEMENT: {
-            const zetasql::ASTShowStatement* show_statement = root->GetAsOrNull<zetasql::ASTShowStatement>();
-            CHECK_TRUE(nullptr != show_statement->identifier(), common::kPlanError,
-                       "can't create plan for null show statement")
-            std::string show_id = show_statement->identifier()->GetAsString();
-            boost::to_lower(show_id);
-            if (show_id == "databases") {
-                *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdShowDatabases));
-            } else if (show_id == "tables") {
-                *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdShowTables));
-            } else if (show_id == "procedures") {
-                *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdShowProcedures));
-            } else {
-                status.msg = "Un-support SHOW " + show_id;
-                status.code = common::kPlanError;
-                LOG(WARNING) << status;
-                return status;
-            }
-            break;
+    std::vector<std::string> names;
+    CHECK_STATUS(AstPathExpressionToStringList(root->name(), names))
+    switch (root->schema_object_kind()) {
+        case zetasql::SchemaObjectKind::kTable: {
+            CHECK_TRUE(2 >= names.size(), common::kPlanError, "Invalid table path expression ",
+                       root->name()->ToIdentifierPathString())
+            *output =
+                dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdDropTable, names.back()));
+            return base::Status::OK();
         }
-        case zetasql::AST_CREATE_DATABASE_STATEMENT: {
-            const zetasql::ASTCreateDatabaseStatement* create_database_statement =
-                root->GetAsOrNull<zetasql::ASTCreateDatabaseStatement>();
-            CHECK_TRUE(nullptr != create_database_statement->name(), common::kPlanError,
-                       "can't create plan for create database with null name")
-
-            std::vector<std::string> names;
-            CHECK_STATUS(AstPathExpressionToStringList(create_database_statement->name(), names))
+        case zetasql::SchemaObjectKind::kDatabase: {
             CHECK_TRUE(1 == names.size(), common::kPlanError, "Invalid database path expression ",
-                       create_database_statement->name()->ToIdentifierPathString())
+                       root->name()->ToIdentifierPathString())
             *output =
-                dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdCreateDatabase, names[0]));
-            break;
+                dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdDropDatabase, names[0]));
+            return base::Status::OK();
         }
-        case zetasql::AST_DESCRIBE_STATEMENT: {
-            const zetasql::ASTDescribeStatement* describe_statement =
-                root->GetAsOrNull<zetasql::ASTDescribeStatement>();
-            CHECK_TRUE(nullptr != describe_statement->name(), common::kPlanError,
-                       "can't create plan for desc with null name")
-            std::vector<std::string> names;
-            CHECK_STATUS(AstPathExpressionToStringList(describe_statement->name(), names))
-            *output =
-                dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdDescTable, names.back()));
-            break;
+        case zetasql::SchemaObjectKind::kIndex: {
+            CHECK_TRUE(3 >= names.size() && names.size() >= 2, common::kPlanError, "Invalid index path expression ",
+                       root->name()->ToIdentifierPathString())
+            *output = dynamic_cast<node::CmdNode*>(
+                node_manager->MakeCmdNode(node::CmdType::kCmdDropIndex, names[names.size() - 2], names.back()));
+            return base::Status::OK();
         }
-        case zetasql::AST_DROP_STATEMENT: {
-            const zetasql::ASTDropStatement* drop_statement = root->GetAsOrNull<zetasql::ASTDropStatement>();
-            CHECK_TRUE(nullptr != drop_statement->name(), common::kPlanError,
-                       "can't create plan for desc with null name")
-            std::vector<std::string> names;
-            CHECK_STATUS(AstPathExpressionToStringList(drop_statement->name(), names))
-            switch (drop_statement->schema_object_kind()) {
-                case zetasql::SchemaObjectKind::kTable: {
-                    CHECK_TRUE(2 >= names.size(), common::kPlanError, "Invalid table path expression ",
-                               drop_statement->name()->ToIdentifierPathString())
-                    *output = dynamic_cast<node::CmdNode*>(
-                        node_manager->MakeCmdNode(node::CmdType::kCmdDropTable, names.back()));
-                    return base::Status::OK();
-                }
-                case zetasql::SchemaObjectKind::kDatabase: {
-                    CHECK_TRUE(1 == names.size(), common::kPlanError, "Invalid database path expression ",
-                               drop_statement->name()->ToIdentifierPathString())
-                    *output = dynamic_cast<node::CmdNode*>(
-                        node_manager->MakeCmdNode(node::CmdType::kCmdDropDatabase, names[0]));
-                    return base::Status::OK();
-                }
-                case zetasql::SchemaObjectKind::kIndex: {
-                    CHECK_TRUE(3 >= names.size() && names.size() >= 2, common::kPlanError,
-                               "Invalid index path expression ", drop_statement->name()->ToIdentifierPathString())
-                    *output = dynamic_cast<node::CmdNode*>(
-                        node_manager->MakeCmdNode(node::CmdType::kCmdDropIndex, names[names.size() - 2], names.back()));
-                    return base::Status::OK();
-                }
-                case zetasql::SchemaObjectKind::kProcedure: {
-                    CHECK_TRUE(2 >= names.size(), common::kPlanError, "Invalid table path expression ",
-                               drop_statement->name()->ToIdentifierPathString())
-                    *output = dynamic_cast<node::CmdNode*>(
-                        node_manager->MakeCmdNode(node::CmdType::kCmdDropSp, names.back()));
-                    return base::Status::OK();
-                }
-                default: {
-                    status.msg = "Un-support DROP " + drop_statement->GetNodeKindString();
-                    status.code = common::kPlanError;
-                    LOG(WARNING) << status;
-                    return status;
-                }
-            }
-
-            break;
+        case zetasql::SchemaObjectKind::kProcedure: {
+            CHECK_TRUE(2 >= names.size(), common::kPlanError, "Invalid table path expression ",
+                       root->name()->ToIdentifierPathString())
+            *output = dynamic_cast<node::CmdNode*>(node_manager->MakeCmdNode(node::CmdType::kCmdDropSp, names.back()));
+            return base::Status::OK();
         }
         default: {
-            status.msg = "Un-support statement " + root->GetNodeKindString();
-            status.code = common::kPlanError;
-            LOG(WARNING) << status;
-            return status;
+            FAIL_STATUS(common::kPlanError, "Un-support DROP ", root->GetNodeKindString());
         }
     }
     return base::Status::OK();
