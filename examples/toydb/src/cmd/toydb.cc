@@ -21,18 +21,18 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "base/texttable.h"
-#include "plan/plan_api.h"
-#include "sdk/tablet_sdk.h"
 #include "base/fe_linenoise.h"
 #include "base/fe_strings.h"
+#include "base/texttable.h"
 #include "brpc/server.h"
 #include "dbms/dbms_server_impl.h"
 #include "glog/logging.h"
 #include "hybridse_version.h"  //NOLINT
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/TargetSelect.h"
+#include "plan/plan_api.h"
 #include "sdk/dbms_sdk.h"
+#include "sdk/tablet_sdk.h"
 #include "tablet/tablet_server_impl.h"
 
 DECLARE_string(toydb_endpoint);
@@ -52,9 +52,8 @@ struct DBContxt {
 };
 static DBContxt cmd_client_db;
 
-void HandleSqlScript(
-    const std::string &script,
-    hybridse::sdk::Status &status);  // NOLINT (runtime/references)
+void HandleSqlScript(const std::string &script,
+                     hybridse::sdk::Status &status);  // NOLINT (runtime/references)
 
 void HandleEnterDatabase(const std::string &db_name);
 void HandleCmd(const hybridse::node::CmdNode *cmd_node,
@@ -65,8 +64,7 @@ void StartTablet(int argc, char *argv[]) {
     ::llvm::InitLLVM X(argc, argv);
     ::llvm::InitializeNativeTarget();
     ::llvm::InitializeNativeTargetAsmPrinter();
-    ::hybridse::tablet::TabletServerImpl *tablet =
-        new ::hybridse::tablet::TabletServerImpl();
+    ::hybridse::tablet::TabletServerImpl *tablet = new ::hybridse::tablet::TabletServerImpl();
     bool ok = tablet->Init();
     if (!ok) {
         LOG(WARNING) << "Fail to init tablet service";
@@ -88,18 +86,15 @@ void StartTablet(int argc, char *argv[]) {
     }
 
     std::ostringstream oss;
-    oss << HYBRIDSE_VERSION_MAJOR << "." << HYBRIDSE_VERSION_MINOR << "."
-        << HYBRIDSE_VERSION_BUG;
-    DLOG(INFO) << "start tablet on port " << FLAGS_toydb_port
-               << " with version " << oss.str();
+    oss << HYBRIDSE_VERSION_MAJOR << "." << HYBRIDSE_VERSION_MINOR << "." << HYBRIDSE_VERSION_BUG;
+    DLOG(INFO) << "start tablet on port " << FLAGS_toydb_port << " with version " << oss.str();
     server.set_version(oss.str());
     server.RunUntilAskedToQuit();
 }
 
 void StartDBMS(char *argv[]) {
     SetupLogging(argv);
-    ::hybridse::dbms::DBMSServerImpl *dbms =
-        new ::hybridse::dbms::DBMSServerImpl();
+    ::hybridse::dbms::DBMSServerImpl *dbms = new ::hybridse::dbms::DBMSServerImpl();
     brpc::ServerOptions options;
     options.num_threads = FLAGS_toydb_thread_pool_size;
     brpc::Server server;
@@ -115,19 +110,16 @@ void StartDBMS(char *argv[]) {
     }
 
     std::ostringstream oss;
-    oss << HYBRIDSE_VERSION_MAJOR << "." << HYBRIDSE_VERSION_MINOR << "."
-        << HYBRIDSE_VERSION_BUG;
-    DLOG(INFO) << "start dbms on port " << FLAGS_toydb_port << " with version "
-               << oss.str();
+    oss << HYBRIDSE_VERSION_MAJOR << "." << HYBRIDSE_VERSION_MINOR << "." << HYBRIDSE_VERSION_BUG;
+    DLOG(INFO) << "start dbms on port " << FLAGS_toydb_port << " with version " << oss.str();
     server.set_version(oss.str());
     server.RunUntilAskedToQuit();
 }
 
 void StartClient(char *argv[]) {
     SetupLogging(argv);
-    std::cout << "Welcome to TOYDB " << HYBRIDSE_VERSION_MAJOR << "."
-              << HYBRIDSE_VERSION_MINOR << "." << HYBRIDSE_VERSION_BUG
-              << std::endl;
+    std::cout << "Welcome to TOYDB " << HYBRIDSE_VERSION_MAJOR << "." << HYBRIDSE_VERSION_MINOR << "."
+              << HYBRIDSE_VERSION_BUG << std::endl;
     cmd_client_db.name = "";
     std::string log = "hybridse";
     std::string display_prefix = ">";
@@ -142,8 +134,7 @@ void StartClient(char *argv[]) {
         } else {
             prefix = log + "/" + cmd_client_db.name + display_prefix;
         }
-        char *line = ::hybridse::base::linenoise(
-            cmd_mode ? prefix.c_str() : continue_prefix.c_str());
+        char *line = ::hybridse::base::linenoise(cmd_mode ? prefix.c_str() : continue_prefix.c_str());
         if (line == NULL) {
             return;
         }
@@ -164,8 +155,7 @@ void StartClient(char *argv[]) {
             ::hybridse::sdk::Status status;
             HandleSqlScript(cmd_str, status);
             if (0 != status.code) {
-                std::cout << "ERROR " << status.code << ":" << status.msg
-                          << std::endl;
+                std::cout << "ERROR " << status.code << ":" << status.msg << std::endl;
             }
             cmd_str.clear();
             cmd_mode = true;
@@ -176,8 +166,7 @@ void StartClient(char *argv[]) {
     }
 }
 
-void PrintResultSet(std::ostream &stream,
-                    ::hybridse::sdk::ResultSet *result_set) {
+void PrintResultSet(std::ostream &stream, ::hybridse::sdk::ResultSet *result_set) {
     if (!result_set || result_set->Size() == 0) {
         stream << "Empty set" << std::endl;
         return;
@@ -240,8 +229,7 @@ void PrintResultSet(std::ostream &stream,
     stream << result_set->Size() << " rows in set" << std::endl;
 }
 
-void PrintTableSchema(std::ostream &stream,
-                      const std::shared_ptr<hybridse::sdk::Schema> &schema) {
+void PrintTableSchema(std::ostream &stream, const std::shared_ptr<hybridse::sdk::Schema> &schema) {
     if (nullptr == schema || schema->GetColumnCnt() == 0) {
         stream << "Empty set" << std::endl;
         return;
@@ -269,8 +257,7 @@ void PrintTableSchema(std::ostream &stream,
     }
 }
 
-void PrintItems(std::ostream &stream, const std::string &head,
-                const std::vector<std::string> &items) {
+void PrintItems(std::ostream &stream, const std::string &head, const std::vector<std::string> &items) {
     if (items.empty()) {
         stream << "Empty set" << std::endl;
         return;
@@ -292,9 +279,8 @@ void PrintItems(std::ostream &stream, const std::string &head,
     }
 }
 
-void HandleSqlScript(
-    const std::string &script,
-    hybridse::sdk::Status &status) {  // NOLINT (runtime/references)
+void HandleSqlScript(const std::string &script,
+                     hybridse::sdk::Status &status) {  // NOLINT (runtime/references)
     if (!dbms_sdk) {
         dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(FLAGS_toydb_endpoint);
         if (!dbms_sdk) {
@@ -308,8 +294,7 @@ void HandleSqlScript(
         hybridse::node::NodeManager node_manager;
         hybridse::base::Status sql_status;
         hybridse::node::PlanNodeList plan_trees;
-        hybridse::plan::PlanAPI::CreatePlanTreeFromScript(
-            script, plan_trees, &node_manager, sql_status);
+        hybridse::plan::PlanAPI::CreatePlanTreeFromScript(script, plan_trees, &node_manager, sql_status);
         if (0 != sql_status.code) {
             status.code = sql_status.code;
             status.msg = sql_status.str();
@@ -328,8 +313,7 @@ void HandleSqlScript(
 
         switch (node->GetType()) {
             case hybridse::node::kPlanTypeCreate: {
-                hybridse::node::CmdNode *cmd =
-                    dynamic_cast<hybridse::node::CmdNode *>(node);
+                hybridse::node::CmdNode *cmd = dynamic_cast<hybridse::node::CmdNode *>(node);
                 HandleCmd(cmd, status);
                 return;
             }
@@ -339,8 +323,7 @@ void HandleSqlScript(
             }
             case hybridse::node::kPlanTypeInsert: {
                 if (!table_sdk) {
-                    table_sdk =
-                        ::hybridse::sdk::CreateTabletSdk(FLAGS_tablet_endpoint);
+                    table_sdk = ::hybridse::sdk::CreateTabletSdk(FLAGS_tablet_endpoint);
                 }
 
                 if (!table_sdk) {
@@ -372,8 +355,7 @@ void HandleSqlScript(
             }
             case hybridse::node::kPlanTypeQuery: {
                 if (!table_sdk) {
-                    table_sdk =
-                        ::hybridse::sdk::CreateTabletSdk(FLAGS_tablet_endpoint);
+                    table_sdk = ::hybridse::sdk::CreateTabletSdk(FLAGS_tablet_endpoint);
                 }
 
                 if (!table_sdk) {
@@ -381,19 +363,16 @@ void HandleSqlScript(
                     status.msg = " Fail to create tablet sdk";
                     return;
                 }
-                std::shared_ptr<::hybridse::sdk::ResultSet> rs =
-                    table_sdk->Query(cmd_client_db.name, script, &status);
+                std::shared_ptr<::hybridse::sdk::ResultSet> rs = table_sdk->Query(cmd_client_db.name, script, &status);
                 if (!rs) {
-                    std::cout << "Fail to query sql: " << status.msg
-                              << std::endl;
+                    std::cout << "Fail to query sql: " << status.msg << std::endl;
                 } else {
                     PrintResultSet(std::cout, rs.get());
                 }
                 return;
             }
             default: {
-                status.msg = "Fail to execute script with unSuppurt type" +
-                             hybridse::node::PlanType(node->GetType());
+                status.msg = "Fail to execute script with unSuppurt type" + hybridse::node::PlanType(node->GetType());
                 status.code = hybridse::common::kUnSupport;
                 return;
             }
@@ -419,8 +398,7 @@ void HandleCmd(const hybridse::node::CmdNode *cmd_node,
             return;
         }
         case hybridse::node::kCmdShowTables: {
-            std::shared_ptr<hybridse::sdk::TableSet> rs =
-                dbms_sdk->GetTables(db, &status);
+            std::shared_ptr<hybridse::sdk::TableSet> rs = dbms_sdk->GetTables(db, &status);
             if (status.code == 0) {
                 std::ostringstream oss;
                 std::vector<std::string> names;
@@ -432,13 +410,11 @@ void HandleCmd(const hybridse::node::CmdNode *cmd_node,
             return;
         }
         case hybridse::node::kCmdDescTable: {
-            std::shared_ptr<hybridse::sdk::TableSet> rs =
-                dbms_sdk->GetTables(db, &status);
+            std::shared_ptr<hybridse::sdk::TableSet> rs = dbms_sdk->GetTables(db, &status);
             if (rs) {
                 while (rs->Next()) {
                     if (rs->GetTable()->GetName() == cmd_node->GetArgs()[0]) {
-                        PrintTableSchema(std::cout,
-                                         rs->GetTable()->GetSchema());
+                        PrintTableSchema(std::cout, rs->GetTable()->GetSchema());
                     }
                 }
             }
@@ -449,25 +425,6 @@ void HandleCmd(const hybridse::node::CmdNode *cmd_node,
             dbms_sdk->CreateDatabase(name, &status);
             if (0 == status.code) {
                 std::cout << "Create database success" << std::endl;
-            }
-            break;
-        }
-        case hybridse::node::kCmdSource: {
-            std::ifstream in;
-            in.open(cmd_node->GetArgs()[0]);  // open the input file
-            if (!in.is_open()) {
-                status.code = hybridse::common::kFileIOError;
-                status.msg = "Incorrect file path";
-                return;
-            }
-            std::stringstream str_stream;
-            str_stream << in.rdbuf();  // read the file
-            std::string str =
-                str_stream.str();  // str holds the content of the file
-            dbms_sdk->ExecuteQuery(cmd_client_db.name, str, &status);
-            if (0 == status.code) {
-                std::cout << "Create table success" << std::endl;
-                return;
             }
             break;
         }
@@ -492,8 +449,7 @@ void HandleCmd(const hybridse::node::CmdNode *cmd_node,
         }
         default: {
             status.code = hybridse::common::kUnSupport;
-            status.msg = "UnSupport Cmd " +
-                         hybridse::node::CmdTypeName(cmd_node->GetCmdType());
+            status.msg = "UnSupport Cmd " + hybridse::node::CmdTypeName(cmd_node->GetCmdType());
         }
     }
 }
@@ -511,8 +467,7 @@ int main(int argc, char *argv[]) {
         ::hybridse::cmd::StartClient(argv);
     } else if (FLAGS_role == "csv") {
     } else {
-        std::cout << "Start failed! FLAGS_role must be tablet, client, dbms"
-                  << std::endl;
+        std::cout << "Start failed! FLAGS_role must be tablet, client, dbms" << std::endl;
         return 1;
     }
     return 0;
