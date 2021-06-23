@@ -1645,6 +1645,26 @@ TEST_P(PlannerV2ErrorTest, BatchModePlanErrorTest) {
     ASSERT_FALSE(plan::PlanAPI::CreatePlanTreeFromScript(sqlstr, plan_trees, manager_, status, true)) << status;
 }
 
+TEST_F(PlannerV2ErrorTest, SqlSyntaxErrorTest) {
+    node::NodeManager node_manager;
+    auto expect_converted = [&](const std::string &sql, const int code, const std::string &msg) {
+        base::Status status;
+        node::PlanNodeList plan_trees;
+        ASSERT_FALSE(plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, manager_, status, true));
+        ASSERT_EQ(code, status.code) << status;
+        ASSERT_EQ(msg, status.msg) << status;
+        std::cout << msg << std::endl;
+    };
+
+    expect_converted("SELECT FROM t1;", common::kSyntaxError,
+                     "Syntax error: SELECT list must not be empty [at 1:8]\n"
+                     "SELECT FROM t1;\n"
+                     "       ^");
+    expect_converted("SELECT t1.col1, t2.col2 FROM t1 LAST JOIN t2 when t1.id=t2.id;", common::kSyntaxError,
+                     "Syntax error: Expected keyword ON or keyword USING but got keyword WHEN [at 1:46]\n"
+                     "SELECT t1.col1, t2.col2 FROM t1 LAST JOIN t2 when t1.id=t2.id;\n"
+                     "                                             ^");
+}
 }  // namespace plan
 }  // namespace hybridse
 

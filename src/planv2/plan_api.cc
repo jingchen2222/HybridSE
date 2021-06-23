@@ -30,8 +30,8 @@ bool PlanAPI::CreatePlanTreeFromScript(const std::string &sql, PlanNodeList &pla
     if (!zetasql_status.ok()) {
         zetasql::ErrorLocation location;
         GetErrorLocation(zetasql_status, &location);
-        status. msg =  "ERROR:" + zetasql::FormatError(zetasql_status);
-        status.code = common::kSqlError;
+        status.msg = zetasql::FormatError(zetasql_status);
+        status.code = common::kSyntaxError;
         return false;
     }
     DLOG(INFO) << "\n" << parser_output->script()->DebugString();

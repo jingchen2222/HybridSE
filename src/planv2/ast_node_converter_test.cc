@@ -19,10 +19,10 @@
 #include <memory>
 #include <random>
 #include <vector>
+#include "case/sql_case.h"
 #include "gtest/gtest.h"
 #include "zetasql/base/testing//status_matchers.h"
 #include "zetasql/parser/ast_node.h"
-#include "case/sql_case.h"
 
 namespace hybridse {
 namespace plan {
@@ -421,7 +421,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeOkTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
 }
 
@@ -549,7 +549,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateProcedureFailTest) {
           SELECT 1 UNION DISTINCT SELECT 2;
         END;
         )sql",
-                     common::kSqlError, "Un-support parameter type: ArrayType");
+                     common::kSqlError, "Un-support type: ArrayType");
 
     // unsupport set operation
     expect_converted(R"sql(
@@ -635,7 +635,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
     {
         // not supported table element
@@ -649,7 +649,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
     {
         // not supported index key option value type
@@ -663,7 +663,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
     {
         // not supported index ttl option value type
@@ -677,7 +677,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
     {
         // not supported index version option value type
@@ -691,7 +691,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
     {
         // not supported table option value type
@@ -705,7 +705,7 @@ TEST_F(ASTNodeConverterTest, ConvertCreateTableNodeErrorTest) {
         const auto create_stmt = statement->GetAsOrDie<zetasql::ASTCreateTableStatement>();
         node::CreateStmt* output = nullptr;
         auto status = ConvertCreateTableNode(create_stmt, &node_manager, &output);
-        EXPECT_EQ(common::kPlanError, status.code);
+        EXPECT_EQ(common::kSqlError, status.code);
     }
 }
 
@@ -829,7 +829,7 @@ TEST_P(ASTNodeConverterTest, SqlNodeTreeEqual) {
     base::Status status;
     status = ConvertStatement(statement, manager_, &output);
     EXPECT_EQ(common::kOk, status.code) << status.msg << status.trace;
-    if (GetParam().expect().node_tree_str_.has_value()) {
+    if (status.isOK() && GetParam().expect().node_tree_str_.has_value()) {
         EXPECT_EQ(GetParam().expect().node_tree_str_.value(), output->GetTreeString());
     }
 }
