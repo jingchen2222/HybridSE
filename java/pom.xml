@@ -150,10 +150,16 @@
                                 <goal>sign</goal>
                             </goals>
                             <configuration>
-                                <useAgent>true</useAgent>
-                                <keyname>${gpg.keyname}</keyname>
-                                <passphraseServerId>${gpg.keyname}</passphraseServerId>
-                                <passphrase>${gpg.pass}</passphrase>
+                                <!-- <useAgent>true</useAgent> -->
+                                <!-- uncomment this if want to specify gpg sign key -->
+                                <!-- <keyname>${gpg.keyname}</keyname> -->
+                                <!-- <passphraseServerId>${gpg.keyname}</passphraseServerId> -->
+
+                                <!-- <passphrase>${gpg.passphrase}</passphrase> -->
+                                <gpgArguments>
+                                    <arg>--pinentry-mode</arg>
+                                    <arg>loopback</arg>
+                                </gpgArguments>
                             </configuration>
                         </execution>
                     </executions>
