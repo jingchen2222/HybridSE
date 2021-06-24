@@ -1557,16 +1557,21 @@ base::Status ConvertInsertStatement(const zetasql::ASTInsertStatement* root, nod
         }
     }
 
+    CHECK_TRUE(root->GetTargetPathForNonNested().ok(), common::kSqlError,
+               "Un-support insert statement with illegal target table path")
     CHECK_TRUE(nullptr != root->rows(), common::kSqlError, "Un-support insert statement with empty values")
     node::ExprListNode* rows = node_manager->MakeExprList();
     for (auto row : root->rows()->rows()) {
         CHECK_TRUE(nullptr != row, common::kSqlError, "Un-support insert statement with null row")
         node::ExprListNode* row_values;
         CHECK_STATUS(ConvertExprNodeList(row->values(), node_manager, &row_values))
-        CHECK_TRUE(root->GetTargetPathForNonNested().ok(), common::kSqlError,
-                   "Un-support insert statement with illegal target table path")
+        for (auto expr : row_values->children_) {
+            CHECK_TRUE(nullptr != expr && node::kExprPrimary == expr->GetExprType(), common::kSqlError,
+                       "Un-support insert statement with un-const value")
+        }
         rows->AddChild(row_values);
     }
+
     *output = dynamic_cast<node::InsertStmt*>(node_manager->MakeInsertTableNode(
         root->GetTargetPathForNonNested().value()->ToIdentifierPathString(), column_list, rows));
     return base::Status::OK();

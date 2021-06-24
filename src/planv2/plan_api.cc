@@ -27,6 +27,7 @@ bool PlanAPI::CreatePlanTreeFromScript(const std::string &sql, PlanNodeList &pla
     auto zetasql_status = zetasql::ParseScript(sql, zetasql::ParserOptions(),
                                                zetasql::ERROR_MESSAGE_MULTI_LINE_WITH_CARET, &parser_output);
     zetasql::ErrorLocation location;
+    LOG(INFO) << "script: " << sql;
     if (!zetasql_status.ok()) {
         zetasql::ErrorLocation location;
         GetErrorLocation(zetasql_status, &location);
