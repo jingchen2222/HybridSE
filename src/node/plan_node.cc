@@ -354,6 +354,12 @@ void FuncDefPlanNode::Print(std::ostream &output,
     output << "\n";
     PrintSqlNode(output, orgTab + "\t", fn_def_, "fun_def", true);
 }
+void CreateIndexPlanNode::Print(std::ostream &output,
+                            const std::string &orgTab) const {
+    PlanNode::Print(output, orgTab);
+    output << "\n";
+    PrintSqlNode(output, orgTab + "\t", create_index_node_, "create_index_node", true);
+}
 void ProjectPlanNode::Print(std::ostream &output,
                             const std::string &org_tab) const {
     PlanNode::Print(output, org_tab);

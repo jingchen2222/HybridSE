@@ -588,6 +588,26 @@ TEST_F(ASTNodeConverterTest, ConvertCreateProcedureFailTest) {
                      common::kSqlError, "Un-support multiple statements inside ASTBeginEndBlock");
 }
 
+TEST_F(ASTNodeConverterTest, ConvertCreateIndexOKTest) {
+    node::NodeManager node_manager;
+    auto expect_converted = [&](const std::string& sql) -> void {
+        std::unique_ptr<zetasql::ParserOutput> parser_output;
+        ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
+        const auto* statement = parser_output->statement();
+        ASSERT_TRUE(statement->Is<zetasql::ASTCreateIndexStatement>());
+
+        const auto create_index = statement->GetAsOrDie<zetasql::ASTCreateIndexStatement>();
+        node::CreateIndexNode* stmt;
+        auto s = ConvertCreateIndexStatement(create_index, &node_manager, &stmt);
+        EXPECT_EQ(common::kOk, s.code);
+    };
+
+    const std::string sql1 = R"sql(
+        CREATE INDEX index1 ON t1 (col1, col2)
+        OPTIONS(ts=std_ts, ttl_type=absolute, ttl=30d);
+        )sql";
+    expect_converted(sql1);
+}
 TEST_F(ASTNodeConverterTest, ConvertStmtFailTest) {
     node::NodeManager node_manager;
     auto expect_converted = [&](const std::string& sql, const int code, const std::string& msg) {
@@ -824,17 +844,18 @@ TEST_P(ASTNodeConverterTest, SqlNodeTreeEqual) {
     std::unique_ptr<zetasql::ParserOutput> parser_output;
     ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
     const auto* statement = parser_output->statement();
-
+    DLOG(INFO) << "\n" << statement->DebugString();
     node::SqlNode* output;
     base::Status status;
     status = ConvertStatement(statement, manager_, &output);
     EXPECT_EQ(common::kOk, status.code) << status.msg << status.trace;
-    if (status.isOK() && GetParam().expect().node_tree_str_.has_value()) {
-        EXPECT_EQ(GetParam().expect().node_tree_str_.value(), output->GetTreeString());
+    LOG(INFO) << output->GetTreeString();
+    if (status.isOK() && !GetParam().expect().node_tree_str_.empty()) {
+        EXPECT_EQ(GetParam().expect().node_tree_str_, output->GetTreeString());
     }
 }
 const std::vector<std::string> FILTERS({"logical-plan-unsupport", "parser-unsupport", "zetasql-unsupport"});
-INSTANTIATE_TEST_CASE_P(PlannerV2Test, ASTNodeConverterTest,
+INSTANTIATE_TEST_CASE_P(ASTStatementResolvedTest, ASTNodeConverterTest,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
 
 }  // namespace plan

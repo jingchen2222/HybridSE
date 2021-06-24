@@ -618,7 +618,7 @@ class SelectQueryNode : public QueryNode {
 
     void SetLimit(SqlNode *limit) { limit_ptr_ = limit; }
 
-    void SetOrder(OrderByNode* order) { order_clause_ptr_ = order; }
+    void SetOrder(OrderByNode *order) { order_clause_ptr_ = order; }
 
     int GetDistinctOpt() const { return distinct_opt_; }
     // Print
@@ -1642,7 +1642,8 @@ class CreateStmt : public SqlNode {
 class IndexKeyNode : public SqlNode {
  public:
     IndexKeyNode() : SqlNode(kIndexKey, 0, 0) {}
-    explicit IndexKeyNode(const std::string &key) : SqlNode(kIndexKey, 0, 0) { key_.push_back(key); }
+    explicit IndexKeyNode(const std::string &key) : SqlNode(kIndexKey, 0, 0), key_({key}) {}
+    explicit IndexKeyNode(const std::vector<std::string> &keys) : SqlNode(kIndexKey, 0, 0), key_(keys) {}
     ~IndexKeyNode() {}
     void AddKey(const std::string &key) { key_.push_back(key); }
     std::vector<std::string> &GetKey() { return key_; }

@@ -1019,7 +1019,7 @@ bool SqlCase::CreateExpectFromYamlNode(const YAML::Node& schema_data,
         auto tree = schema_data["node_tree_str"].as<std::string>();
         boost::trim(tree);
         if (!tree.empty()) {
-            expect->node_tree_str_ = std::make_optional(tree);
+            expect->node_tree_str_ = tree;
         }
     }
 

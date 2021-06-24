@@ -1188,9 +1188,7 @@ void ColumnIndexNode::Print(std::ostream &output, const std::string &org_tab) co
     SqlNode::Print(output, org_tab);
     const std::string tab = org_tab + INDENT + SPACE_ED;
     output << "\n";
-    std::string lastdata;
-    lastdata = accumulate(key_.begin(), key_.end(), lastdata);
-    PrintValue(output, tab, lastdata, "keys", false);
+    PrintValue(output, tab, key_, "keys", false);
     output << "\n";
     PrintValue(output, tab, ts_, "ts_col", false);
     output << "\n";

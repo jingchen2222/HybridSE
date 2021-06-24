@@ -35,11 +35,10 @@ cases:
   - id: 7
     desc: explain
     sql: explain SELECT * FROM t1 WHERE COL1 > (select avg(COL1) from t1) limit 10;
-    mode: logical-plan-unsupport
   - id: 8
     desc: explain logical
+    tags: ["TODO"]
     sql: explain logical SELECT * FROM t1 WHERE COL1 > (select avg(COL1) from t1) limit 10;
-    mode: logical-plan-unsupport
   - id: 9
     desc: SHOW PROCEDUERS
     sql: SHOW PROCEDURES;
