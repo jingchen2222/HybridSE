@@ -58,6 +58,14 @@ inline const std::string CmdTypeName(const CmdType &type) {
             return "desc table";
         case kCmdDropTable:
             return "drop table";
+        case kCmdShowProcedures:
+            return "show procedure";
+        case kCmdShowCreateSp:
+            return "show create procedure";
+        case kCmdDropSp:
+            return "drop procedure";
+        case kCmdDropIndex:
+            return "drop index";
         case kCmdExit:
             return "exit";
         default:

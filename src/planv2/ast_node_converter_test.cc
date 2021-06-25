@@ -916,6 +916,8 @@ INSTANTIATE_TEST_CASE_P(ASTCreateStatementTest, ASTNodeConverterTest,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/create.yaml", FILTERS)));
 INSTANTIATE_TEST_CASE_P(ASTInsertStatementTest, ASTNodeConverterTest,
                         testing::ValuesIn(sqlcase::InitCases("cases/plan/insert.yaml", FILTERS)));
+INSTANTIATE_TEST_CASE_P(ASTCmdStatementTest, ASTNodeConverterTest,
+                        testing::ValuesIn(sqlcase::InitCases("cases/plan/cmd.yaml", FILTERS)));
 
 }  // namespace plan
 }  // namespace hybridse

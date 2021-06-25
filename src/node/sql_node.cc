@@ -165,7 +165,7 @@ void PrintValue(std::ostream &output, const std::string &org_tab, const std::vec
     if (vec.size() > 0) {
         value.pop_back();
     }
-    output << org_tab << SPACE_ST << item_name << ": " << value;
+    output << org_tab << SPACE_ST << item_name << ": " << (value.empty() ? "<nil>" : value);
 }
 
 bool SqlNode::Equals(const SqlNode *that) const {
