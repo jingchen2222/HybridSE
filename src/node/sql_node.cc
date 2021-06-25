@@ -79,7 +79,7 @@ void PrintSqlVector(std::ostream &output, const std::string &tab, const std::vec
         output << tab << SPACE_ST << vector_name << ": []";
         return;
     }
-    output << tab << SPACE_ST << vector_name << "[list]: \n";
+    output << tab << SPACE_ST << vector_name << "[list]:\n";
     const std::string space = last_item ? (tab + INDENT) : tab + OR_INDENT;
     int count = vec.size();
     int i = 0;
@@ -113,7 +113,7 @@ void PrintSqlVector(std::ostream &output, const std::string &tab,
         output << tab << SPACE_ST << vector_name << ": []";
         return;
     }
-    output << tab << SPACE_ST << vector_name << "[list]: \n";
+    output << tab << SPACE_ST << vector_name << "[list]:\n";
     const std::string space = last_item ? (tab + INDENT) : tab + OR_INDENT;
     int count = vec.size();
     int i = 0;
