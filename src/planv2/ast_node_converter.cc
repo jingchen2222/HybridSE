@@ -336,6 +336,15 @@ base::Status ConvertExprNode(const zetasql::ASTExpression* ast_expression, node:
             *output = node_manager->MakeCastNode(data_type, expr_node);
             return base::Status::OK();
         }
+        case zetasql::AST_PARAMETER_EXPR: {
+            const zetasql::ASTParameterExpr* parameter_expr = ast_expression->GetAsOrNull<zetasql::ASTParameterExpr>();
+            CHECK_TRUE(nullptr != parameter_expr, common::kSqlError, "not an ASTParameterExpr")
+
+            CHECK_TRUE(nullptr == parameter_expr->name(), common::kSqlError, "Un-support Named Parameter Expression ",
+                       parameter_expr->name()->GetAsString());
+            *output = node_manager->MakeConstNodePlaceHolder();
+            return base::Status::OK();
+        }
         case zetasql::AST_INT_LITERAL: {
             const zetasql::ASTIntLiteral* literal = ast_expression->GetAsOrDie<zetasql::ASTIntLiteral>();
             CHECK_TRUE(!literal->is_hex(), common::kSqlError, "Un-support hex integer literal: ", literal->image());

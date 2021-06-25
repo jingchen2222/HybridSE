@@ -157,7 +157,7 @@ cases:
           create table t1 (
           col0 string not null,
           col1 int not null,
-          col2 smallint not null,
+          col2 smallint,
           col3 float not null,
           col4 double not null,
           col5 bigint not null,

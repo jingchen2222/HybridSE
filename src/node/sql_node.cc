@@ -95,7 +95,7 @@ void PrintSqlVector(std::ostream &output, const std::string &tab, const std::vec
         output << tab << SPACE_ST << vector_name << ": []";
         return;
     }
-    output << tab << SPACE_ST << vector_name << "[list]: \n";
+    output << tab << SPACE_ST << vector_name << "[list]:\n";
     const std::string space = last_item ? (tab + INDENT) : tab + OR_INDENT;
     int count = vec.size();
     int i = 0;
@@ -1239,7 +1239,7 @@ void InsertStmt::Print(std::ostream &output, const std::string &org_tab) const {
     } else {
         PrintValue(output, tab, columns_, "columns", false);
     }
-
+    output << "\n";
     PrintSqlVector(output, tab, values_, "values", false);
 }
 void BinaryExpr::Print(std::ostream &output, const std::string &org_tab) const {

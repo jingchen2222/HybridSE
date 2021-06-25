@@ -1590,7 +1590,11 @@ class InsertStmt : public SqlNode {
  public:
     InsertStmt(const std::string &table_name, const std::vector<std::string> &columns,
                const std::vector<ExprNode *> &values)
-        : SqlNode(kInsertStmt, 0, 0), table_name_(table_name), columns_(columns), values_(values), is_all_(false) {}
+        : SqlNode(kInsertStmt, 0, 0),
+          table_name_(table_name),
+          columns_(columns),
+          values_(values),
+          is_all_(columns.empty()) {}
 
     InsertStmt(const std::string &table_name, const std::vector<ExprNode *> &values)
         : SqlNode(kInsertStmt, 0, 0), table_name_(table_name), values_(values), is_all_(true) {}

@@ -295,6 +295,10 @@ void TabletSdkImpl::BuildInsertRequest(const std::string& db,
     request->set_table(table_name);
     request->set_db(db);
 
+    std::unordered_set<std::string> column_set;
+    for (size_t i = 0; i < schema.columns().size(); i++) {
+        column_set.insert(schema.columns(i).name());
+    }
     std::map<std::string, node::ConstNode*> column_value_map;
     if (!columns.empty()) {
         if (columns.size() != values->children_.size()) {
@@ -308,6 +312,12 @@ void TabletSdkImpl::BuildInsertRequest(const std::string& db,
                 status->code = common::kTypeError;
                 status->msg =
                     "Fail insert value with type " + node::ExprTypeName(values->children_[i]->GetExprType());
+                return;
+            }
+            if (column_set.find(columns[i]) == column_set.end()) {
+                status->code = common::kTypeError;
+                status->msg =
+                    "Fail insert: column " + columns[i] + "not exist";
                 return;
             }
             column_value_map.insert(std::make_pair(columns[i], dynamic_cast<node::ConstNode*>(values->children_[i])));
