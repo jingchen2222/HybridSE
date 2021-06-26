@@ -93,5 +93,5 @@ cases:
     expect:
       node_tree_str: |
         +-node[CMD]
-          +-cmd_type: unknown cmd type
+          +-cmd_type: drop index
           +-args: t1,index1
