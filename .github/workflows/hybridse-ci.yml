@@ -159,7 +159,6 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         working-directory: java
         run: |
-          mvn --batch-mode -pl hybridse-proto -P macos install
           mvn --batch-mode -pl hybridse-native -P macos deploy
           mvn --batch-mode -pl hybridse-sdk -P macos deploy
         env:

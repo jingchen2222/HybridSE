@@ -609,20 +609,46 @@ TEST_F(ASTNodeConverterTest, ConvertCreateIndexOKTest) {
     expect_converted(sql1);
 }
 
+TEST_F(ASTNodeConverterTest, ConvertCreateIndexFailTest) {
+    node::NodeManager node_manager;
+    auto expect_converted = [&](const std::string& sql, const int code, std::string msg) -> void {
+        std::unique_ptr<zetasql::ParserOutput> parser_output;
+        ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
+        const auto* statement = parser_output->statement();
+        node::SqlNode* stmt;
+        auto s = ConvertStatement(statement, &node_manager, &stmt);
+        EXPECT_EQ(code, s.code);
+        EXPECT_EQ(msg, s.msg) << s << "\nexpect msg: " << msg;
+    };
+    {
+        const std::string sql = R"sql(
+        CREATE INDEX index1 ON t1 (col1 ASC, col2 DESC)
+        OPTIONS(ts=std_ts, ttl_type=absolute, ttl=30d);
+        )sql";
+        expect_converted(sql, common::kSqlError, "Un-support descending index key");
+    }
+    {
+        const std::string sql = R"sql(
+        CREATE INDEX index1 ON t1 (col1 DESC, col2 DESC)
+        OPTIONS(ts=std_ts, ttl_type=absolute, ttl=30d);
+        )sql";
+        expect_converted(sql, common::kSqlError, "Un-support descending index key");
+    }
+}
 
 TEST_F(ASTNodeConverterTest, ConvertInsertStmtOKTest) {
     node::NodeManager node_manager;
     auto expect_converted = [&](const std::string& sql) -> void {
-      std::unique_ptr<zetasql::ParserOutput> parser_output;
-      ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
-      const auto* statement = parser_output->statement();
-      ASSERT_TRUE(statement->Is<zetasql::ASTInsertStatement>());
+        std::unique_ptr<zetasql::ParserOutput> parser_output;
+        ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
+        const auto* statement = parser_output->statement();
+        ASSERT_TRUE(statement->Is<zetasql::ASTInsertStatement>());
 
-      const auto index_stmt = statement->GetAsOrDie<zetasql::ASTInsertStatement>();
-      node::InsertStmt* stmt;
-      auto s = ConvertInsertStatement(index_stmt, &node_manager, &stmt);
-      EXPECT_EQ(common::kOk, s.code);
-      stmt->Print(std::cout, "");
+        const auto index_stmt = statement->GetAsOrDie<zetasql::ASTInsertStatement>();
+        node::InsertStmt* stmt;
+        auto s = ConvertInsertStatement(index_stmt, &node_manager, &stmt);
+        EXPECT_EQ(common::kOk, s.code);
+        stmt->Print(std::cout, "");
     };
     {
         const std::string sql = R"sql(
@@ -647,22 +673,28 @@ TEST_F(ASTNodeConverterTest, ConvertInsertStmtOKTest) {
 TEST_F(ASTNodeConverterTest, ConvertInsertStmtFailTest) {
     node::NodeManager node_manager;
     auto expect_converted = [&](const std::string& sql, const int code, std::string msg) -> void {
-      std::unique_ptr<zetasql::ParserOutput> parser_output;
-      ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
-      const auto* statement = parser_output->statement();
-      ASSERT_TRUE(statement->Is<zetasql::ASTInsertStatement>());
+        std::unique_ptr<zetasql::ParserOutput> parser_output;
+        ZETASQL_ASSERT_OK(zetasql::ParseStatement(sql, zetasql::ParserOptions(), &parser_output));
+        const auto* statement = parser_output->statement();
+        ASSERT_TRUE(statement->Is<zetasql::ASTInsertStatement>());
 
-      const auto index_stmt = statement->GetAsOrDie<zetasql::ASTInsertStatement>();
-      node::InsertStmt* stmt;
-      auto s = ConvertInsertStatement(index_stmt, &node_manager, &stmt);
-      EXPECT_EQ(code, s.code);
-      EXPECT_EQ(msg, s.msg) << s << "\nexpect msg: " << msg;
+        const auto index_stmt = statement->GetAsOrDie<zetasql::ASTInsertStatement>();
+        node::InsertStmt* stmt;
+        auto s = ConvertInsertStatement(index_stmt, &node_manager, &stmt);
+        EXPECT_EQ(code, s.code);
+        EXPECT_EQ(msg, s.msg) << s << "\nexpect msg: " << msg;
     };
     {
         const std::string sql = R"sql(
         INSERT into t1 values (1, @ a, @ b)
         )sql";
         expect_converted(sql, common::kSqlError, "Un-support Named Parameter Expression a");
+    }
+    {
+        const std::string sql = R"sql(
+        INSERT into t1 values (1, 2L, aaa)
+        )sql";
+        expect_converted(sql, common::kSqlError, "Un-support insert statement with un-const value");
     }
 }
 TEST_F(ASTNodeConverterTest, ConvertStmtFailTest) {
@@ -906,8 +938,8 @@ TEST_P(ASTNodeConverterTest, SqlNodeTreeEqual) {
     base::Status status;
     status = ConvertStatement(statement, manager_, &output);
     EXPECT_EQ(common::kOk, status.code) << status.msg << status.trace;
-    LOG(INFO) << "\n" << output->GetTreeString();
     if (status.isOK() && !GetParam().expect().node_tree_str_.empty()) {
+        LOG(INFO) << "\n" << output->GetTreeString();
         EXPECT_EQ(GetParam().expect().node_tree_str_, output->GetTreeString());
     }
 }

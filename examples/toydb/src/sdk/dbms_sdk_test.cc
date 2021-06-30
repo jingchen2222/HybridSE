@@ -675,6 +675,9 @@ TEST_P(DBMSSdkTest, ExecuteQueryTest) {
     std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
         ::hybridse::sdk::CreateDBMSSdk(endpoint);
 
+    if (sql_case.db_.empty()) {
+        sql_case.db_ = sqlcase::SqlCase::GenRand("auto_db");
+    }
     std::string db = sql_case.db();
     {
         Status status;
