@@ -29,8 +29,7 @@ class Decoder {
  public:
     Decoder() {}
     virtual ~Decoder() {}
-    virtual bool GetColOffsetType(const std::string& name, uint32_t* col_idx,
-                                  uint32_t* offset_ptr,
+    virtual bool GetColOffsetType(const std::string& name, uint32_t* col_idx, uint32_t* offset_ptr,
                                   node::DataType* type_ptr) = 0;
 };
 
@@ -40,8 +39,7 @@ class RowDecodeIRBuilder {
 
     virtual ~RowDecodeIRBuilder() {}
 
-    virtual bool BuildGetField(size_t col_idx, ::llvm::Value* row_ptr,
-                               ::llvm::Value* row_size,
+    virtual bool BuildGetField(size_t col_idx, ::llvm::Value* row_ptr, ::llvm::Value* row_size,
                                NativeValue* output) = 0;
 };
 

@@ -23,13 +23,11 @@
 
 namespace hybridse {
 namespace base {
-static const char LABELS[10] = {'0', '1', '2', '3', '4',
-                                '5', '6', '7', '8', '9'};
+static const char LABELS[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 static const uint32_t TIME_OFFSET[] = {1000, 60, 60, 24};
 static const char* TIME_LABEL[] = {"ms", "s", "m", "h", "d"};
 
-static inline void SplitString(const std::string& full,
-                               const std::string& delim,
+static inline void SplitString(const std::string& full, const std::string& delim,
                                std::vector<std::string>& result) {  // NOLINT
     result.clear();
     if (full.empty()) {
@@ -129,8 +127,7 @@ static inline std::string NumToString(double num) {
 
 static inline std::string HumanReadableString(int64_t num) {
     static const int max_shift = 6;
-    static const char* const prefix[max_shift + 1] = {"",   " K", " M", " G",
-                                                      " T", " P", " E"};
+    static const char* const prefix[max_shift + 1] = {"", " K", " M", " G", " T", " P", " E"};
     int shift = 0;
     double v = num;
     while ((num >>= 10) > 0 && shift < max_shift) {

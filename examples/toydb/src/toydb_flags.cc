@@ -16,13 +16,10 @@
 
 #include <gflags/gflags.h>
 // cluster config
-DEFINE_string(toydb_endpoint, "",
-              "config the ip and port that toydb serves for");
+DEFINE_string(toydb_endpoint, "", "config the ip and port that toydb serves for");
 DEFINE_int32(toydb_port, 0, "config the port that toydb serves for");
-DEFINE_int32(toydb_thread_pool_size, 8,
-             "config the thread pool for dbms and tablet");
-DEFINE_string(tablet_endpoint, "",
-              "config the ip and port that toydb tablet for");
+DEFINE_int32(toydb_thread_pool_size, 8, "config the thread pool for dbms and tablet");
+DEFINE_string(tablet_endpoint, "", "config the ip and port that toydb tablet for");
 // for tablet
 DEFINE_string(dbms_endpoint, "", "config the ip and port that toydb dbms for");
 DEFINE_bool(enable_keep_alive, true, "config if tablet keep alive with dbms");

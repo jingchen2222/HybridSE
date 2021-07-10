@@ -21,9 +21,7 @@
 #include "codegen/ir_base_builder.h"
 namespace hybridse {
 namespace codegen {
-DateIRBuilder::DateIRBuilder(::llvm::Module* m) : StructTypeIRBuilder(m) {
-    InitStructType();
-}
+DateIRBuilder::DateIRBuilder(::llvm::Module* m) : StructTypeIRBuilder(m) { InitStructType(); }
 DateIRBuilder::~DateIRBuilder() {}
 void DateIRBuilder::InitStructType() {
     std::string name = "fe.date";
@@ -41,10 +39,7 @@ void DateIRBuilder::InitStructType() {
     struct_type_ = stype;
     return;
 }
-bool DateIRBuilder::CreateDefault(::llvm::BasicBlock* block,
-                                  ::llvm::Value** output) {
-    return NewDate(block, output);
-}
+bool DateIRBuilder::CreateDefault(::llvm::BasicBlock* block, ::llvm::Value** output) { return NewDate(block, output); }
 bool DateIRBuilder::NewDate(::llvm::BasicBlock* block, ::llvm::Value** output) {
     if (block == NULL || output == NULL) {
         LOG(WARNING) << "the output ptr or block is NULL ";
@@ -54,16 +49,13 @@ bool DateIRBuilder::NewDate(::llvm::BasicBlock* block, ::llvm::Value** output) {
     if (!Create(block, &date)) {
         return false;
     }
-    if (!SetDate(block, date,
-                 ::llvm::ConstantInt::get(
-                     ::llvm::Type::getInt32Ty(m_->getContext()), 0, false))) {
+    if (!SetDate(block, date, ::llvm::ConstantInt::get(::llvm::Type::getInt32Ty(m_->getContext()), 0, false))) {
         return false;
     }
     *output = date;
     return true;
 }
-bool DateIRBuilder::NewDate(::llvm::BasicBlock* block, ::llvm::Value* days,
-                            ::llvm::Value** output) {
+bool DateIRBuilder::NewDate(::llvm::BasicBlock* block, ::llvm::Value* days, ::llvm::Value** output) {
     if (block == NULL || output == NULL) {
         LOG(WARNING) << "the output ptr or block is NULL ";
         return false;
@@ -78,8 +70,7 @@ bool DateIRBuilder::NewDate(::llvm::BasicBlock* block, ::llvm::Value* days,
     *output = date;
     return true;
 }
-bool DateIRBuilder::CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
-                             ::llvm::Value* dist) {
+bool DateIRBuilder::CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src, ::llvm::Value* dist) {
     if (nullptr == src || nullptr == dist) {
         LOG(WARNING) << "Fail to copy string: src or dist is null";
         return false;
@@ -97,9 +88,7 @@ bool DateIRBuilder::CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
     }
     return true;
 }
-base::Status DateIRBuilder::CastFrom(::llvm::BasicBlock* block,
-                                     const NativeValue& src,
-                                     NativeValue* output) {
+base::Status DateIRBuilder::CastFrom(::llvm::BasicBlock* block, const NativeValue& src, NativeValue* output) {
     base::Status status;
     NullIRBuilder null_ir_builder;
 
@@ -109,8 +98,7 @@ base::Status DateIRBuilder::CastFrom(::llvm::BasicBlock* block,
     } else if (IsTimestampPtr(src.GetType()) || IsStringPtr(src.GetType())) {
         ::llvm::IRBuilder<> builder(block);
         ::llvm::Value* dist = nullptr;
-        ::llvm::Value* is_null_ptr = CreateAllocaAtHead(
-            &builder, builder.getInt1Ty(), "timestamp_is_null_alloca");
+        ::llvm::Value* is_null_ptr = CreateAllocaAtHead(&builder, builder.getInt1Ty(), "timestamp_is_null_alloca");
         if (!CreateDefault(block, &dist)) {
             status.code = common::kCodegenError;
             status.msg = "Fail to cast date: create default date fail";
@@ -121,34 +109,26 @@ base::Status DateIRBuilder::CastFrom(::llvm::BasicBlock* block,
         auto cast_func = m_->getOrInsertFunction(
             fn_name,
             ::llvm::FunctionType::get(builder.getVoidTy(),
-                                      {src.GetType(), dist->getType(),
-                                       builder.getInt1Ty()->getPointerTo()},
-                                      false));
-        builder.CreateCall(cast_func,
-                           {src.GetValue(&builder), dist, is_null_ptr});
+                                      {src.GetType(), dist->getType(), builder.getInt1Ty()->getPointerTo()}, false));
+        builder.CreateCall(cast_func, {src.GetValue(&builder), dist, is_null_ptr});
         ::llvm::Value* should_return_null = builder.CreateLoad(is_null_ptr);
         null_ir_builder.CheckAnyNull(block, src, &should_return_null);
         *output = NativeValue::CreateWithFlag(dist, should_return_null);
     } else {
-        return base::Status(
-            common::kCodegenError,
-            "Fail to cast from " + TypeName(src.GetType()) + " to date");
+        return base::Status(common::kCodegenError, "Fail to cast from " + TypeName(src.GetType()) + " to date");
     }
     return base::Status::OK();
 }
-bool DateIRBuilder::GetDate(::llvm::BasicBlock* block, ::llvm::Value* date,
-                            ::llvm::Value** output) {
+bool DateIRBuilder::GetDate(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output) {
     return Get(block, date, 0, output);
 }
-bool DateIRBuilder::SetDate(::llvm::BasicBlock* block, ::llvm::Value* date,
-                            ::llvm::Value* code) {
+bool DateIRBuilder::SetDate(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value* code) {
     return Set(block, date, 0, code);
 }
 
 // return dayOfYear
 // *day = date & 0x0000000FF;
-bool DateIRBuilder::Day(::llvm::BasicBlock* block, ::llvm::Value* date,
-                        ::llvm::Value** output, base::Status& status) {
+bool DateIRBuilder::Day(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* code;
     if (!GetDate(block, date, &code)) {
         LOG(WARNING) << "Fail to GetDate";
@@ -157,8 +137,7 @@ bool DateIRBuilder::Day(::llvm::BasicBlock* block, ::llvm::Value* date,
 
     ::llvm::IRBuilder<> builder(block);
     codegen::ArithmeticIRBuilder arithmetic_ir_builder(block);
-    if (!arithmetic_ir_builder.BuildAnd(block, code, builder.getInt32(255),
-                                        &code, status)) {
+    if (!arithmetic_ir_builder.BuildAnd(block, code, builder.getInt32(255), &code, status)) {
         LOG(WARNING) << "Fail Compute Day of Date: " << status.msg;
         return false;
     }
@@ -170,8 +149,8 @@ bool DateIRBuilder::Day(::llvm::BasicBlock* block, ::llvm::Value* date,
 //    date = date >> 8;
 //    *month = 1 + (date & 0x0000FF);
 //    *year = 1900 + (date >> 8);
-bool DateIRBuilder::Month(::llvm::BasicBlock* block, ::llvm::Value* date,
-                          ::llvm::Value** output, base::Status& status) {
+bool DateIRBuilder::Month(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output,
+                          base::Status& status) {
     ::llvm::Value* code;
     if (!GetDate(block, date, &code)) {
         LOG(WARNING) << "Fail to GetDate";
@@ -181,20 +160,17 @@ bool DateIRBuilder::Month(::llvm::BasicBlock* block, ::llvm::Value* date,
     ::llvm::IRBuilder<> builder(block);
     codegen::ArithmeticIRBuilder arithmetic_ir_builder(block);
 
-    if (!arithmetic_ir_builder.BuildLShiftRight(
-            block, code, builder.getInt32(8), &code, status)) {
+    if (!arithmetic_ir_builder.BuildLShiftRight(block, code, builder.getInt32(8), &code, status)) {
         LOG(WARNING) << "Fail Compute Month of Date: " << status.msg;
         return false;
     }
 
-    if (!arithmetic_ir_builder.BuildAnd(block, code, builder.getInt32(255),
-                                        &code, status)) {
+    if (!arithmetic_ir_builder.BuildAnd(block, code, builder.getInt32(255), &code, status)) {
         LOG(WARNING) << "Fail Compute Month of Date: " << status.msg;
         return false;
     }
 
-    if (!arithmetic_ir_builder.BuildAddExpr(block, code, builder.getInt32(1),
-                                            &code, status)) {
+    if (!arithmetic_ir_builder.BuildAddExpr(block, code, builder.getInt32(1), &code, status)) {
         LOG(WARNING) << "Fail Compute Month of Date: " << status.msg;
         return false;
     }
@@ -203,8 +179,7 @@ bool DateIRBuilder::Month(::llvm::BasicBlock* block, ::llvm::Value* date,
 }
 // Return Year
 //    *year = 1900 + (date >> 16);
-bool DateIRBuilder::Year(::llvm::BasicBlock* block, ::llvm::Value* date,
-                         ::llvm::Value** output, base::Status& status) {
+bool DateIRBuilder::Year(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* code;
     if (!GetDate(block, date, &code)) {
         LOG(WARNING) << "Fail to GetDate";
@@ -214,13 +189,11 @@ bool DateIRBuilder::Year(::llvm::BasicBlock* block, ::llvm::Value* date,
     ::llvm::IRBuilder<> builder(block);
     codegen::ArithmeticIRBuilder arithmetic_ir_builder(block);
 
-    if (!arithmetic_ir_builder.BuildLShiftRight(
-            block, code, builder.getInt32(16), &code, status)) {
+    if (!arithmetic_ir_builder.BuildLShiftRight(block, code, builder.getInt32(16), &code, status)) {
         LOG(WARNING) << "Fail Compute Year of Date: " << status.msg;
         return false;
     }
-    if (!arithmetic_ir_builder.BuildAddExpr(block, code, builder.getInt32(1900),
-                                            &code, status)) {
+    if (!arithmetic_ir_builder.BuildAddExpr(block, code, builder.getInt32(1900), &code, status)) {
         LOG(WARNING) << "Fail Compute Year of Date: " << status.msg;
         return false;
     }

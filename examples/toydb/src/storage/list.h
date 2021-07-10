@@ -57,22 +57,14 @@ class LinkListNode {
     ~LinkListNode() = default;
 
     // Set the next node with memory barrier
-    void SetNext(LinkListNode<K, V>* node) {
-        next_.store(node, std::memory_order_release);
-    }
+    void SetNext(LinkListNode<K, V>* node) { next_.store(node, std::memory_order_release); }
 
     // Set the next node without memory barrier
-    void SetNextNoBarrier(LinkListNode<K, V>* node) {
-        next_.store(node, std::memory_order_relaxed);
-    }
+    void SetNextNoBarrier(LinkListNode<K, V>* node) { next_.store(node, std::memory_order_relaxed); }
 
-    LinkListNode<K, V>* GetNext() {
-        return next_.load(std::memory_order_acquire);
-    }
+    LinkListNode<K, V>* GetNext() { return next_.load(std::memory_order_acquire); }
 
-    LinkListNode<K, V>* GetNextNoBarrier() {
-        return next_.load(std::memory_order_relaxed);
-    }
+    LinkListNode<K, V>* GetNextNoBarrier() { return next_.load(std::memory_order_relaxed); }
 
     V& GetValue() { return value_; }
 
@@ -87,9 +79,7 @@ class LinkListNode {
 template <class K, class V, class Comparator>
 class LinkList : public BaseList<K, V> {
  public:
-    explicit LinkList(Comparator cmp) : compare_(cmp) {
-        head_ = new LinkListNode<K, V>();
-    }
+    explicit LinkList(Comparator cmp) : compare_(cmp) { head_ = new LinkListNode<K, V>(); }
     ~LinkList() { delete head_; }
 
     virtual void Insert(const K& key, V& value) {  // NOLINT
@@ -188,8 +178,7 @@ class LinkList : public BaseList<K, V> {
 
     class LinkListIterator : public Iterator<K, V> {
      public:
-        explicit LinkListIterator(LinkList<K, V, Comparator>* list)
-            : node_(NULL), list_(list) {}
+        explicit LinkListIterator(LinkList<K, V, Comparator>* list) : node_(NULL), list_(list) {}
         LinkListIterator(const LinkListIterator&) = delete;
         LinkListIterator& operator=(const LinkListIterator&) = delete;
         virtual ~LinkListIterator() {}
@@ -224,9 +213,7 @@ class LinkList : public BaseList<K, V> {
     virtual Iterator<K, V>* NewIterator() { return new LinkListIterator(this); }
 
  private:
-    bool IsAfterNode(const K& key, const LinkListNode<K, V>* node) const {
-        return compare_(key, node->GetKey()) > 0;
-    }
+    bool IsAfterNode(const K& key, const LinkListNode<K, V>* node) const { return compare_(key, node->GetKey()) > 0; }
 
  private:
     Comparator const compare_;
@@ -246,8 +233,7 @@ struct __attribute__((__packed__)) ArraySt {
 };
 
 const uint16_t ARRAY_HDR_LEN = sizeof(uint16_t);
-#define ARRAY_HDR(s) \
-    ((struct ArraySt<K, V>*)((char*)(s) - (sizeof(uint16_t))))  // NOLINT
+#define ARRAY_HDR(s) ((struct ArraySt<K, V>*)((char*)(s) - (sizeof(uint16_t))))  // NOLINT
 
 template <class K, class V>
 void ArrayListNodeDeleter(ArrayListNode<K, V>* array) {
@@ -259,8 +245,7 @@ void ArrayListNodeDeleter(ArrayListNode<K, V>* array) {
 }
 
 template <class K, class V, class Comparator,
-          class = typename std::enable_if<std::is_pod<K>::value &&
-                                          std::is_pod<V>::value>>
+          class = typename std::enable_if<std::is_pod<K>::value && std::is_pod<V>::value>>
 // typename std::enable_if<std::is_pod<K>::value && std::is_pod<V>::value,
 // int>::type = 0>
 class ArrayList : public BaseList<K, V> {
@@ -273,42 +258,34 @@ class ArrayList : public BaseList<K, V> {
     virtual void Insert(const K& key, V& value) {  // NOLINT
         uint32_t length = GetSize();
         uint32_t new_length = length + 1;
-        ArraySt<K, V>* st =
-            (ArraySt<K, V>*)new char[ARRAY_HDR_LEN +
-                                     new_length * sizeof(ArrayListNode<K, V>)];
+        ArraySt<K, V>* st = (ArraySt<K, V>*)new char[ARRAY_HDR_LEN + new_length * sizeof(ArrayListNode<K, V>)];
         st->length_ = (uint16_t)new_length;
         ArrayListNode<K, V>* new_array_ptr = st->buf_;
         uint32_t pos = FindLessOrEqual(key);
         new_array_ptr[pos].key_ = key;
         new_array_ptr[pos].value_ = value;
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_relaxed);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_relaxed);
         ArrayListNode<K, V>* array_ptr = array.get();
         if (array_ptr != NULL) {
             if (length > 0) {
                 if (pos > 0) {
-                    memcpy(reinterpret_cast<void*>(new_array_ptr),
-                           reinterpret_cast<void*>(array_ptr),
+                    memcpy(reinterpret_cast<void*>(new_array_ptr), reinterpret_cast<void*>(array_ptr),
                            pos * sizeof(ArrayListNode<K, V>));
                 }
                 if (pos < length) {
-                    memcpy(reinterpret_cast<void*>(new_array_ptr + pos + 1),
-                           reinterpret_cast<void*>(array_ptr + pos),
+                    memcpy(reinterpret_cast<void*>(new_array_ptr + pos + 1), reinterpret_cast<void*>(array_ptr + pos),
                            (length - pos) * sizeof(ArrayListNode<K, V>));
                 }
             }
         }
-        std::shared_ptr<ArrayListNode<K, V>> new_array(
-            new_array_ptr, ArrayListNodeDeleter<K, V>);
-        std::atomic_store_explicit(&array_, new_array,
-                                   std::memory_order_release);
+        std::shared_ptr<ArrayListNode<K, V>> new_array(new_array_ptr, ArrayListNodeDeleter<K, V>);
+        std::atomic_store_explicit(&array_, new_array, std::memory_order_release);
     }
 
     ListType GetType() const override { return ListType::kArrayList; }
 
     virtual uint32_t GetSize() {
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_acquire);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_acquire);
         if (!array) {
             return 0;
         }
@@ -317,8 +294,7 @@ class ArrayList : public BaseList<K, V> {
     }
 
     virtual bool IsEmpty() {
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_acquire);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_acquire);
         if (array == NULL) {
             return true;
         }
@@ -326,9 +302,7 @@ class ArrayList : public BaseList<K, V> {
     }
 
     void Clear() {
-        std::atomic_store_explicit(&array_,
-                                   std::shared_ptr<ArrayListNode<K, V>>(),
-                                   std::memory_order_release);
+        std::atomic_store_explicit(&array_, std::shared_ptr<ArrayListNode<K, V>>(), std::memory_order_release);
     }
 
     void Split(const K& key) {
@@ -343,24 +317,17 @@ class ArrayList : public BaseList<K, V> {
         }
         if (pos < length - 1) {
             uint32_t new_length = pos;
-            ArraySt<K, V>* st =
-                (ArraySt<K, V>*)new char[ARRAY_HDR_LEN +
-                                         new_length *
-                                             sizeof(ArrayListNode<K, V>)];
+            ArraySt<K, V>* st = (ArraySt<K, V>*)new char[ARRAY_HDR_LEN + new_length * sizeof(ArrayListNode<K, V>)];
             st->length_ = (uint16_t)new_length;
             ArrayListNode<K, V>* new_array_ptr = st->buf_;
-            std::shared_ptr<ArrayListNode<K, V>> array =
-                std::atomic_load_explicit(&array_, std::memory_order_relaxed);
+            std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_relaxed);
             if (array) {
                 ArrayListNode<K, V>* array_ptr = array.get();
-                memcpy(reinterpret_cast<void*>(new_array_ptr),
-                       reinterpret_cast<void*>(array_ptr),
+                memcpy(reinterpret_cast<void*>(new_array_ptr), reinterpret_cast<void*>(array_ptr),
                        pos * sizeof(ArrayListNode<K, V>));
             }
-            std::shared_ptr<ArrayListNode<K, V>> new_array(
-                new_array_ptr, ArrayListNodeDeleter<K, V>);
-            std::atomic_store_explicit(&array_, new_array,
-                                       std::memory_order_release);
+            std::shared_ptr<ArrayListNode<K, V>> new_array(new_array_ptr, ArrayListNodeDeleter<K, V>);
+            std::atomic_store_explicit(&array_, new_array, std::memory_order_release);
         }
     }
 
@@ -375,28 +342,23 @@ class ArrayList : public BaseList<K, V> {
         }
 
         uint32_t new_length = pos;
-        ArraySt<K, V>* st = reinterpret_cast<ArraySt<K, V>*>(
-            new char[ARRAY_HDR_LEN + new_length * sizeof(ArrayListNode<K, V>)]);
+        ArraySt<K, V>* st =
+            reinterpret_cast<ArraySt<K, V>*>(new char[ARRAY_HDR_LEN + new_length * sizeof(ArrayListNode<K, V>)]);
         st->length_ = (uint16_t)new_length;
         ArrayListNode<K, V>* new_array_ptr = st->buf_;
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_relaxed);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_relaxed);
         if (array) {
             ArrayListNode<K, V>* array_ptr = array.get();
-            memcpy(reinterpret_cast<void*>(new_array_ptr),
-                   reinterpret_cast<void*>(array_ptr),
+            memcpy(reinterpret_cast<void*>(new_array_ptr), reinterpret_cast<void*>(array_ptr),
                    pos * sizeof(ArrayListNode<K, V>));
         }
-        std::shared_ptr<ArrayListNode<K, V>> new_array(
-            new_array_ptr, ArrayListNodeDeleter<K, V>);
-        std::atomic_store_explicit(&array_, new_array,
-                                   std::memory_order_release);
+        std::shared_ptr<ArrayListNode<K, V>> new_array(new_array_ptr, ArrayListNodeDeleter<K, V>);
+        std::atomic_store_explicit(&array_, new_array, std::memory_order_release);
     }
 
     // TODO(denglong) : use binary search
     uint32_t FindLessOrEqual(const K& key) {
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_acquire);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_acquire);
         ArrayListNode<K, V>* array_ptr = array.get();
         uint32_t length = GetSize();
         for (uint32_t idx = 0; idx < length; idx++) {
@@ -408,8 +370,7 @@ class ArrayList : public BaseList<K, V> {
     }
 
     uint32_t FindLessThan(const K& key) {
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_acquire);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_acquire);
         ArrayListNode<K, V>* array_ptr = array.get();
         uint32_t length = GetSize();
         for (uint32_t idx = 0; idx < length; idx++) {
@@ -425,10 +386,8 @@ class ArrayList : public BaseList<K, V> {
         if (length == 0) {
             return NULL;
         }
-        LinkList<K, V, Comparator>* list =
-            new LinkList<K, V, Comparator>(compare_);
-        std::shared_ptr<ArrayListNode<K, V>> array =
-            std::atomic_load_explicit(&array_, std::memory_order_relaxed);
+        LinkList<K, V, Comparator>* list = new LinkList<K, V, Comparator>(compare_);
+        std::shared_ptr<ArrayListNode<K, V>> array = std::atomic_load_explicit(&array_, std::memory_order_relaxed);
         ArrayListNode<K, V>* array_ptr = array.get();
         for (uint32_t idx = 0; idx < length; idx++) {
             uint32_t cur_idx = length - idx - 1;
@@ -439,11 +398,9 @@ class ArrayList : public BaseList<K, V> {
 
     class ArrayListIterator : public Iterator<K, V> {
      public:
-        explicit ArrayListIterator(ArrayList<K, V, Comparator>* list)
-            : pos_(-1), length_(0), array_(), compare_() {
+        explicit ArrayListIterator(ArrayList<K, V, Comparator>* list) : pos_(-1), length_(0), array_(), compare_() {
             if (list != NULL) {
-                array_ = std::atomic_load_explicit(&(list->array_),
-                                                   std::memory_order_acquire);
+                array_ = std::atomic_load_explicit(&(list->array_), std::memory_order_acquire);
                 if (array_) {
                     ArraySt<K, V>* ast = ARRAY_HDR(array_.get());
                     length_ = ast->length_;
@@ -454,9 +411,7 @@ class ArrayList : public BaseList<K, V> {
         ArrayListIterator(const ArrayListIterator&) = delete;
         ArrayListIterator& operator=(const ArrayListIterator&) = delete;
         virtual ~ArrayListIterator() {}
-        virtual bool Valid() const {
-            return array_ && pos_ >= 0 && pos_ < (int32_t)length_;
-        }
+        virtual bool Valid() const { return array_ && pos_ >= 0 && pos_ < (int32_t)length_; }
         virtual void Next() {
             assert(Valid());
             pos_++;
@@ -492,9 +447,7 @@ class ArrayList : public BaseList<K, V> {
         Comparator compare_;
     };
 
-    virtual Iterator<K, V>* NewIterator() {
-        return new ArrayListIterator(this);
-    }
+    virtual Iterator<K, V>* NewIterator() { return new ArrayListIterator(this); }
 
  private:
     Comparator compare_;
@@ -504,20 +457,15 @@ class ArrayList : public BaseList<K, V> {
 template <class K, class V, class Comparator>
 class List {
  public:
-    explicit List(Comparator cmp) : compare_(cmp) {
-        list_ = new ArrayList<K, V, Comparator>(cmp);
-    }
+    explicit List(Comparator cmp) : compare_(cmp) { list_ = new ArrayList<K, V, Comparator>(cmp); }
     ~List() { delete list_.load(std::memory_order_relaxed); }
     List(const List&) = delete;
     List& operator=(const List&) = delete;
     void Insert(const K& key, V& value) {  // NOLINT
         BaseList<K, V>* list = list_.load(std::memory_order_acquire);
-        if (list->GetType() == ListType::kArrayList &&
-            list->GetSize() >= MAX_ARRAY_LIST_LEN) {
-            ArrayList<K, V, Comparator>* array_list =
-                dynamic_cast<ArrayList<K, V, Comparator>*>(list);
-            LinkList<K, V, Comparator>* new_list =
-                array_list->ConvertToLinkList();
+        if (list->GetType() == ListType::kArrayList && list->GetSize() >= MAX_ARRAY_LIST_LEN) {
+            ArrayList<K, V, Comparator>* array_list = dynamic_cast<ArrayList<K, V, Comparator>*>(list);
+            LinkList<K, V, Comparator>* new_list = array_list->ConvertToLinkList();
             if (new_list != NULL) {
                 list_.store(new_list, std::memory_order_release);
                 delete array_list;
@@ -528,9 +476,7 @@ class List {
         }
     }
 
-    Iterator<K, V>* NewIterator() {
-        return list_.load(std::memory_order_relaxed)->NewIterator();
-    }
+    Iterator<K, V>* NewIterator() { return list_.load(std::memory_order_relaxed)->NewIterator(); }
 
  private:
     Comparator const compare_;

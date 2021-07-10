@@ -32,9 +32,7 @@ class Slice {
  public:
     // Return a pointer to the beginning of the referenced data
     inline const char *data() const { return data_; }
-    inline int8_t *buf() const {
-        return reinterpret_cast<int8_t *>(const_cast<char *>(data_));
-    }
+    inline int8_t *buf() const { return reinterpret_cast<int8_t *>(const_cast<char *>(data_)); }
 
     // Return the length (in bytes) of the referenced data
     inline size_t size() const { return size_; }
@@ -57,8 +55,7 @@ class Slice {
     explicit Slice(const std::string &s) : size_(s.size()), data_(s.data()) {}
 
     // Create slice from buffer
-    explicit Slice(const hybridse::base::RawBuffer &buf)
-        : size_(buf.size), data_(buf.addr) {}
+    explicit Slice(const hybridse::base::RawBuffer &buf) : size_(buf.size), data_(buf.addr) {}
 
     // Create slice from c string
     explicit Slice(const char *s) : size_(strlen(s)), data_(s) {}
@@ -95,9 +92,7 @@ class Slice {
     int compare(const Slice &b) const;
 
     // Return true iff "x" is a prefix of "*this"
-    bool starts_with(const Slice &x) const {
-        return ((size_ >= x.size_) && (memcmp(data_, x.data_, x.size_) == 0));
-    }
+    bool starts_with(const Slice &x) const { return ((size_ >= x.size_) && (memcmp(data_, x.data_, x.size_) == 0)); }
 
  private:
     uint32_t size_;
@@ -105,8 +100,7 @@ class Slice {
 };
 
 inline bool operator==(const Slice &x, const Slice &y) {
-    return ((x.size() == y.size()) &&
-            (memcmp(x.data(), y.data(), x.size()) == 0));
+    return ((x.size() == y.size()) && (memcmp(x.data(), y.data(), x.size()) == 0));
 }
 
 inline bool operator!=(const Slice &x, const Slice &y) { return !(x == y); }
@@ -128,19 +122,13 @@ class RefCountedSlice : public Slice {
     ~RefCountedSlice();
 
     // Create slice own the buffer
-    inline static RefCountedSlice CreateManaged(int8_t *buf, size_t size) {
-        return RefCountedSlice(buf, size, true);
-    }
+    inline static RefCountedSlice CreateManaged(int8_t *buf, size_t size) { return RefCountedSlice(buf, size, true); }
 
     // Create slice without ownership
-    inline static RefCountedSlice Create(int8_t *buf, size_t size) {
-        return RefCountedSlice(buf, size, false);
-    }
+    inline static RefCountedSlice Create(int8_t *buf, size_t size) { return RefCountedSlice(buf, size, false); }
 
     // Create slice without ownership
-    inline static RefCountedSlice Create(const char *buf, size_t size) {
-        return RefCountedSlice(buf, size, false);
-    }
+    inline static RefCountedSlice Create(const char *buf, size_t size) { return RefCountedSlice(buf, size, false); }
 
     RefCountedSlice() : Slice(nullptr, 0), ref_cnt_(nullptr) {}
 
@@ -151,8 +139,7 @@ class RefCountedSlice : public Slice {
 
  private:
     RefCountedSlice(int8_t *data, size_t size, bool managed)
-        : Slice(reinterpret_cast<const char *>(data), size),
-          ref_cnt_(managed ? new int(1) : nullptr) {}
+        : Slice(reinterpret_cast<const char *>(data), size), ref_cnt_(managed ? new int(1) : nullptr) {}
 
     RefCountedSlice(const char *data, size_t size, bool managed)
         : Slice(data, size), ref_cnt_(managed ? new int(1) : nullptr) {}

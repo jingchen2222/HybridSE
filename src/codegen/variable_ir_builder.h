@@ -39,32 +39,26 @@ class VariableIRBuilder {
     base::Status LoadMemoryPool(NativeValue* output);  // NOLINT
     bool LoadWindow(const std::string& frame_str, NativeValue* output,
                     base::Status& status);  // NOLINT
-    bool LoadColumnRef(const std::string& relation_name,
-                       const std::string& name, const std::string& frame_str,
+    bool LoadColumnRef(const std::string& relation_name, const std::string& name, const std::string& frame_str,
                        ::llvm::Value** output,
                        base::Status& status);  // NOLINT (runtime/references)
-    bool LoadColumnItem(const std::string& relation_name,
-                        const std::string& name, NativeValue* output,
+    bool LoadColumnItem(const std::string& relation_name, const std::string& name, NativeValue* output,
                         base::Status& status);  // NOLINT (runtime/references)
     bool StoreWindow(const std::string& frame_str, ::llvm::Value* value,
                      base::Status& status);  // NOLINT
-    bool StoreColumnRef(const std::string& relation_name,
-                        const std::string& name, const std::string& frame_str,
+    bool StoreColumnRef(const std::string& relation_name, const std::string& name, const std::string& frame_str,
                         ::llvm::Value* value,
                         base::Status& status);  // NOLINT (runtime/references)
-    bool StoreColumnItem(const std::string& relation_name,
-                         const std::string& name, const NativeValue& value,
+    bool StoreColumnItem(const std::string& relation_name, const std::string& name, const NativeValue& value,
                          base::Status& status);  // NOLINT (runtime/references)
 
-    bool LoadArrayIndex(std::string array_name, int32_t index,
-                        ::llvm::Value** output,
+    bool LoadArrayIndex(std::string array_name, int32_t index, ::llvm::Value** output,
                         base::Status& status);  // NOLINT (runtime/references)
     bool LoadValue(std::string name, NativeValue* output,
                    base::Status& status);  // NOLINT (runtime/references)
     bool StoreValue(const std::string& name, const NativeValue& value,
                     base::Status& status);  // NOLINT (runtime/references)
-    bool StoreValue(const std::string& name, const NativeValue& value,
-                    bool is_register,
+    bool StoreValue(const std::string& name, const NativeValue& value, bool is_register,
                     base::Status& status);  // NOLINT (runtime/references)
 
     bool StoreStruct(const std::string& name, const NativeValue& value,

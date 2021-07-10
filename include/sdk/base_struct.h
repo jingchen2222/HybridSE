@@ -28,8 +28,7 @@ namespace sdk {
 
 struct Status {
     Status() : code(0), msg("ok") {}
-    Status(int status_code, const std::string& msg_str)
-        : code(status_code), msg(msg_str) {}
+    Status(int status_code, const std::string& msg_str) : code(status_code), msg(msg_str) {}
     int code;
     std::string msg;
 };

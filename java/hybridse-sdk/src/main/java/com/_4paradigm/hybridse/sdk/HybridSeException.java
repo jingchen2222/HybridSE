@@ -19,7 +19,9 @@ package com._4paradigm.hybridse.sdk;
 /**
  * The general exception class throw when something goes wrong during compiling SQL queries.
  *
- * <p>This includes, but is not limited to, SQL syntax error, Non-support Plan and so on.</p>
+ * <p>
+ * This includes, but is not limited to, SQL syntax error, Non-support Plan and so on.
+ * </p>
  */
 public class HybridSeException extends Exception {
 

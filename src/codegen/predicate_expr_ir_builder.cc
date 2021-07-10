@@ -26,8 +26,7 @@ using hybridse::common::kCodegenError;
 namespace hybridse {
 namespace codegen {
 
-PredicateIRBuilder::PredicateIRBuilder(::llvm::BasicBlock* block)
-    : block_(block), cast_expr_ir_builder_(block) {}
+PredicateIRBuilder::PredicateIRBuilder(::llvm::BasicBlock* block) : block_(block), cast_expr_ir_builder_(block) {}
 PredicateIRBuilder::~PredicateIRBuilder() {}
 
 /**
@@ -44,10 +43,9 @@ PredicateIRBuilder::~PredicateIRBuilder() {}
  *  10 |    | *  | *  | *  |     10 |    | 1  | 1  | 1  |
  * ----+----+----+----+----+    ----+----+----+----+----+
  */
-Status PredicateIRBuilder::BuildAndExpr(NativeValue left, NativeValue right,
-                                        NativeValue* output) {
-    CHECK_STATUS(TypeIRBuilder::BinaryOpTypeInfer(
-        node::ExprNode::LogicalOpTypeAccept, left.GetType(), right.GetType()));
+Status PredicateIRBuilder::BuildAndExpr(NativeValue left, NativeValue right, NativeValue* output) {
+    CHECK_STATUS(
+        TypeIRBuilder::BinaryOpTypeInfer(node::ExprNode::LogicalOpTypeAccept, left.GetType(), right.GetType()));
     ::llvm::IRBuilder<> builder(block_);
     ::llvm::Value* raw_left = left.GetValue(&builder);
     ::llvm::Value* raw_right = right.GetValue(&builder);
@@ -57,23 +55,17 @@ Status PredicateIRBuilder::BuildAndExpr(NativeValue left, NativeValue right,
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
     Status status;
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_left, &casted_left, status),
-               kCodegenError,
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_left, &casted_left, status), kCodegenError,
                "Infer and cast lhs type of and(&&) failed: ", status.msg);
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_right, &casted_right, status),
-               kCodegenError,
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_right, &casted_right, status), kCodegenError,
                "Infer and cast rhs type of and(&&) failed: ", status.msg);
-    CHECK_TRUE(casted_left->getType()->isIntegerTy(1) &&
-                   casted_right->getType()->isIntegerTy(1),
-               kCodegenError,
+    CHECK_TRUE(casted_left->getType()->isIntegerTy(1) && casted_right->getType()->isIntegerTy(1), kCodegenError,
                "Fail to codegen &&(and) expr: value types are invalid");
 
     ::llvm::Value* result_val = builder.CreateAnd(casted_left, casted_right);
 
-    ::llvm::Value* result_is_null = builder.CreateAnd(
-        left_is_null, builder.CreateOr(right_is_null, casted_right));
-    result_is_null = builder.CreateOr(
-        result_is_null, builder.CreateAnd(casted_left, right_is_null));
+    ::llvm::Value* result_is_null = builder.CreateAnd(left_is_null, builder.CreateOr(right_is_null, casted_right));
+    result_is_null = builder.CreateOr(result_is_null, builder.CreateAnd(casted_left, right_is_null));
 
     *output = NativeValue::CreateWithFlag(result_val, result_is_null);
     return Status::OK();
@@ -93,10 +85,9 @@ Status PredicateIRBuilder::BuildAndExpr(NativeValue left, NativeValue right,
  *  10 | *  | 1  | *  | *  |     10 | 1  |    | 1  | 1  |
  * ----+----+----+----+----+    ----+----+----+----+----+
  */
-Status PredicateIRBuilder::BuildOrExpr(NativeValue left, NativeValue right,
-                                       NativeValue* output) {
-    CHECK_STATUS(TypeIRBuilder::BinaryOpTypeInfer(
-        node::ExprNode::LogicalOpTypeAccept, left.GetType(), right.GetType()));
+Status PredicateIRBuilder::BuildOrExpr(NativeValue left, NativeValue right, NativeValue* output) {
+    CHECK_STATUS(
+        TypeIRBuilder::BinaryOpTypeInfer(node::ExprNode::LogicalOpTypeAccept, left.GetType(), right.GetType()));
     ::llvm::IRBuilder<> builder(block_);
     ::llvm::Value* raw_left = left.GetValue(&builder);
     ::llvm::Value* raw_right = right.GetValue(&builder);
@@ -106,25 +97,18 @@ Status PredicateIRBuilder::BuildOrExpr(NativeValue left, NativeValue right,
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
     Status status;
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_left, &casted_left, status),
-               kCodegenError,
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_left, &casted_left, status), kCodegenError,
                "Infer and cast lhs type of or(||) failed: ", status.msg);
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_right, &casted_right, status),
-               kCodegenError,
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_right, &casted_right, status), kCodegenError,
                "Infer and cast rhs type of or(||) failed: ", status.msg);
-    CHECK_TRUE(casted_left->getType()->isIntegerTy(1) &&
-                   casted_right->getType()->isIntegerTy(1),
-               kCodegenError,
+    CHECK_TRUE(casted_left->getType()->isIntegerTy(1) && casted_right->getType()->isIntegerTy(1), kCodegenError,
                "Fail to codegen &&(and) expr: value types are invalid");
 
     ::llvm::Value* result_val = builder.CreateOr(casted_left, casted_right);
 
-    ::llvm::Value* result_is_null = builder.CreateAnd(
-        left_is_null,
-        builder.CreateOr(right_is_null, builder.CreateNot(casted_right)));
-    result_is_null = builder.CreateOr(
-        result_is_null,
-        builder.CreateAnd(builder.CreateNot(casted_left), right_is_null));
+    ::llvm::Value* result_is_null =
+        builder.CreateAnd(left_is_null, builder.CreateOr(right_is_null, builder.CreateNot(casted_right)));
+    result_is_null = builder.CreateOr(result_is_null, builder.CreateAnd(builder.CreateNot(casted_left), right_is_null));
 
     *output = NativeValue::CreateWithFlag(result_val, result_is_null);
     return Status::OK();
@@ -144,10 +128,9 @@ Status PredicateIRBuilder::BuildOrExpr(NativeValue left, NativeValue right,
  *  10 | *  | *  | *  | *  |     10 | 1  | 1  | 1  | 1  |
  * ----+----+----+----+----+    ----+----+----+----+----+
  */
-Status PredicateIRBuilder::BuildXorExpr(NativeValue left, NativeValue right,
-                                        NativeValue* output) {
-    CHECK_STATUS(TypeIRBuilder::BinaryOpTypeInfer(
-        node::ExprNode::LogicalOpTypeAccept, left.GetType(), right.GetType()));
+Status PredicateIRBuilder::BuildXorExpr(NativeValue left, NativeValue right, NativeValue* output) {
+    CHECK_STATUS(
+        TypeIRBuilder::BinaryOpTypeInfer(node::ExprNode::LogicalOpTypeAccept, left.GetType(), right.GetType()));
     ::llvm::IRBuilder<> builder(block_);
     ::llvm::Value* raw_left = left.GetValue(&builder);
     ::llvm::Value* raw_right = right.GetValue(&builder);
@@ -157,50 +140,39 @@ Status PredicateIRBuilder::BuildXorExpr(NativeValue left, NativeValue right,
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
     Status status;
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_left, &casted_left, status),
-               kCodegenError,
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_left, &casted_left, status), kCodegenError,
                "Infer and cast lhs type of and(&&) failed: ", status.msg);
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_right, &casted_right, status),
-               kCodegenError,
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw_right, &casted_right, status), kCodegenError,
                "Infer and cast rhs type of and(&&) failed: ", status.msg);
-    CHECK_TRUE(casted_left->getType()->isIntegerTy(1) &&
-                   casted_right->getType()->isIntegerTy(1),
-               kCodegenError,
+    CHECK_TRUE(casted_left->getType()->isIntegerTy(1) && casted_right->getType()->isIntegerTy(1), kCodegenError,
                "Fail to codegen &&(and) expr: value types are invalid");
 
     ::llvm::Value* result_val = builder.CreateXor(casted_left, casted_right);
-    ::llvm::Value* result_is_null =
-        builder.CreateOr(left_is_null, right_is_null);
+    ::llvm::Value* result_is_null = builder.CreateOr(left_is_null, right_is_null);
     *output = NativeValue::CreateWithFlag(result_val, result_is_null);
     return Status::OK();
 }
 
-Status PredicateIRBuilder::BuildNotExpr(NativeValue input,
-                                        NativeValue* output) {
-    CHECK_STATUS(TypeIRBuilder::UnaryOpTypeInfer(node::ExprNode::NotTypeAccept,
-                                                 input.GetType()));
+Status PredicateIRBuilder::BuildNotExpr(NativeValue input, NativeValue* output) {
+    CHECK_STATUS(TypeIRBuilder::UnaryOpTypeInfer(node::ExprNode::NotTypeAccept, input.GetType()));
     ::llvm::IRBuilder<> builder(block_);
     ::llvm::Value* raw = input.GetValue(&builder);
     ::llvm::Value* is_null = input.GetIsNull(&builder);
 
     ::llvm::Value* casted_raw = nullptr;
     Status status;
-    CHECK_TRUE(InferAndCastBoolTypes(block_, raw, &casted_raw, status),
-               kCodegenError, status.msg);
+    CHECK_TRUE(InferAndCastBoolTypes(block_, raw, &casted_raw, status), kCodegenError, status.msg);
     CHECK_TRUE(casted_raw->getType()->isIntegerTy(1), kCodegenError,
                "Fail to codegen !(not) expr: value types are invalid");
 
-    *output =
-        NativeValue::CreateWithFlag(builder.CreateNot(casted_raw), is_null);
+    *output = NativeValue::CreateWithFlag(builder.CreateNot(casted_raw), is_null);
     return Status::OK();
 }
-Status PredicateIRBuilder::BuildEqExpr(NativeValue left, NativeValue right,
-                                       NativeValue* output) {
+Status PredicateIRBuilder::BuildEqExpr(NativeValue left, NativeValue right, NativeValue* output) {
     CHECK_STATUS(CompareTypeAccept(left.GetType(), right.GetType()))
     CHECK_STATUS(NullIRBuilder::SafeNullBinaryExpr(
         block_, left, right,
-        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs,
-           ::llvm::Value** output, Status& status) {
+        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs, ::llvm::Value** output, Status& status) {
             return BuildEqExpr(block, lhs, rhs, output, status);
         },
         output));
@@ -209,13 +181,11 @@ Status PredicateIRBuilder::BuildEqExpr(NativeValue left, NativeValue right,
     }
     return Status::OK();
 }
-Status PredicateIRBuilder::BuildNeqExpr(NativeValue left, NativeValue right,
-                                        NativeValue* output) {
+Status PredicateIRBuilder::BuildNeqExpr(NativeValue left, NativeValue right, NativeValue* output) {
     CHECK_STATUS(CompareTypeAccept(left.GetType(), right.GetType()))
     CHECK_STATUS(NullIRBuilder::SafeNullBinaryExpr(
         block_, left, right,
-        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs,
-           ::llvm::Value** output, Status& status) {
+        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs, ::llvm::Value** output, Status& status) {
             return BuildNeqExpr(block, lhs, rhs, output, status);
         },
         output));
@@ -224,13 +194,11 @@ Status PredicateIRBuilder::BuildNeqExpr(NativeValue left, NativeValue right,
     }
     return Status::OK();
 }
-Status PredicateIRBuilder::BuildGtExpr(NativeValue left, NativeValue right,
-                                       NativeValue* output) {
+Status PredicateIRBuilder::BuildGtExpr(NativeValue left, NativeValue right, NativeValue* output) {
     CHECK_STATUS(CompareTypeAccept(left.GetType(), right.GetType()))
     CHECK_STATUS(NullIRBuilder::SafeNullBinaryExpr(
         block_, left, right,
-        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs,
-           ::llvm::Value** output, Status& status) {
+        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs, ::llvm::Value** output, Status& status) {
             return BuildGtExpr(block, lhs, rhs, output, status);
         },
         output));
@@ -239,13 +207,11 @@ Status PredicateIRBuilder::BuildGtExpr(NativeValue left, NativeValue right,
     }
     return Status::OK();
 }
-Status PredicateIRBuilder::BuildGeExpr(NativeValue left, NativeValue right,
-                                       NativeValue* output) {
+Status PredicateIRBuilder::BuildGeExpr(NativeValue left, NativeValue right, NativeValue* output) {
     CHECK_STATUS(CompareTypeAccept(left.GetType(), right.GetType()))
     CHECK_STATUS(NullIRBuilder::SafeNullBinaryExpr(
         block_, left, right,
-        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs,
-           ::llvm::Value** output, Status& status) {
+        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs, ::llvm::Value** output, Status& status) {
             return BuildGeExpr(block, lhs, rhs, output, status);
         },
         output));
@@ -254,13 +220,11 @@ Status PredicateIRBuilder::BuildGeExpr(NativeValue left, NativeValue right,
     }
     return Status::OK();
 }
-Status PredicateIRBuilder::BuildLeExpr(NativeValue left, NativeValue right,
-                                       NativeValue* output) {
+Status PredicateIRBuilder::BuildLeExpr(NativeValue left, NativeValue right, NativeValue* output) {
     CHECK_STATUS(CompareTypeAccept(left.GetType(), right.GetType()))
     CHECK_STATUS(NullIRBuilder::SafeNullBinaryExpr(
         block_, left, right,
-        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs,
-           ::llvm::Value** output, Status& status) {
+        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs, ::llvm::Value** output, Status& status) {
             return BuildLeExpr(block, lhs, rhs, output, status);
         },
         output));
@@ -269,13 +233,11 @@ Status PredicateIRBuilder::BuildLeExpr(NativeValue left, NativeValue right,
     }
     return Status::OK();
 }
-Status PredicateIRBuilder::BuildLtExpr(NativeValue left, NativeValue right,
-                                       NativeValue* output) {
+Status PredicateIRBuilder::BuildLtExpr(NativeValue left, NativeValue right, NativeValue* output) {
     CHECK_STATUS(CompareTypeAccept(left.GetType(), right.GetType()))
     CHECK_STATUS(NullIRBuilder::SafeNullBinaryExpr(
         block_, left, right,
-        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs,
-           ::llvm::Value** output, Status& status) {
+        [](::llvm::BasicBlock* block, ::llvm::Value* lhs, ::llvm::Value* rhs, ::llvm::Value** output, Status& status) {
             return BuildLtExpr(block, lhs, rhs, output, status);
         },
         output));
@@ -285,21 +247,17 @@ Status PredicateIRBuilder::BuildLtExpr(NativeValue left, NativeValue right,
     return Status::OK();
 }
 
-bool PredicateIRBuilder::BuildEqExpr(::llvm::BasicBlock* block,
-                                     ::llvm::Value* left, ::llvm::Value* right,
-                                     ::llvm::Value** output,
-                                     base::Status& status) {
+bool PredicateIRBuilder::BuildEqExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                     ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
-    if (false == InferAndCastTypes(block, left, right, &casted_left,
-                                   &casted_right, status)) {
+    if (false == InferAndCastTypes(block, left, right, &casted_left, &casted_right, status)) {
         return false;
     }
     ::llvm::IRBuilder<> builder(block);
     if (casted_left->getType()->isIntegerTy()) {
         *output = builder.CreateICmpEQ(casted_left, casted_right);
-    } else if (casted_left->getType()->isFloatTy() ||
-               casted_left->getType()->isDoubleTy()) {
+    } else if (casted_left->getType()->isFloatTy() || casted_left->getType()->isDoubleTy()) {
         *output = builder.CreateFCmpOEQ(casted_left, casted_right);
     } else if (TypeIRBuilder::IsTimestampPtr(casted_left->getType()) &&
                TypeIRBuilder::IsTimestampPtr(casted_right->getType())) {
@@ -309,8 +267,7 @@ bool PredicateIRBuilder::BuildEqExpr(::llvm::BasicBlock* block,
         timestamp_ir_builder.GetTs(block, casted_left, &left_days);
         timestamp_ir_builder.GetTs(block, casted_right, &right_days);
         return BuildEqExpr(block, left_days, right_days, output, status);
-    } else if (TypeIRBuilder::IsDatePtr(casted_left->getType()) &&
-               TypeIRBuilder::IsDatePtr(casted_right->getType())) {
+    } else if (TypeIRBuilder::IsDatePtr(casted_left->getType()) && TypeIRBuilder::IsDatePtr(casted_right->getType())) {
         llvm::Value* left_days;
         llvm::Value* right_days;
         DateIRBuilder date_ir_builder(block->getModule());
@@ -321,14 +278,12 @@ bool PredicateIRBuilder::BuildEqExpr(::llvm::BasicBlock* block,
                TypeIRBuilder::IsStringPtr(casted_right->getType())) {
         StringIRBuilder string_ir_builder(block->getModule());
         NativeValue compare_value;
-        status = string_ir_builder.Compare(
-            block, NativeValue::Create(casted_left),
-            NativeValue::Create(casted_right), &compare_value);
+        status = string_ir_builder.Compare(block, NativeValue::Create(casted_left), NativeValue::Create(casted_right),
+                                           &compare_value);
         if (!status.isOK()) {
             return false;
         }
-        return BuildEqExpr(block, compare_value.GetValue(&builder),
-                           builder.getInt32(0), output, status);
+        return BuildEqExpr(block, compare_value.GetValue(&builder), builder.getInt32(0), output, status);
 
     } else {
         status.msg = "fail to codegen == expr: value types are invalid";
@@ -345,35 +300,29 @@ bool PredicateIRBuilder::BuildEqExpr(::llvm::BasicBlock* block,
 
     return true;
 }
-bool PredicateIRBuilder::BuildNeqExpr(::llvm::BasicBlock* block,
-                                      ::llvm::Value* left, ::llvm::Value* right,
-                                      ::llvm::Value** output,
-                                      base::Status& status) {
+bool PredicateIRBuilder::BuildNeqExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                      ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
 
-    if (false == InferAndCastTypes(block, left, right, &casted_left,
-                                   &casted_right, status)) {
+    if (false == InferAndCastTypes(block, left, right, &casted_left, &casted_right, status)) {
         return false;
     }
     ::llvm::IRBuilder<> builder(block);
     if (casted_left->getType()->isIntegerTy()) {
         *output = builder.CreateICmpNE(casted_left, casted_right);
-    } else if (casted_left->getType()->isFloatTy() ||
-               casted_left->getType()->isDoubleTy()) {
+    } else if (casted_left->getType()->isFloatTy() || casted_left->getType()->isDoubleTy()) {
         *output = builder.CreateFCmpUNE(casted_left, casted_right);
     } else if (TypeIRBuilder::IsStringPtr(casted_left->getType()) &&
                TypeIRBuilder::IsStringPtr(casted_right->getType())) {
         StringIRBuilder string_ir_builder(block->getModule());
         NativeValue compare_value;
-        status = string_ir_builder.Compare(
-            block, NativeValue::Create(casted_left),
-            NativeValue::Create(casted_right), &compare_value);
+        status = string_ir_builder.Compare(block, NativeValue::Create(casted_left), NativeValue::Create(casted_right),
+                                           &compare_value);
         if (!status.isOK()) {
             return false;
         }
-        return BuildNeqExpr(block, compare_value.GetValue(&builder),
-                            builder.getInt32(0), output, status);
+        return BuildNeqExpr(block, compare_value.GetValue(&builder), builder.getInt32(0), output, status);
 
     } else {
         status.msg = "fail to codegen neq expr: value types are invalid";
@@ -390,15 +339,12 @@ bool PredicateIRBuilder::BuildNeqExpr(::llvm::BasicBlock* block,
 
     return true;
 }
-bool PredicateIRBuilder::BuildGtExpr(::llvm::BasicBlock* block,
-                                     ::llvm::Value* left, ::llvm::Value* right,
-                                     ::llvm::Value** output,
-                                     base::Status& status) {
+bool PredicateIRBuilder::BuildGtExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                     ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
 
-    if (false == InferAndCastTypes(block, left, right, &casted_left,
-                                   &casted_right, status)) {
+    if (false == InferAndCastTypes(block, left, right, &casted_left, &casted_right, status)) {
         return false;
     }
     ::llvm::IRBuilder<> builder(block);
@@ -406,21 +352,18 @@ bool PredicateIRBuilder::BuildGtExpr(::llvm::BasicBlock* block,
         *output = builder.CreateICmpUGT(casted_left, casted_right);
     } else if (casted_left->getType()->isIntegerTy()) {
         *output = builder.CreateICmpSGT(casted_left, casted_right);
-    } else if (casted_left->getType()->isFloatTy() ||
-               casted_left->getType()->isDoubleTy()) {
+    } else if (casted_left->getType()->isFloatTy() || casted_left->getType()->isDoubleTy()) {
         *output = builder.CreateFCmpOGT(casted_left, casted_right);
     } else if (TypeIRBuilder::IsStringPtr(casted_left->getType()) &&
                TypeIRBuilder::IsStringPtr(casted_right->getType())) {
         StringIRBuilder string_ir_builder(block->getModule());
         NativeValue compare_value;
-        status = string_ir_builder.Compare(
-            block, NativeValue::Create(casted_left),
-            NativeValue::Create(casted_right), &compare_value);
+        status = string_ir_builder.Compare(block, NativeValue::Create(casted_left), NativeValue::Create(casted_right),
+                                           &compare_value);
         if (!status.isOK()) {
             return false;
         }
-        return BuildGtExpr(block, compare_value.GetValue(&builder),
-                           builder.getInt32(0), output, status);
+        return BuildGtExpr(block, compare_value.GetValue(&builder), builder.getInt32(0), output, status);
 
     } else {
         status.msg = "fail to codegen > expr: value types are invalid";
@@ -437,15 +380,12 @@ bool PredicateIRBuilder::BuildGtExpr(::llvm::BasicBlock* block,
 
     return true;
 }
-bool PredicateIRBuilder::BuildGeExpr(::llvm::BasicBlock* block,
-                                     ::llvm::Value* left, ::llvm::Value* right,
-                                     ::llvm::Value** output,
-                                     base::Status& status) {
+bool PredicateIRBuilder::BuildGeExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                     ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
 
-    if (false == InferAndCastTypes(block, left, right, &casted_left,
-                                   &casted_right, status)) {
+    if (false == InferAndCastTypes(block, left, right, &casted_left, &casted_right, status)) {
         return false;
     }
     ::llvm::IRBuilder<> builder(block);
@@ -453,21 +393,18 @@ bool PredicateIRBuilder::BuildGeExpr(::llvm::BasicBlock* block,
         *output = builder.CreateICmpUGE(casted_left, casted_right);
     } else if (casted_left->getType()->isIntegerTy()) {
         *output = builder.CreateICmpSGE(casted_left, casted_right);
-    } else if (casted_left->getType()->isFloatTy() ||
-               casted_left->getType()->isDoubleTy()) {
+    } else if (casted_left->getType()->isFloatTy() || casted_left->getType()->isDoubleTy()) {
         *output = builder.CreateFCmpOGE(casted_left, casted_right);
     } else if (TypeIRBuilder::IsStringPtr(casted_left->getType()) &&
                TypeIRBuilder::IsStringPtr(casted_right->getType())) {
         StringIRBuilder string_ir_builder(block->getModule());
         NativeValue compare_value;
-        status = string_ir_builder.Compare(
-            block, NativeValue::Create(casted_left),
-            NativeValue::Create(casted_right), &compare_value);
+        status = string_ir_builder.Compare(block, NativeValue::Create(casted_left), NativeValue::Create(casted_right),
+                                           &compare_value);
         if (!status.isOK()) {
             return false;
         }
-        return BuildGeExpr(block, compare_value.GetValue(&builder),
-                           builder.getInt32(0), output, status);
+        return BuildGeExpr(block, compare_value.GetValue(&builder), builder.getInt32(0), output, status);
 
     } else {
         status.msg = "fail to codegen >= expr: value types are invalid";
@@ -484,15 +421,12 @@ bool PredicateIRBuilder::BuildGeExpr(::llvm::BasicBlock* block,
 
     return true;
 }
-bool PredicateIRBuilder::BuildLtExpr(::llvm::BasicBlock* block,
-                                     ::llvm::Value* left, ::llvm::Value* right,
-                                     ::llvm::Value** output,
-                                     base::Status& status) {
+bool PredicateIRBuilder::BuildLtExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                     ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
 
-    if (false == InferAndCastTypes(block, left, right, &casted_left,
-                                   &casted_right, status)) {
+    if (false == InferAndCastTypes(block, left, right, &casted_left, &casted_right, status)) {
         return false;
     }
     ::llvm::IRBuilder<> builder(block);
@@ -500,21 +434,18 @@ bool PredicateIRBuilder::BuildLtExpr(::llvm::BasicBlock* block,
         *output = builder.CreateICmpULT(casted_left, casted_right);
     } else if (casted_left->getType()->isIntegerTy()) {
         *output = builder.CreateICmpSLT(casted_left, casted_right);
-    } else if (casted_left->getType()->isFloatTy() ||
-               casted_left->getType()->isDoubleTy()) {
+    } else if (casted_left->getType()->isFloatTy() || casted_left->getType()->isDoubleTy()) {
         *output = builder.CreateFCmpOLT(casted_left, casted_right);
     } else if (TypeIRBuilder::IsStringPtr(casted_left->getType()) &&
                TypeIRBuilder::IsStringPtr(casted_right->getType())) {
         StringIRBuilder string_ir_builder(block->getModule());
         NativeValue compare_value;
-        status = string_ir_builder.Compare(
-            block, NativeValue::Create(casted_left),
-            NativeValue::Create(casted_right), &compare_value);
+        status = string_ir_builder.Compare(block, NativeValue::Create(casted_left), NativeValue::Create(casted_right),
+                                           &compare_value);
         if (!status.isOK()) {
             return false;
         }
-        return BuildLtExpr(block, compare_value.GetValue(&builder),
-                           builder.getInt32(0), output, status);
+        return BuildLtExpr(block, compare_value.GetValue(&builder), builder.getInt32(0), output, status);
 
     } else {
         status.msg = "fail to codegen < expr: value types are invalid";
@@ -531,15 +462,12 @@ bool PredicateIRBuilder::BuildLtExpr(::llvm::BasicBlock* block,
 
     return true;
 }
-bool PredicateIRBuilder::BuildLeExpr(::llvm::BasicBlock* block,
-                                     ::llvm::Value* left, ::llvm::Value* right,
-                                     ::llvm::Value** output,
-                                     base::Status& status) {
+bool PredicateIRBuilder::BuildLeExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                     ::llvm::Value** output, base::Status& status) {
     ::llvm::Value* casted_left = NULL;
     ::llvm::Value* casted_right = NULL;
 
-    if (false == InferAndCastTypes(block, left, right, &casted_left,
-                                   &casted_right, status)) {
+    if (false == InferAndCastTypes(block, left, right, &casted_left, &casted_right, status)) {
         return false;
     }
     ::llvm::IRBuilder<> builder(block);
@@ -547,21 +475,18 @@ bool PredicateIRBuilder::BuildLeExpr(::llvm::BasicBlock* block,
         *output = builder.CreateICmpULE(casted_left, casted_right);
     } else if (casted_left->getType()->isIntegerTy()) {
         *output = builder.CreateICmpSLE(casted_left, casted_right);
-    } else if (casted_left->getType()->isFloatTy() ||
-               casted_left->getType()->isDoubleTy()) {
+    } else if (casted_left->getType()->isFloatTy() || casted_left->getType()->isDoubleTy()) {
         *output = builder.CreateFCmpOLE(casted_left, casted_right);
     } else if (TypeIRBuilder::IsStringPtr(casted_left->getType()) &&
                TypeIRBuilder::IsStringPtr(casted_right->getType())) {
         StringIRBuilder string_ir_builder(block->getModule());
         NativeValue compare_value;
-        status = string_ir_builder.Compare(
-            block, NativeValue::Create(casted_left),
-            NativeValue::Create(casted_right), &compare_value);
+        status = string_ir_builder.Compare(block, NativeValue::Create(casted_left), NativeValue::Create(casted_right),
+                                           &compare_value);
         if (!status.isOK()) {
             return false;
         }
-        return BuildLeExpr(block, compare_value.GetValue(&builder),
-                           builder.getInt32(0), output, status);
+        return BuildLeExpr(block, compare_value.GetValue(&builder), builder.getInt32(0), output, status);
 
     } else {
         status.msg = "fail to codegen <= expr: value types are invalid";
@@ -597,15 +522,12 @@ bool PredicateIRBuilder::IsAcceptType(::llvm::Type* type) {
     }
 }
 
-Status PredicateIRBuilder::CompareTypeAccept(::llvm::Type* lhs,
-                                             ::llvm::Type* rhs) {
-    CHECK_STATUS(TypeIRBuilder::BinaryOpTypeInfer(
-        node::ExprNode::CompareTypeAccept, lhs, rhs));
+Status PredicateIRBuilder::CompareTypeAccept(::llvm::Type* lhs, ::llvm::Type* rhs) {
+    CHECK_STATUS(TypeIRBuilder::BinaryOpTypeInfer(node::ExprNode::CompareTypeAccept, lhs, rhs));
     return Status::OK();
 }
-bool PredicateIRBuilder::InferAndCastBoolTypes(
-    ::llvm::BasicBlock* block, ::llvm::Value* value,
-    ::llvm::Value** casted_value, ::hybridse::base::Status& status) {
+bool PredicateIRBuilder::InferAndCastBoolTypes(::llvm::BasicBlock* block, ::llvm::Value* value,
+                                               ::llvm::Value** casted_value, ::hybridse::base::Status& status) {
     if (NULL == value) {
         status.msg = "value is null";
         status.code = common::kCodegenError;
@@ -630,11 +552,8 @@ bool PredicateIRBuilder::InferAndCastBoolTypes(
     }
     return true;
 }
-bool PredicateIRBuilder::InferAndCastTypes(::llvm::BasicBlock* block,
-                                           ::llvm::Value* left,
-                                           ::llvm::Value* right,
-                                           ::llvm::Value** casted_left,
-                                           ::llvm::Value** casted_right,
+bool PredicateIRBuilder::InferAndCastTypes(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                           ::llvm::Value** casted_left, ::llvm::Value** casted_right,
                                            ::hybridse::base::Status& status) {
     if (NULL == left || NULL == right) {
         status.msg = "left or right value is null";
@@ -687,45 +606,37 @@ bool PredicateIRBuilder::InferAndCastTypes(::llvm::BasicBlock* block,
     CastExprIRBuilder cast_expr_ir_builder(block);
     if (left_type != right_type) {
         if (cast_expr_ir_builder.IsSafeCast(left_type, right_type)) {
-            if (!cast_expr_ir_builder.SafeCastNumber(left, right_type,
-                                                     casted_left, status)) {
+            if (!cast_expr_ir_builder.SafeCastNumber(left, right_type, casted_left, status)) {
                 status.msg = "fail to codegen expr: " + status.msg;
                 LOG(WARNING) << status.msg;
                 return false;
             }
         } else if (cast_expr_ir_builder.IsSafeCast(right_type, left_type)) {
-            if (!cast_expr_ir_builder.SafeCastNumber(right, left_type,
-                                                     casted_right, status)) {
+            if (!cast_expr_ir_builder.SafeCastNumber(right, left_type, casted_right, status)) {
                 status.msg = "fail to codegen expr: " + status.msg;
                 LOG(WARNING) << status.msg;
                 return false;
             }
-        } else if (cast_expr_ir_builder.IsIntFloat2PointerCast(left_type,
-                                                               right_type)) {
-            if (!cast_expr_ir_builder.UnSafeCastNumber(left, right_type,
-                                                       casted_left, status)) {
+        } else if (cast_expr_ir_builder.IsIntFloat2PointerCast(left_type, right_type)) {
+            if (!cast_expr_ir_builder.UnSafeCastNumber(left, right_type, casted_left, status)) {
                 status.msg = "fail to codegen expr: " + status.msg;
                 LOG(WARNING) << status.msg;
                 return false;
             }
-        } else if (cast_expr_ir_builder.IsIntFloat2PointerCast(right_type,
-                                                               left_type)) {
-            if (!cast_expr_ir_builder.UnSafeCastNumber(right, left_type,
-                                                       casted_right, status)) {
+        } else if (cast_expr_ir_builder.IsIntFloat2PointerCast(right_type, left_type)) {
+            if (!cast_expr_ir_builder.UnSafeCastNumber(right, left_type, casted_right, status)) {
                 status.msg = "fail to codegen expr: " + status.msg;
                 LOG(WARNING) << status.msg;
                 return false;
             }
         } else {
-            status.msg =
-                "fail to codegen add expr: value type isn't compatible";
+            status.msg = "fail to codegen add expr: value type isn't compatible";
             status.code = common::kCodegenError;
             LOG(WARNING) << status;
             return false;
         }
     }
-    if (TypeIRBuilder::IsDatePtr((*casted_left)->getType()) &&
-        TypeIRBuilder::IsDatePtr((*casted_right)->getType())) {
+    if (TypeIRBuilder::IsDatePtr((*casted_left)->getType()) && TypeIRBuilder::IsDatePtr((*casted_right)->getType())) {
         DateIRBuilder date_ir_builder(block->getModule());
         date_ir_builder.GetDate(block, *casted_left, casted_left);
         date_ir_builder.GetDate(block, *casted_right, casted_right);
@@ -733,8 +644,7 @@ bool PredicateIRBuilder::InferAndCastTypes(::llvm::BasicBlock* block,
     return true;
 }
 
-Status PredicateIRBuilder::BuildIsNullExpr(NativeValue input,
-                                           NativeValue* output) {
+Status PredicateIRBuilder::BuildIsNullExpr(NativeValue input, NativeValue* output) {
     ::llvm::IRBuilder<> builder(block_);
     ::llvm::Value* is_null = input.GetIsNull(&builder);
     *output = NativeValue::Create(is_null);

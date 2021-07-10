@@ -26,9 +26,7 @@ class VertexNumber : public Vertex<int> {
     explicit VertexNumber(int num) : Vertex(num) {}
     ~VertexNumber() {}
     const size_t Hash() const { return static_cast<size_t>(node_ % 10); }
-    const bool Equals(const VertexNumber& that) const {
-        return node_ == that.node_;
-    }
+    const bool Equals(const VertexNumber& that) const { return node_ == that.node_; }
 };
 
 // 1 define the hash function
@@ -41,10 +39,7 @@ struct HashVertexNumber {
 
 // 2 define the equal function
 struct EqualVertexNumber {
-    bool operator()(const class VertexNumber& a1,
-                    const class VertexNumber& a2) const {
-        return a1.Equals(a2);
-    }
+    bool operator()(const class VertexNumber& a1, const class VertexNumber& a2) const { return a1.Equals(a2); }
 };
 
 class GraphTest : public ::testing::Test {

@@ -49,9 +49,7 @@ TEST_F(UdfLibraryTest, test_check_list_arg) {
     library.RegisterExternal("f2")
         .args<int32_t, codec::ListRef<int32_t>>(reinterpret_cast<void*>(0))
         .returns<codec::ListRef<int32_t>>();
-    library.RegisterExternal("f2")
-        .args<int32_t, int32_t>(reinterpret_cast<void*>(0))
-        .returns<int32_t>();
+    library.RegisterExternal("f2").args<int32_t, int32_t>(reinterpret_cast<void*>(0)).returns<int32_t>();
 
     ASSERT_TRUE(library.RequireListAt("f1", 0));
     ASSERT_TRUE(!library.RequireListAt("f1", 1));

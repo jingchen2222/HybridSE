@@ -1660,8 +1660,7 @@ base::Status ConvertCreateIndexStatement(const zetasql::ASTCreateIndexStatement*
     for (const auto ordering_expression : root->index_item_list()->ordering_expressions()) {
         CHECK_TRUE(zetasql::AST_PATH_EXPRESSION == ordering_expression->expression()->node_kind(), common::kSqlError,
                    "Un-support index key type ", ordering_expression->expression()->GetNodeKindString())
-        CHECK_TRUE(!ordering_expression->descending(), common::kSqlError,
-                   "Un-support descending index key")
+        CHECK_TRUE(!ordering_expression->descending(), common::kSqlError, "Un-support descending index key")
         std::vector<std::string> path;
         CHECK_STATUS(AstPathExpressionToStringList(
             ordering_expression->expression()->GetAsOrNull<zetasql::ASTPathExpression>(), path));

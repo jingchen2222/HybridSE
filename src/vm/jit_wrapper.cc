@@ -65,9 +65,7 @@ bool HybridSeJitWrapper::InitJitSymbols(HybridSeJitWrapper* jit) {
     return true;
 }
 
-HybridSeJitWrapper* HybridSeJitWrapper::Create() {
-    return Create(JitOptions());
-}
+HybridSeJitWrapper* HybridSeJitWrapper::Create() { return Create(JitOptions()); }
 
 HybridSeJitWrapper* HybridSeJitWrapper::Create(const JitOptions& jit_options) {
     if (jit_options.is_enable_mcjit()) {
@@ -79,8 +77,7 @@ HybridSeJitWrapper* HybridSeJitWrapper::Create(const JitOptions& jit_options) {
         return new HybridSeLlvmJitWrapper();
 #endif
     } else {
-        if (jit_options.is_enable_vtune() || jit_options.is_enable_perf() ||
-            jit_options.is_enable_gdb()) {
+        if (jit_options.is_enable_vtune() || jit_options.is_enable_perf() || jit_options.is_enable_gdb()) {
             LOG(WARNING) << "LLJIT do not support jit events";
         }
         return new HybridSeLlvmJitWrapper();
@@ -102,115 +99,74 @@ void InitBuiltinJitSymbols(HybridSeJitWrapper* jit) {
     jit->AddExternalFunction(
         "hybridse_storage_get_bool_field",
         reinterpret_cast<void*>(
-            static_cast<int8_t (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(
-                &codec::v1::GetBoolField)));
+            static_cast<int8_t (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(&codec::v1::GetBoolField)));
     jit->AddExternalFunction(
         "hybridse_storage_get_int16_field",
         reinterpret_cast<void*>(
-            static_cast<int16_t (*)(const int8_t*, uint32_t, uint32_t,
-                                    int8_t*)>(&codec::v1::GetInt16Field)));
+            static_cast<int16_t (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(&codec::v1::GetInt16Field)));
     jit->AddExternalFunction(
         "hybridse_storage_get_int32_field",
         reinterpret_cast<void*>(
-            static_cast<int32_t (*)(const int8_t*, uint32_t, uint32_t,
-                                    int8_t*)>(&codec::v1::GetInt32Field)));
+            static_cast<int32_t (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(&codec::v1::GetInt32Field)));
     jit->AddExternalFunction(
         "hybridse_storage_get_int64_field",
         reinterpret_cast<void*>(
-            static_cast<int64_t (*)(const int8_t*, uint32_t, uint32_t,
-                                    int8_t*)>(&codec::v1::GetInt64Field)));
-    jit->AddExternalFunction(
-        "hybridse_storage_get_float_field",
-        reinterpret_cast<void*>(
-            static_cast<float (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(
-                &codec::v1::GetFloatField)));
+            static_cast<int64_t (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(&codec::v1::GetInt64Field)));
+    jit->AddExternalFunction("hybridse_storage_get_float_field",
+                             reinterpret_cast<void*>(static_cast<float (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(
+                                 &codec::v1::GetFloatField)));
     jit->AddExternalFunction(
         "hybridse_storage_get_double_field",
         reinterpret_cast<void*>(
-            static_cast<double (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(
-                &codec::v1::GetDoubleField)));
-    jit->AddExternalFunction(
-        "hybridse_storage_get_timestamp_field",
-        reinterpret_cast<void*>(&codec::v1::GetTimestampField));
-    jit->AddExternalFunction("hybridse_storage_get_str_addr_space",
-                             reinterpret_cast<void*>(&codec::v1::GetAddrSpace));
+            static_cast<double (*)(const int8_t*, uint32_t, uint32_t, int8_t*)>(&codec::v1::GetDoubleField)));
+    jit->AddExternalFunction("hybridse_storage_get_timestamp_field",
+                             reinterpret_cast<void*>(&codec::v1::GetTimestampField));
+    jit->AddExternalFunction("hybridse_storage_get_str_addr_space", reinterpret_cast<void*>(&codec::v1::GetAddrSpace));
     jit->AddExternalFunction(
         "hybridse_storage_get_str_field",
-        reinterpret_cast<void*>(
-            static_cast<int32_t (*)(const int8_t*, uint32_t, uint32_t, uint32_t,
-                                    uint32_t, uint32_t, const char**, uint32_t*,
-                                    int8_t*)>(&codec::v1::GetStrField)));
-    jit->AddExternalFunction("hybridse_storage_get_col",
-                             reinterpret_cast<void*>(&codec::v1::GetCol));
-    jit->AddExternalFunction("hybridse_storage_get_str_col",
-                             reinterpret_cast<void*>(&codec::v1::GetStrCol));
+        reinterpret_cast<void*>(static_cast<int32_t (*)(const int8_t*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t,
+                                                        const char**, uint32_t*, int8_t*)>(&codec::v1::GetStrField)));
+    jit->AddExternalFunction("hybridse_storage_get_col", reinterpret_cast<void*>(&codec::v1::GetCol));
+    jit->AddExternalFunction("hybridse_storage_get_str_col", reinterpret_cast<void*>(&codec::v1::GetStrCol));
 
-    jit->AddExternalFunction(
-        "hybridse_storage_get_inner_range_list",
-        reinterpret_cast<void*>(&codec::v1::GetInnerRangeList));
-    jit->AddExternalFunction(
-        "hybridse_storage_get_inner_rows_list",
-        reinterpret_cast<void*>(&codec::v1::GetInnerRowsList));
+    jit->AddExternalFunction("hybridse_storage_get_inner_range_list",
+                             reinterpret_cast<void*>(&codec::v1::GetInnerRangeList));
+    jit->AddExternalFunction("hybridse_storage_get_inner_rows_list",
+                             reinterpret_cast<void*>(&codec::v1::GetInnerRowsList));
 
     // encode
-    jit->AddExternalFunction("hybridse_storage_encode_int16_field",
-                             reinterpret_cast<void*>(&codec::v1::AppendInt16));
+    jit->AddExternalFunction("hybridse_storage_encode_int16_field", reinterpret_cast<void*>(&codec::v1::AppendInt16));
 
-    jit->AddExternalFunction("hybridse_storage_encode_int32_field",
-                             reinterpret_cast<void*>(&codec::v1::AppendInt32));
+    jit->AddExternalFunction("hybridse_storage_encode_int32_field", reinterpret_cast<void*>(&codec::v1::AppendInt32));
 
-    jit->AddExternalFunction("hybridse_storage_encode_int64_field",
-                             reinterpret_cast<void*>(&codec::v1::AppendInt64));
+    jit->AddExternalFunction("hybridse_storage_encode_int64_field", reinterpret_cast<void*>(&codec::v1::AppendInt64));
 
-    jit->AddExternalFunction("hybridse_storage_encode_float_field",
-                             reinterpret_cast<void*>(&codec::v1::AppendFloat));
+    jit->AddExternalFunction("hybridse_storage_encode_float_field", reinterpret_cast<void*>(&codec::v1::AppendFloat));
 
-    jit->AddExternalFunction("hybridse_storage_encode_double_field",
-                             reinterpret_cast<void*>(&codec::v1::AppendDouble));
+    jit->AddExternalFunction("hybridse_storage_encode_double_field", reinterpret_cast<void*>(&codec::v1::AppendDouble));
 
-    jit->AddExternalFunction("hybridse_storage_encode_string_field",
-                             reinterpret_cast<void*>(&codec::v1::AppendString));
-    jit->AddExternalFunction(
-        "hybridse_storage_encode_calc_size",
-        reinterpret_cast<void*>(&codec::v1::CalcTotalLength));
-    jit->AddExternalFunction(
-        "hybridse_storage_encode_nullbit",
-        reinterpret_cast<void*>(&codec::v1::AppendNullBit));
+    jit->AddExternalFunction("hybridse_storage_encode_string_field", reinterpret_cast<void*>(&codec::v1::AppendString));
+    jit->AddExternalFunction("hybridse_storage_encode_calc_size", reinterpret_cast<void*>(&codec::v1::CalcTotalLength));
+    jit->AddExternalFunction("hybridse_storage_encode_nullbit", reinterpret_cast<void*>(&codec::v1::AppendNullBit));
 
     // row iteration
-    jit->AddExternalFunction(
-        "hybridse_storage_get_row_iter",
-        reinterpret_cast<void*>(&hybridse::vm::GetRowIter));
-    jit->AddExternalFunction(
-        "hybridse_storage_row_iter_has_next",
-        reinterpret_cast<void*>(&hybridse::vm::RowIterHasNext));
-    jit->AddExternalFunction(
-        "hybridse_storage_row_iter_next",
-        reinterpret_cast<void*>(&hybridse::vm::RowIterNext));
-    jit->AddExternalFunction(
-        "hybridse_storage_row_iter_get_cur_slice",
-        reinterpret_cast<void*>(&hybridse::vm::RowIterGetCurSlice));
-    jit->AddExternalFunction(
-        "hybridse_storage_row_iter_get_cur_slice_size",
-        reinterpret_cast<void*>(&hybridse::vm::RowIterGetCurSliceSize));
+    jit->AddExternalFunction("hybridse_storage_get_row_iter", reinterpret_cast<void*>(&hybridse::vm::GetRowIter));
+    jit->AddExternalFunction("hybridse_storage_row_iter_has_next",
+                             reinterpret_cast<void*>(&hybridse::vm::RowIterHasNext));
+    jit->AddExternalFunction("hybridse_storage_row_iter_next", reinterpret_cast<void*>(&hybridse::vm::RowIterNext));
+    jit->AddExternalFunction("hybridse_storage_row_iter_get_cur_slice",
+                             reinterpret_cast<void*>(&hybridse::vm::RowIterGetCurSlice));
+    jit->AddExternalFunction("hybridse_storage_row_iter_get_cur_slice_size",
+                             reinterpret_cast<void*>(&hybridse::vm::RowIterGetCurSliceSize));
 
-    jit->AddExternalFunction(
-        "hybridse_storage_row_iter_delete",
-        reinterpret_cast<void*>(&hybridse::vm::RowIterDelete));
-    jit->AddExternalFunction(
-        "hybridse_storage_get_row_slice",
-        reinterpret_cast<void*>(&hybridse::vm::RowGetSlice));
-    jit->AddExternalFunction(
-        "hybridse_storage_get_row_slice_size",
-        reinterpret_cast<void*>(&hybridse::vm::RowGetSliceSize));
+    jit->AddExternalFunction("hybridse_storage_row_iter_delete", reinterpret_cast<void*>(&hybridse::vm::RowIterDelete));
+    jit->AddExternalFunction("hybridse_storage_get_row_slice", reinterpret_cast<void*>(&hybridse::vm::RowGetSlice));
+    jit->AddExternalFunction("hybridse_storage_get_row_slice_size",
+                             reinterpret_cast<void*>(&hybridse::vm::RowGetSliceSize));
 
-    jit->AddExternalFunction(
-        "hybridse_memery_pool_alloc",
-        reinterpret_cast<void*>(&udf::v1::AllocManagedStringBuf));
+    jit->AddExternalFunction("hybridse_memery_pool_alloc", reinterpret_cast<void*>(&udf::v1::AllocManagedStringBuf));
 
-    jit->AddExternalFunction(
-        "fmod", reinterpret_cast<void*>(
-                    static_cast<double (*)(double, double)>(&fmod)));
+    jit->AddExternalFunction("fmod", reinterpret_cast<void*>(static_cast<double (*)(double, double)>(&fmod)));
     jit->AddExternalFunction("fmodf", reinterpret_cast<void*>(&fmodf));
 }
 

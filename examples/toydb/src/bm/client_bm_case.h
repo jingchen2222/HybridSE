@@ -23,24 +23,18 @@
 namespace hybridse {
 namespace bm {
 enum MODE { BENCHMARK, TEST };
-void SIMPLE_CASE1_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void SIMPLE_CASE1_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t max_window_size);
-void WINDOW_CASE1_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE1_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t max_window_size);
-void WINDOW_CASE2_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE2_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t max_window_size);
-void WINDOW_CASE3_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE3_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t max_window_size);
-void WINDOW_CASE0_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE0_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t max_window_size);
 
-void GROUPBY_CASE0_QUERY(benchmark::State *state_ptr, MODE mode,
-                         bool is_batch_mode, int64_t group_size,
+void GROUPBY_CASE0_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                          int64_t max_window_size);
 
 }  // namespace bm

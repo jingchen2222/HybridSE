@@ -134,21 +134,15 @@ static bool operator==(const Tuple<T...>& x, const Tuple<T...>& y) {
 template <>
 struct DataTypeTrait<AnyArg> {
     static std::string to_string() { return "?"; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nullptr;
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nullptr; }
 };
 
 template <>
 struct DataTypeTrait<bool> {
     static std::string to_string() { return "bool"; }
     static node::DataType to_type_enum() { return node::kBool; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kBool);
-    }
-    static node::ExprNode* to_const(node::NodeManager* nm, const bool& v) {
-        return nm->MakeConstNode(v);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kBool); }
+    static node::ExprNode* to_const(node::NodeManager* nm, const bool& v) { return nm->MakeConstNode(v); }
     static bool zero_value() { return false; }
     using CCallArgType = bool;
 };
@@ -157,19 +151,11 @@ template <>
 struct DataTypeTrait<int16_t> {
     static std::string to_string() { return "int16"; }
     static node::DataType to_type_enum() { return node::kInt16; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kInt16);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kInt16); }
     static int32_t codec_type_enum() { return hybridse::type::kInt16; }
-    static node::ExprNode* to_const(node::NodeManager* nm, const int16_t& v) {
-        return nm->MakeConstNode(v);
-    }
-    static int16_t minimum_value() {
-        return std::numeric_limits<int16_t>::lowest();
-    }
-    static int16_t maximum_value() {
-        return std::numeric_limits<int16_t>::max();
-    }
+    static node::ExprNode* to_const(node::NodeManager* nm, const int16_t& v) { return nm->MakeConstNode(v); }
+    static int16_t minimum_value() { return std::numeric_limits<int16_t>::lowest(); }
+    static int16_t maximum_value() { return std::numeric_limits<int16_t>::max(); }
     static int16_t zero_value() { return 0; }
     using CCallArgType = int16_t;
 };
@@ -178,19 +164,11 @@ template <>
 struct DataTypeTrait<int32_t> {
     static std::string to_string() { return "int32"; }
     static node::DataType to_type_enum() { return node::kInt32; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kInt32);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kInt32); }
     static int32_t codec_type_enum() { return hybridse::type::kInt32; }
-    static node::ExprNode* to_const(node::NodeManager* nm, const int32_t& v) {
-        return nm->MakeConstNode(v);
-    }
-    static int32_t minimum_value() {
-        return std::numeric_limits<int32_t>::lowest();
-    }
-    static int32_t maximum_value() {
-        return std::numeric_limits<int32_t>::max();
-    }
+    static node::ExprNode* to_const(node::NodeManager* nm, const int32_t& v) { return nm->MakeConstNode(v); }
+    static int32_t minimum_value() { return std::numeric_limits<int32_t>::lowest(); }
+    static int32_t maximum_value() { return std::numeric_limits<int32_t>::max(); }
     static int32_t zero_value() { return 0; }
     using CCallArgType = int32_t;
 };
@@ -199,19 +177,11 @@ template <>
 struct DataTypeTrait<int64_t> {
     static std::string to_string() { return "int64"; }
     static node::DataType to_type_enum() { return node::kInt64; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kInt64);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kInt64); }
     static int32_t codec_type_enum() { return hybridse::type::kInt64; }
-    static node::ExprNode* to_const(node::NodeManager* nm, const int64_t& v) {
-        return nm->MakeConstNode(v);
-    }
-    static int64_t minimum_value() {
-        return std::numeric_limits<int64_t>::lowest();
-    }
-    static int64_t maximum_value() {
-        return std::numeric_limits<int64_t>::max();
-    }
+    static node::ExprNode* to_const(node::NodeManager* nm, const int64_t& v) { return nm->MakeConstNode(v); }
+    static int64_t minimum_value() { return std::numeric_limits<int64_t>::lowest(); }
+    static int64_t maximum_value() { return std::numeric_limits<int64_t>::max(); }
     static int64_t zero_value() { return 0; }
     using CCallArgType = int64_t;
 };
@@ -220,16 +190,10 @@ template <>
 struct DataTypeTrait<float> {
     static std::string to_string() { return "float"; }
     static node::DataType to_type_enum() { return node::kFloat; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kFloat);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kFloat); }
     static int32_t codec_type_enum() { return hybridse::type::kFloat; }
-    static node::ExprNode* to_const(node::NodeManager* nm, const float& v) {
-        return nm->MakeConstNode(v);
-    }
-    static float minimum_value() {
-        return std::numeric_limits<float>::lowest();
-    }
+    static node::ExprNode* to_const(node::NodeManager* nm, const float& v) { return nm->MakeConstNode(v); }
+    static float minimum_value() { return std::numeric_limits<float>::lowest(); }
     static float maximum_value() { return std::numeric_limits<float>::max(); }
     static float zero_value() { return 0; }
     using CCallArgType = float;
@@ -239,16 +203,10 @@ template <>
 struct DataTypeTrait<double> {
     static std::string to_string() { return "double"; }
     static node::DataType to_type_enum() { return node::kDouble; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kDouble);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kDouble); }
     static int32_t codec_type_enum() { return hybridse::type::kDouble; }
-    static node::ExprNode* to_const(node::NodeManager* nm, const double& v) {
-        return nm->MakeConstNode(v);
-    }
-    static double minimum_value() {
-        return std::numeric_limits<double>::lowest();
-    }
+    static node::ExprNode* to_const(node::NodeManager* nm, const double& v) { return nm->MakeConstNode(v); }
+    static double minimum_value() { return std::numeric_limits<double>::lowest(); }
     static double maximum_value() { return std::numeric_limits<double>::max(); }
     static double zero_value() { return 0; }
     using CCallArgType = double;
@@ -258,18 +216,13 @@ template <>
 struct DataTypeTrait<codec::Timestamp> {
     static std::string to_string() { return "timestamp"; }
     static node::DataType to_type_enum() { return node::kTimestamp; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kTimestamp);
-    }
-    static node::ExprNode* to_const(node::NodeManager* nm,
-                                    const codec::Timestamp& v) {
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kTimestamp); }
+    static node::ExprNode* to_const(node::NodeManager* nm, const codec::Timestamp& v) {
         return nm->MakeConstNode(v.ts_, node::kTimestamp);
     }
     static int32_t codec_type_enum() { return hybridse::type::kTimestamp; }
     static codec::Timestamp minimum_value() { return codec::Timestamp(0); }
-    static codec::Timestamp maximum_value() {
-        return codec::Timestamp(std::numeric_limits<int64_t>::max());
-    }
+    static codec::Timestamp maximum_value() { return codec::Timestamp(std::numeric_limits<int64_t>::max()); }
     static codec::Timestamp zero_value() { return codec::Timestamp(0); }
     using CCallArgType = codec::Timestamp*;
 };
@@ -278,18 +231,13 @@ template <>
 struct DataTypeTrait<codec::Date> {
     static std::string to_string() { return "date"; }
     static node::DataType to_type_enum() { return node::kDate; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kDate);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kDate); }
     static int32_t codec_type_enum() { return hybridse::type::kDate; }
-    static node::ExprNode* to_const(node::NodeManager* nm,
-                                    const codec::Date& v) {
+    static node::ExprNode* to_const(node::NodeManager* nm, const codec::Date& v) {
         return nm->MakeConstNode(v.date_, node::kDate);
     }
     static codec::Date minimum_value() { return codec::Date(0); }
-    static codec::Date maximum_value() {
-        return codec::Date(std::numeric_limits<int32_t>::max());
-    }
+    static codec::Date maximum_value() { return codec::Date(std::numeric_limits<int32_t>::max()); }
     static codec::Date zero_value() { return codec::Date(0); }
     using CCallArgType = codec::Date*;
 };
@@ -298,18 +246,12 @@ template <>
 struct DataTypeTrait<codec::StringRef> {
     static std::string to_string() { return "string"; }
     static node::DataType to_type_enum() { return node::kVarchar; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeTypeNode(node::kVarchar);
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeTypeNode(node::kVarchar); }
     static int32_t codec_type_enum() { return hybridse::type::kVarchar; }
     using CCallArgType = codec::StringRef*;
 
-    static node::ExprNode* to_const(node::NodeManager* nm,
-                                    const std::string& str) {
-        return nm->MakeConstNode(str);
-    }
-    static node::ExprNode* to_const(node::NodeManager* nm,
-                                    const StringRef& str) {
+    static node::ExprNode* to_const(node::NodeManager* nm, const std::string& str) { return nm->MakeConstNode(str); }
+    static node::ExprNode* to_const(node::NodeManager* nm, const StringRef& str) {
         return nm->MakeConstNode(str.ToString());
     }
     static codec::StringRef zero_value() { return codec::StringRef(""); }
@@ -318,13 +260,10 @@ struct DataTypeTrait<codec::StringRef> {
 
 template <typename T>
 struct DataTypeTrait<codec::ListRef<T>> {
-    static std::string to_string() {
-        return "list_" + DataTypeTrait<T>::to_string();
-    }
+    static std::string to_string() { return "list_" + DataTypeTrait<T>::to_string(); }
     static node::DataType to_type_enum() { return node::kList; }
     static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        auto list_type =
-            nm->MakeTypeNode(node::kList, DataTypeTrait<T>::to_type_node(nm));
+        auto list_type = nm->MakeTypeNode(node::kList, DataTypeTrait<T>::to_type_node(nm));
         list_type->generics_nullable_[0] = IsNullableTrait<T>::value;
         return list_type;
     }
@@ -333,25 +272,17 @@ struct DataTypeTrait<codec::ListRef<T>> {
 
 template <typename T>
 struct DataTypeTrait<Opaque<T>> {
-    static std::string to_string() {
-        return "opaque<" + std::to_string(sizeof(T)) + ">";
-    }
+    static std::string to_string() { return "opaque<" + std::to_string(sizeof(T)) + ">"; }
     static node::DataType to_type_enum() { return node::kOpaque; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeOpaqueType(sizeof(T));
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeOpaqueType(sizeof(T)); }
     using CCallArgType = T*;
 };
 
 template <typename T>
 struct DataTypeTrait<Nullable<T>> {
     static std::string to_string() { return DataTypeTrait<T>::to_string(); }
-    static node::DataType to_type_enum() {
-        return DataTypeTrait<T>::to_type_enum();
-    }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return DataTypeTrait<T>::to_type_node(nm);
-    }
+    static node::DataType to_type_enum() { return DataTypeTrait<T>::to_type_enum(); }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return DataTypeTrait<T>::to_type_node(nm); }
 };
 
 template <typename... T>
@@ -376,17 +307,14 @@ struct DataTypeTrait<Tuple<T...>> {
         tuple_type->generics_nullable_ = {IsNullableTrait<T>::value...};
         return tuple_type;
     }
-    static node::ExprNode* to_const(node::NodeManager* nm,
-                                    const Tuple<T...>& tuple) {
+    static node::ExprNode* to_const(node::NodeManager* nm, const Tuple<T...>& tuple) {
         return to_const_impl(nm, tuple, std::index_sequence_for<T...>());
     }
 
     template <size_t... I>
-    static node::ExprNode* to_const_impl(node::NodeManager* nm,
-                                         const Tuple<T...>& tuple,
+    static node::ExprNode* to_const_impl(node::NodeManager* nm, const Tuple<T...>& tuple,
                                          const std::index_sequence<I...>&) {
-        std::vector<node::ExprNode*> fields(
-            {DataTypeTrait<T>::to_const(nm, std::get<I>(tuple.tuple))...});
+        std::vector<node::ExprNode*> fields({DataTypeTrait<T>::to_const(nm, std::get<I>(tuple.tuple))...});
         return nm->MakeFuncNode("make_tuple", fields, nullptr);
     }
 };
@@ -450,8 +378,7 @@ const std::string LiteralToArgTypesSignature() {
 template <typename... LiteralArgTypes>
 codec::Schema MakeLiteralSchema() {
     codec::Schema schema;
-    std::vector<int32_t> types = {
-        DataTypeTrait<LiteralArgTypes>::codec_type_enum()...};
+    std::vector<int32_t> types = {DataTypeTrait<LiteralArgTypes>::codec_type_enum()...};
     for (size_t i = 0; i < types.size(); ++i) {
         ::hybridse::type::ColumnDef* col = schema.Add();
         col->set_name("col_" + std::to_string(i));
@@ -473,14 +400,11 @@ struct DataTypeTrait<LiteralTypedRow<LiteralArgTypes...>> {
     static std::string to_string() { return "row"; }
     static codec::Schema schema;
     static node::DataType to_type_enum() { return node::kRow; }
-    static node::TypeNode* to_type_node(node::NodeManager* nm) {
-        return nm->MakeRowType({&schema});
-    }
+    static node::TypeNode* to_type_node(node::NodeManager* nm) { return nm->MakeRowType({&schema}); }
 };
 
 template <typename... LiteralArgTypes>
-codec::Schema DataTypeTrait<LiteralTypedRow<LiteralArgTypes...>>::schema =
-    MakeLiteralSchema<LiteralArgTypes...>();
+codec::Schema DataTypeTrait<LiteralTypedRow<LiteralArgTypes...>>::schema = MakeLiteralSchema<LiteralArgTypes...>();
 
 }  // namespace udf
 }  // namespace hybridse

@@ -43,7 +43,7 @@ class SimplePlannerV2 : public SimplePlanner {
                     bool enable_batch_window_parallelization = false)
         : SimplePlanner(manager, is_batch_mode, is_cluster_optimized, enable_batch_window_parallelization) {}
     base::Status CreateASTScriptPlan(const zetasql::ASTScript *script,
-                            PlanNodeList &plan_trees);           // NOLINT (runtime/references)
+                                     PlanNodeList &plan_trees);  // NOLINT (runtime/references)
 };
 
 }  // namespace plan

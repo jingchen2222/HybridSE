@@ -61,8 +61,7 @@ struct ExprPair {
     node::ExprNode* right_expr_ = nullptr;
 };
 
-Status CheckExprDependOnChildOnly(const node::ExprNode* expr,
-                                  const vm::SchemasContext* child_schemas_ctx);
+Status CheckExprDependOnChildOnly(const node::ExprNode* expr, const vm::SchemasContext* child_schemas_ctx);
 
 /**
  * Replaces `idx`th producer of PhysicalOpNode `op` and update `op`'s
@@ -75,8 +74,7 @@ Status CheckExprDependOnChildOnly(const node::ExprNode* expr,
  * child: physical node going to replace
  * @return true on success, false otherwise
  */
-bool ResetProducer(PhysicalPlanContext* plan_ctx, PhysicalOpNode* op,
-                   size_t idx, PhysicalOpNode* child);
+bool ResetProducer(PhysicalPlanContext* plan_ctx, PhysicalOpNode* op, size_t idx, PhysicalOpNode* child);
 
 class TransformUpPysicalPass : public PhysicalPass {
  public:
@@ -99,8 +97,7 @@ class TransformUpPysicalPass : public PhysicalPass {
      */
     virtual bool Transform(PhysicalOpNode* in, PhysicalOpNode** out) = 0;
 
-    Status Apply(PhysicalPlanContext* ctx, PhysicalOpNode* in,
-                 PhysicalOpNode** out) override {
+    Status Apply(PhysicalPlanContext* ctx, PhysicalOpNode* in, PhysicalOpNode** out) override {
         return base::Status(common::kPlanError, "Not implemented");
     }
 

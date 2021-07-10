@@ -32,8 +32,7 @@ using node::ExprNode;
 
 class MergeAggregations : public passes::ExprPass {
  public:
-    Status Apply(ExprAnalysisContext* ctx, ExprNode* expr,
-                 ExprNode** out) override;
+    Status Apply(ExprAnalysisContext* ctx, ExprNode* expr, ExprNode** out) override;
 };
 
 }  // namespace passes

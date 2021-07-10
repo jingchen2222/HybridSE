@@ -36,8 +36,7 @@ namespace hybridse {
 namespace udf {
 
 template <class V>
-void AtList(::hybridse::codec::ListRef<V>* list_ref, int64_t pos, V* v,
-            bool* is_null) {
+void AtList(::hybridse::codec::ListRef<V>* list_ref, int64_t pos, V* v, bool* is_null) {
     if (pos < 0) {
         *is_null = true;
         *v = V(DataTypeTrait<V>::zero_value());
@@ -59,16 +58,14 @@ void AtList(::hybridse::codec::ListRef<V>* list_ref, int64_t pos, V* v,
     }
 }
 
-node::ExprNode* BuildAt(UdfResolveContext* ctx, ExprNode* input, ExprNode* idx,
-                        ExprNode* default_val) {
+node::ExprNode* BuildAt(UdfResolveContext* ctx, ExprNode* input, ExprNode* idx, ExprNode* default_val) {
     auto input_type = input->GetOutputType();
     if (input_type->base() != node::kList) {
         ctx->SetError("Input type is not list: " + input_type->GetName());
         return nullptr;
     }
     if (input_type->GetGenericType(0)->IsGeneric()) {
-        ctx->SetError("Do not support generic element type: " +
-                      input_type->GetName());
+        ctx->SetError("Do not support generic element type: " + input_type->GetName());
         return nullptr;
     }
     if (default_val != nullptr) {
@@ -84,8 +81,7 @@ node::ExprNode* BuildAt(UdfResolveContext* ctx, ExprNode* input, ExprNode* idx,
         }
     }
     auto nm = ctx->node_manager();
-    if (idx->GetOutputType() == nullptr ||
-        idx->GetOutputType()->base() != node::kInt64) {
+    if (idx->GetOutputType() == nullptr || idx->GetOutputType()->base() != node::kInt64) {
         idx = nm->MakeCastNode(node::kInt64, idx);
     }
     auto res = nm->MakeFuncNode("at", {input, idx}, nullptr);
@@ -136,16 +132,13 @@ void DefaultUdfLibrary::InitWindowFunctions() {
 
     // general at
     RegisterExprUdf("at").list_argument_at(0).args<AnyArg, AnyArg>(
-        [](UdfResolveContext* ctx, ExprNode* input, ExprNode* idx) {
-            return BuildAt(ctx, input, idx, nullptr);
-        });
+        [](UdfResolveContext* ctx, ExprNode* input, ExprNode* idx) { return BuildAt(ctx, input, idx, nullptr); });
 
     RegisterAlias("lead", "at");
     RegisterExprUdf("first_value")
         .list_argument_at(0)
         .args<AnyArg>([](UdfResolveContext* ctx, ExprNode* input) {
-            return BuildAt(ctx, input, ctx->node_manager()->MakeConstNode(0),
-                           nullptr);
+            return BuildAt(ctx, input, ctx->node_manager()->MakeConstNode(0), nullptr);
         })
         .doc(
             R"(@brief Returns the value of expr from the first row of the window frame.

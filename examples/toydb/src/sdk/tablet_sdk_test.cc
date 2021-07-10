@@ -59,8 +59,7 @@ class TabletSdkTest : public ::testing::TestWithParam<EngineRunMode> {
         dbms_server_.AddService(dbms_, brpc::SERVER_DOESNT_OWN_SERVICE);
         dbms_server_.Start(base_dbms_port_, &options);
         {
-            std::string tablet_endpoint =
-                "127.0.0.1:" + std::to_string(base_tablet_port_);
+            std::string tablet_endpoint = "127.0.0.1:" + std::to_string(base_tablet_port_);
             MockClosure closure;
             dbms::KeepAliveRequest request;
             request.set_endpoint(tablet_endpoint);
@@ -85,12 +84,10 @@ class TabletSdkTest : public ::testing::TestWithParam<EngineRunMode> {
     dbms::DBMSServerImpl* dbms_;
 };
 
-INSTANTIATE_TEST_CASE_P(TabletRUNAndBatchMode, TabletSdkTest,
-                        testing::Values(RUNBATCH));
+INSTANTIATE_TEST_CASE_P(TabletRUNAndBatchMode, TabletSdkTest, testing::Values(RUNBATCH));
 
 TEST_P(TabletSdkTest, test_normal) {
-    tablet::TabletInternalSDK interal_sdk("127.0.0.1:" +
-                                          std::to_string(base_tablet_port_));
+    tablet::TabletInternalSDK interal_sdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     bool ok = interal_sdk.Init();
     ASSERT_TRUE(ok);
     tablet::CreateTableRequest req;
@@ -132,8 +129,7 @@ TEST_P(TabletSdkTest, test_normal) {
     common::Status status;
     interal_sdk.CreateTable(&req, status);
     ASSERT_EQ(status.code(), common::kOk);
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -146,8 +142,7 @@ TEST_P(TabletSdkTest, test_normal) {
     sdk->Insert(db, sql, &insert_status);
     ASSERT_EQ(0, static_cast<int>(insert_status.code));
     {
-        std::string sql =
-            "select col1, col2, col3, col4, col5 from t1 limit 1;";
+        std::string sql = "select col1, col2, col3, col4, col5 from t1 limit 1;";
         sdk::Status query_status;
         std::shared_ptr<ResultSet> rs = sdk->Query(db, sql, &query_status);
         if (rs) {
@@ -227,8 +222,7 @@ TEST_P(TabletSdkTest, test_normal) {
 TEST_P(TabletSdkTest, test_explain) {
     usleep(4000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
 
     std::string name = "db_x";
     // create database db1
@@ -254,8 +248,7 @@ TEST_P(TabletSdkTest, test_explain) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -278,8 +271,7 @@ TEST_P(TabletSdkTest, test_explain) {
 TEST_P(TabletSdkTest, test_create_and_query) {
     usleep(4000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
     // create database db1
     {
         hybridse::sdk::Status status;
@@ -306,8 +298,7 @@ TEST_P(TabletSdkTest, test_create_and_query) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -315,8 +306,7 @@ TEST_P(TabletSdkTest, test_create_and_query) {
     }
 
     ::hybridse::sdk::Status insert_status;
-    sdk->Insert("db_1", "insert into t1 values(1, 2.2, 3.3, 4, 5);",
-                &insert_status);
+    sdk->Insert("db_1", "insert into t1 values(1, 2.2, 3.3, 4, 5);", &insert_status);
     ASSERT_EQ(0, static_cast<int>(insert_status.code));
     {
         sdk::Status query_status;
@@ -435,8 +425,7 @@ TEST_P(TabletSdkTest, test_create_and_query) {
 TEST_P(TabletSdkTest, test_udf_query) {
     usleep(2000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
     std::string name = "db_2";
     // create database db1
     {
@@ -462,8 +451,7 @@ TEST_P(TabletSdkTest, test_udf_query) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -471,8 +459,7 @@ TEST_P(TabletSdkTest, test_udf_query) {
     }
 
     ::hybridse::sdk::Status insert_status;
-    sdk->Insert(name, "insert into t1 values(1, 2, 3.3, 4, 5, \"hello\");",
-                &insert_status);
+    sdk->Insert(name, "insert into t1 values(1, 2, 3.3, 4, 5, \"hello\");", &insert_status);
     if (0 != insert_status.code) {
         std::cout << insert_status.msg << std::endl;
     }
@@ -564,8 +551,7 @@ TEST_P(TabletSdkTest, test_udf_query) {
 TEST_F(TabletSdkTest, test_window_udf_query) {
     usleep(4000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
     std::string name = "db_3";
     // create database db1
     {
@@ -591,8 +577,7 @@ TEST_F(TabletSdkTest, test_window_udf_query) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -601,33 +586,23 @@ TEST_F(TabletSdkTest, test_window_udf_query) {
 
     ::hybridse::sdk::Status insert_status;
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");", &insert_status);
         ASSERT_EQ(0, insert_status.code) << insert_status.msg;
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");", &insert_status);
         ASSERT_EQ(0, insert_status.code);
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(11, 4, 5.5, 3000, 7, \"string1\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(11, 4, 5.5, 3000, 7, \"string1\");", &insert_status);
         ASSERT_EQ(0, insert_status.code);
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(11, 5, 6.6, 4000, 8, \"string2\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(11, 5, 6.6, 4000, 8, \"string2\");", &insert_status);
         ASSERT_EQ(0, insert_status.code);
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(11, 6, 7.7, 5000, 9, \"string3\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(11, 6, 7.7, 5000, 9, \"string3\");", &insert_status);
         ASSERT_EQ(0, insert_status.code);
     }
 
@@ -781,8 +756,7 @@ TEST_F(TabletSdkTest, test_window_udf_query) {
 TEST_F(TabletSdkTest, test_window_udf_batch_query) {
     usleep(4000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
     std::string name = "db_4";
     // create database db1
     {
@@ -808,8 +782,7 @@ TEST_F(TabletSdkTest, test_window_udf_batch_query) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -818,33 +791,23 @@ TEST_F(TabletSdkTest, test_window_udf_batch_query) {
 
     ::hybridse::sdk::Status insert_status;
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(11, 4, 5.5, 3000, 7, \"string1\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(11, 4, 5.5, 3000, 7, \"string1\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(11, 5, 6.6, 4000, 8, \"string2\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(11, 5, 6.6, 4000, 8, \"string2\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(11, 6, 7.7, 5000, 9, \"string3\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(11, 6, 7.7, 5000, 9, \"string3\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
 
@@ -973,8 +936,7 @@ TEST_F(TabletSdkTest, test_window_udf_batch_query) {
 TEST_F(TabletSdkTest, test_window_udf_no_partition_query) {
     usleep(4000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
     std::string name = "db_5";
 
     // create database db1
@@ -1001,8 +963,7 @@ TEST_F(TabletSdkTest, test_window_udf_no_partition_query) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -1011,33 +972,23 @@ TEST_F(TabletSdkTest, test_window_udf_no_partition_query) {
 
     ::hybridse::sdk::Status insert_status;
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 4, 5.5, 3000, 7, \"string1\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 4, 5.5, 3000, 7, \"string1\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 5, 6.6, 4000, 8, \"string2\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 5, 6.6, 4000, 8, \"string2\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 6, 7.7, 5000, 9, \"string3\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 6, 7.7, 5000, 9, \"string3\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
 
@@ -1208,8 +1159,7 @@ TEST_F(TabletSdkTest, test_window_udf_no_partition_query) {
 TEST_F(TabletSdkTest, test_window_udf_no_partition_batch_query) {
     usleep(4000 * 1000);
     const std::string endpoint = "127.0.0.1:" + std::to_string(base_dbms_port_);
-    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk =
-        ::hybridse::sdk::CreateDBMSSdk(endpoint);
+    std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk = ::hybridse::sdk::CreateDBMSSdk(endpoint);
     // create database db1
     std::string name = "db_6";
     {
@@ -1235,8 +1185,7 @@ TEST_F(TabletSdkTest, test_window_udf_no_partition_batch_query) {
         ASSERT_EQ(0, static_cast<int>(status.code));
     }
 
-    std::shared_ptr<TabletSdk> sdk =
-        CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
+    std::shared_ptr<TabletSdk> sdk = CreateTabletSdk("127.0.0.1:" + std::to_string(base_tablet_port_));
     if (sdk) {
         ASSERT_TRUE(true);
     } else {
@@ -1245,34 +1194,24 @@ TEST_F(TabletSdkTest, test_window_udf_no_partition_batch_query) {
 
     ::hybridse::sdk::Status insert_status;
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 2, 3.3, 1000, 5, \"hello\");", &insert_status);
 
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 3, 4.4, 2000, 6, \"world\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 4, 5.5, 3000, 7, \"string1\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 4, 5.5, 3000, 7, \"string1\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 5, 6.6, 4000, 8, \"string2\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 5, 6.6, 4000, 8, \"string2\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
     {
-        sdk->Insert(name,
-                    "insert into t1 values(1, 6, 7.7, 5000, 9, \"string3\");",
-                    &insert_status);
+        sdk->Insert(name, "insert into t1 values(1, 6, 7.7, 5000, 9, \"string3\");", &insert_status);
         ASSERT_EQ(0, static_cast<int>(insert_status.code));
     }
 

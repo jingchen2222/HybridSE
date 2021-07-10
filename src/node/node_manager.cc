@@ -891,7 +891,7 @@ FuncDefPlanNode *NodeManager::MakeFuncPlanNode(FnNodeFnDef *node) {
     RegisterNode(node_ptr);
     return node_ptr;
 }
-CreateIndexPlanNode* NodeManager::MakeCreateCreateIndexPlanNode(const CreateIndexNode* node) {
+CreateIndexPlanNode *NodeManager::MakeCreateCreateIndexPlanNode(const CreateIndexNode *node) {
     node::CreateIndexPlanNode *node_ptr = new CreateIndexPlanNode(node);
     RegisterNode(node_ptr);
     return node_ptr;
@@ -1005,12 +1005,10 @@ SqlNode *NodeManager::MakeCreateProcedureNode(const std::string &sp_name, SqlNod
     return RegisterNode(node_ptr);
 }
 
-SqlNode *NodeManager::MakeCreateProcedureNode(const std::string &sp_name,
-                                              SqlNodeList *input_parameter_list,
+SqlNode *NodeManager::MakeCreateProcedureNode(const std::string &sp_name, SqlNodeList *input_parameter_list,
                                               SqlNodeList *inner_node_list) {
     CreateSpStmt *node_ptr = new CreateSpStmt(sp_name);
-    FillSqlNodeList2NodeVector(input_parameter_list,
-                               node_ptr->GetInputParameterList());
+    FillSqlNodeList2NodeVector(input_parameter_list, node_ptr->GetInputParameterList());
     FillSqlNodeList2NodeVector(inner_node_list, node_ptr->GetInnerNodeList());
     return RegisterNode(node_ptr);
 }

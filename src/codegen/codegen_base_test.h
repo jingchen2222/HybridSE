@@ -32,9 +32,8 @@ bool BuildWindowFromResource(const std::string& resource_path,
                              ::hybridse::type::TableDef& table_def,  // NOLINT
                              std::vector<Row>& rows,                 // NOLINT
                              int8_t** buf) {
-    if (!SqlCase::LoadSchemaAndRowsFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(), resource_path,
-            table_def, rows)) {
+    if (!SqlCase::LoadSchemaAndRowsFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(), resource_path, table_def,
+                                            rows)) {
         return false;
     }
     ArrayListV<Row>* w = new ArrayListV<Row>(&rows);
@@ -44,9 +43,8 @@ bool BuildWindowFromResource(const std::string& resource_path,
 bool BuildWindow(::hybridse::type::TableDef& table_def,  // NOLINT
                  std::vector<Row>& rows,                 // NOLINT
                  int8_t** buf) {
-    if (!SqlCase::LoadSchemaAndRowsFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(),
-            "cases/resource/codegen_t1_rows.yaml", table_def, rows)) {
+    if (!SqlCase::LoadSchemaAndRowsFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(),
+                                            "cases/resource/codegen_t1_rows.yaml", table_def, rows)) {
         return false;
     }
     ArrayListV<Row>* w = new ArrayListV<Row>(&rows);
@@ -56,9 +54,8 @@ bool BuildWindow(::hybridse::type::TableDef& table_def,  // NOLINT
 bool BuildWindow2(::hybridse::type::TableDef& table_def,  // NOLINT
                   std::vector<Row>& rows,                 // NOLINT
                   int8_t** buf) {
-    if (!SqlCase::LoadSchemaAndRowsFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(),
-            "cases/resource/codegen_t2_rows.yaml", table_def, rows)) {
+    if (!SqlCase::LoadSchemaAndRowsFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(),
+                                            "cases/resource/codegen_t2_rows.yaml", table_def, rows)) {
         return false;
     }
     ArrayListV<Row>* w = new ArrayListV<Row>(&rows);
@@ -68,9 +65,8 @@ bool BuildWindow2(::hybridse::type::TableDef& table_def,  // NOLINT
 bool BuildT1Buf(type::TableDef& table_def, int8_t** buf,  // NOLINT
                 uint32_t* size) {
     std::vector<Row> rows;
-    if (!SqlCase::LoadSchemaAndRowsFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(),
-            "cases/resource/codegen_t1_one_row.yaml", table_def, rows)) {
+    if (!SqlCase::LoadSchemaAndRowsFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(),
+                                            "cases/resource/codegen_t1_one_row.yaml", table_def, rows)) {
         return false;
     }
     *buf = rows[0].buf();
@@ -81,9 +77,8 @@ bool BuildT2Buf(type::TableDef& table_def, int8_t** buf,  // NOLINT
                 uint32_t* size) {
     std::vector<Row> rows;
 
-    if (!SqlCase::LoadSchemaAndRowsFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(),
-            "cases/resource/codegen_t2_one_row.yaml", table_def, rows)) {
+    if (!SqlCase::LoadSchemaAndRowsFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(),
+                                            "cases/resource/codegen_t2_one_row.yaml", table_def, rows)) {
         return false;
     }
     *buf = rows[0].buf();

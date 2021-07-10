@@ -152,8 +152,7 @@ void SelectQueryNode::PrintSqlNodeList(std::ostream &output, const std::string &
 
 void PrintValue(std::ostream &output, const std::string &org_tab, const std::string &value,
                 const std::string &item_name, bool last_child) {
-    output << org_tab << SPACE_ST << item_name << ": " <<
-        (value.empty() ? "<nil>" : value);
+    output << org_tab << SPACE_ST << item_name << ": " << (value.empty() ? "<nil>" : value);
 }
 
 void PrintValue(std::ostream &output, const std::string &org_tab, const std::vector<std::string> &vec,
@@ -2062,7 +2061,7 @@ void InputParameterNode::Print(std::ostream &output, const std::string &org_tab)
     PrintValue(output, tab, std::to_string(is_constant_), "is_constant", true);
 }
 
-Status StringToDataType(const std::string identifier, DataType* type) {
+Status StringToDataType(const std::string identifier, DataType *type) {
     CHECK_TRUE(nullptr != type, common::kNullPointer, "Can't convert type string, output datatype is nullptr")
     const auto lower_identifier = boost::to_lower_copy(identifier);
     auto it = type_map.find(lower_identifier);

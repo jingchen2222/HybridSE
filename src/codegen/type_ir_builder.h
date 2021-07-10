@@ -46,13 +46,11 @@ class TypeIRBuilder {
     static const std::string TypeName(::llvm::Type* type);
 
     static base::Status UnaryOpTypeInfer(
-        const std::function<base::Status(
-            node::NodeManager*, const node::TypeNode*, const node::TypeNode**)>,
+        const std::function<base::Status(node::NodeManager*, const node::TypeNode*, const node::TypeNode**)>,
         ::llvm::Type* lhs);
     static base::Status BinaryOpTypeInfer(
-        const std::function<
-            base::Status(node::NodeManager*, const node::TypeNode*,
-                         const node::TypeNode*, const node::TypeNode**)>,
+        const std::function<base::Status(node::NodeManager*, const node::TypeNode*, const node::TypeNode*,
+                                         const node::TypeNode**)>,
         ::llvm::Type* lhs, ::llvm::Type* rhs);
 };
 
@@ -60,35 +58,27 @@ class Int64IRBuilder : public TypeIRBuilder {
  public:
     Int64IRBuilder() : TypeIRBuilder() {}
     ~Int64IRBuilder() {}
-    static ::llvm::Type* GetType(::llvm::Module* m) {
-        return ::llvm::Type::getInt64Ty(m->getContext());
-    }
+    static ::llvm::Type* GetType(::llvm::Module* m) { return ::llvm::Type::getInt64Ty(m->getContext()); }
 };
 
 class Int32IRBuilder : public TypeIRBuilder {
  public:
     Int32IRBuilder() : TypeIRBuilder() {}
     ~Int32IRBuilder() {}
-    static ::llvm::Type* GetType(::llvm::Module* m) {
-        return ::llvm::Type::getInt32Ty(m->getContext());
-    }
+    static ::llvm::Type* GetType(::llvm::Module* m) { return ::llvm::Type::getInt32Ty(m->getContext()); }
 };
 class Int16IRBuilder : public TypeIRBuilder {
  public:
     Int16IRBuilder() : TypeIRBuilder() {}
     ~Int16IRBuilder() {}
-    static ::llvm::Type* GetType(::llvm::Module* m) {
-        return ::llvm::Type::getInt16Ty(m->getContext());
-    }
+    static ::llvm::Type* GetType(::llvm::Module* m) { return ::llvm::Type::getInt16Ty(m->getContext()); }
 };
 
 class BoolIRBuilder : public TypeIRBuilder {
  public:
     BoolIRBuilder() : TypeIRBuilder() {}
     ~BoolIRBuilder() {}
-    static ::llvm::Type* GetType(::llvm::Module* m) {
-        return ::llvm::Type::getInt1Ty(m->getContext());
-    }
+    static ::llvm::Type* GetType(::llvm::Module* m) { return ::llvm::Type::getInt1Ty(m->getContext()); }
 };
 inline const bool ConvertHybridSeType2LlvmType(const node::TypeNode* data_type,
                                                ::llvm::Module* m,  // NOLINT
@@ -129,8 +119,7 @@ inline const bool ConvertHybridSeType2LlvmType(const node::TypeNode* data_type,
             }
             stype = ::llvm::StructType::create(m->getContext(), name);
             ::llvm::Type* size_ty = (::llvm::Type::getInt32Ty(m->getContext()));
-            ::llvm::Type* data_ptr_ty =
-                (::llvm::Type::getInt8PtrTy(m->getContext()));
+            ::llvm::Type* data_ptr_ty = (::llvm::Type::getInt8PtrTy(m->getContext()));
             std::vector<::llvm::Type*> elements;
             elements.push_back(size_ty);
             elements.push_back(data_ptr_ty);
@@ -148,8 +137,7 @@ inline const bool ConvertHybridSeType2LlvmType(const node::TypeNode* data_type,
             std::string name;
         }
         default: {
-            LOG(WARNING) << "fail to convert hybridse datatype to llvm type: "
-                         << data_type;
+            LOG(WARNING) << "fail to convert hybridse datatype to llvm type: " << data_type;
             return false;
         }
     }

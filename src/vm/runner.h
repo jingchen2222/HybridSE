@@ -49,9 +49,7 @@ class RunnerContext;
 class FnGenerator {
  public:
     explicit FnGenerator(const FnInfo& info)
-        : fn_(info.fn_ptr()),
-          fn_schema_(*info.fn_schema()),
-          row_view_(fn_schema_) {
+        : fn_(info.fn_ptr()), fn_schema_(*info.fn_schema()), row_view_(fn_schema_) {
         for (int32_t idx = 0; idx < fn_schema_.size(); idx++) {
             idxs_.push_back(idx);
         }
@@ -68,16 +66,13 @@ class RowProjectFun : public ProjectFun {
  public:
     explicit RowProjectFun(const int8_t* fn) : ProjectFun(), fn_(fn) {}
     ~RowProjectFun() {}
-    Row operator()(const Row& row) const override {
-        return CoreAPI::RowProject(fn_, row, false);
-    }
+    Row operator()(const Row& row) const override { return CoreAPI::RowProject(fn_, row, false); }
     const int8_t* fn_;
 };
 
 class ProjectGenerator : public FnGenerator {
  public:
-    explicit ProjectGenerator(const FnInfo& info)
-        : FnGenerator(info), fun_(info.fn_ptr()) {}
+    explicit ProjectGenerator(const FnInfo& info) : FnGenerator(info), fun_(info.fn_ptr()) {}
     virtual ~ProjectGenerator() {}
     const Row Gen(const Row& row);
     RowProjectFun fun_;
@@ -85,8 +80,7 @@ class ProjectGenerator : public FnGenerator {
 
 class ConstProjectGenerator : public FnGenerator {
  public:
-    explicit ConstProjectGenerator(const FnInfo& info)
-        : FnGenerator(info), fun_(info.fn_ptr()) {}
+    explicit ConstProjectGenerator(const FnInfo& info) : FnGenerator(info), fun_(info.fn_ptr()) {}
     virtual ~ConstProjectGenerator() {}
     const Row Gen();
     RowProjectFun fun_;
@@ -101,8 +95,7 @@ class WindowProjectGenerator : public FnGenerator {
  public:
     explicit WindowProjectGenerator(const FnInfo& info) : FnGenerator(info) {}
     virtual ~WindowProjectGenerator() {}
-    const Row Gen(const uint64_t key, const Row row, const bool is_instance,
-                  size_t append_slices, Window* window);
+    const Row Gen(const uint64_t key, const Row row, const bool is_instance, size_t append_slices, Window* window);
 };
 class KeyGenerator : public FnGenerator {
  public:
@@ -125,31 +118,25 @@ class ConditionGenerator : public FnGenerator {
 };
 class RangeGenerator {
  public:
-    explicit RangeGenerator(const Range& range)
-        : ts_gen_(range.fn_info()), window_range_() {
+    explicit RangeGenerator(const Range& range) : ts_gen_(range.fn_info()), window_range_() {
         if (range.frame_ != nullptr) {
             switch (range.frame()->frame_type()) {
                 case node::kFrameRows:
-                    window_range_.frame_type_ =
-                        Window::WindowFrameType::kFrameRows;
+                    window_range_.frame_type_ = Window::WindowFrameType::kFrameRows;
                     break;
                 case node::kFrameRowsRange:
-                    window_range_.frame_type_ =
-                        Window::WindowFrameType::kFrameRowsRange;
+                    window_range_.frame_type_ = Window::WindowFrameType::kFrameRowsRange;
                     break;
                 case node::kFrameRowsMergeRowsRange:
-                    window_range_.frame_type_ =
-                        Window::WindowFrameType::kFrameRowsMergeRowsRange;
+                    window_range_.frame_type_ = Window::WindowFrameType::kFrameRowsMergeRowsRange;
                 default: {
-                    window_range_.frame_type_ =
-                        Window::WindowFrameType::kFrameRowsMergeRowsRange;
+                    window_range_.frame_type_ = Window::WindowFrameType::kFrameRowsMergeRowsRange;
                     break;
                 }
             }
             window_range_.start_offset_ = range.frame_->GetHistoryRangeStart();
             window_range_.end_offset_ = range.frame_->GetHistoryRangeEnd();
-            window_range_.start_row_ =
-                (-1 * range.frame_->GetHistoryRowsStart());
+            window_range_.start_row_ = (-1 * range.frame_->GetHistoryRowsStart());
             window_range_.end_row_ = (-1 * range.frame_->GetHistoryRowsEnd());
             window_range_.max_size_ = range.frame_->frame_maxsize();
         }
@@ -161,17 +148,14 @@ class RangeGenerator {
 };
 class FilterKeyGenerator {
  public:
-    explicit FilterKeyGenerator(const Key& filter_key)
-        : filter_key_(filter_key.fn_info()) {}
+    explicit FilterKeyGenerator(const Key& filter_key) : filter_key_(filter_key.fn_info()) {}
     virtual ~FilterKeyGenerator() {}
     const bool Valid() const { return filter_key_.Valid(); }
-    std::shared_ptr<TableHandler> Filter(std::shared_ptr<TableHandler> table,
-                                         const std::string& request_keys) {
+    std::shared_ptr<TableHandler> Filter(std::shared_ptr<TableHandler> table, const std::string& request_keys) {
         if (!filter_key_.Valid()) {
             return table;
         }
-        auto mem_table =
-            std::shared_ptr<MemTimeTableHandler>(new MemTimeTableHandler());
+        auto mem_table = std::shared_ptr<MemTimeTableHandler>(new MemTimeTableHandler());
         mem_table->SetOrderType(table->GetOrderType());
         auto iter = table->GetIterator();
         if (iter) {
@@ -186,25 +170,19 @@ class FilterKeyGenerator {
         }
         return mem_table;
     }
-    const std::string GetKey(const Row& row) {
-        return filter_key_.Valid() ? filter_key_.Gen(row) : "";
-    }
+    const std::string GetKey(const Row& row) { return filter_key_.Valid() ? filter_key_.Gen(row) : ""; }
     KeyGenerator filter_key_;
 };
 
 class PartitionGenerator {
  public:
-    explicit PartitionGenerator(const Key& partition)
-        : key_gen_(partition.fn_info()) {}
+    explicit PartitionGenerator(const Key& partition) : key_gen_(partition.fn_info()) {}
     virtual ~PartitionGenerator() {}
 
     const bool Valid() const { return key_gen_.Valid(); }
-    std::shared_ptr<PartitionHandler> Partition(
-        std::shared_ptr<DataHandler> input);
-    std::shared_ptr<PartitionHandler> Partition(
-        std::shared_ptr<PartitionHandler> table);
-    std::shared_ptr<PartitionHandler> Partition(
-        std::shared_ptr<TableHandler> table);
+    std::shared_ptr<PartitionHandler> Partition(std::shared_ptr<DataHandler> input);
+    std::shared_ptr<PartitionHandler> Partition(std::shared_ptr<PartitionHandler> table);
+    std::shared_ptr<PartitionHandler> Partition(std::shared_ptr<TableHandler> table);
     const std::string GetKey(const Row& row) { return key_gen_.Gen(row); }
 
  private:
@@ -213,20 +191,14 @@ class PartitionGenerator {
 class SortGenerator {
  public:
     explicit SortGenerator(const Sort& sort)
-        : is_valid_(sort.ValidSort()),
-          is_asc_(sort.is_asc()),
-          order_gen_(sort.fn_info()) {}
+        : is_valid_(sort.ValidSort()), is_asc_(sort.is_asc()), order_gen_(sort.fn_info()) {}
     virtual ~SortGenerator() {}
 
     const bool Valid() const { return is_valid_; }
 
-    std::shared_ptr<DataHandler> Sort(std::shared_ptr<DataHandler> input,
-                                      const bool reverse = false);
-    std::shared_ptr<PartitionHandler> Sort(
-        std::shared_ptr<PartitionHandler> partition,
-        const bool reverse = false);
-    std::shared_ptr<TableHandler> Sort(std::shared_ptr<TableHandler> table,
-                                       const bool reverse = false);
+    std::shared_ptr<DataHandler> Sort(std::shared_ptr<DataHandler> input, const bool reverse = false);
+    std::shared_ptr<PartitionHandler> Sort(std::shared_ptr<PartitionHandler> partition, const bool reverse = false);
+    std::shared_ptr<TableHandler> Sort(std::shared_ptr<TableHandler> table, const bool reverse = false);
     const OrderGenerator& order_gen() const { return order_gen_; }
 
  private:
@@ -237,13 +209,10 @@ class SortGenerator {
 
 class IndexSeekGenerator {
  public:
-    explicit IndexSeekGenerator(const Key& key)
-        : index_key_gen_(key.fn_info()) {}
+    explicit IndexSeekGenerator(const Key& key) : index_key_gen_(key.fn_info()) {}
     virtual ~IndexSeekGenerator() {}
-    std::shared_ptr<TableHandler> SegmnetOfConstKey(
-        std::shared_ptr<DataHandler> input);
-    std::shared_ptr<TableHandler> SegmentOfKey(
-        const Row& row, std::shared_ptr<DataHandler> input);
+    std::shared_ptr<TableHandler> SegmnetOfConstKey(std::shared_ptr<DataHandler> input);
+    std::shared_ptr<TableHandler> SegmentOfKey(const Row& row, std::shared_ptr<DataHandler> input);
     const bool Valid() const { return index_key_gen_.Valid(); }
 
  private:
@@ -253,15 +222,11 @@ class IndexSeekGenerator {
 class FilterGenerator : public PredicateFun {
  public:
     explicit FilterGenerator(const Filter& filter)
-        : condition_gen_(filter.condition_.fn_info()),
-          index_seek_gen_(filter.index_key_) {}
+        : condition_gen_(filter.condition_.fn_info()), index_seek_gen_(filter.index_key_) {}
 
-    const bool Valid() const {
-        return index_seek_gen_.Valid() || condition_gen_.Valid();
-    }
+    const bool Valid() const { return index_seek_gen_.Valid() || condition_gen_.Valid(); }
     std::shared_ptr<TableHandler> Filter(std::shared_ptr<TableHandler> table);
-    std::shared_ptr<TableHandler> Filter(
-        std::shared_ptr<PartitionHandler> table);
+    std::shared_ptr<TableHandler> Filter(std::shared_ptr<PartitionHandler> table);
     bool operator()(const Row& row) const override {
         if (!Valid()) {
             return true;
@@ -276,14 +241,9 @@ class FilterGenerator : public PredicateFun {
 class WindowGenerator {
  public:
     explicit WindowGenerator(const WindowOp& window)
-        : window_op_(window),
-          partition_gen_(window.partition_),
-          sort_gen_(window.sort_),
-          range_gen_(window.range_) {}
+        : window_op_(window), partition_gen_(window.partition_), sort_gen_(window.sort_), range_gen_(window.range_) {}
     virtual ~WindowGenerator() {}
-    const int64_t OrderKey(const Row& row) {
-        return range_gen_.ts_gen_.Gen(row);
-    }
+    const int64_t OrderKey(const Row& row) { return range_gen_.ts_gen_.Gen(row); }
     const WindowOp window_op_;
     PartitionGenerator partition_gen_;
     SortGenerator sort_gen_;
@@ -299,8 +259,7 @@ class RequestWindowGenertor {
           range_gen_(window.range_.fn_info()),
           index_seek_gen_(window.index_key_) {}
     virtual ~RequestWindowGenertor() {}
-    std::shared_ptr<TableHandler> GetRequestWindow(
-        const Row& row, std::shared_ptr<DataHandler> input) {
+    std::shared_ptr<TableHandler> GetRequestWindow(const Row& row, std::shared_ptr<DataHandler> input) {
         auto segment = index_seek_gen_.SegmentOfKey(row, input);
 
         if (filter_gen_.Valid()) {
@@ -406,8 +365,7 @@ class Runner : public node::NodeBase<Runner> {
           need_batch_cache_(false),
           producers_(),
           output_schemas_() {}
-    Runner(const int32_t id, const RunnerType type,
-           const vm::SchemasContext* output_schemas)
+    Runner(const int32_t id, const RunnerType type, const vm::SchemasContext* output_schemas)
         : id_(id),
           type_(type),
           limit_cnt_(0),
@@ -416,8 +374,7 @@ class Runner : public node::NodeBase<Runner> {
           need_batch_cache_(false),
           producers_(),
           output_schemas_(output_schemas) {}
-    Runner(const int32_t id, const RunnerType type,
-           const vm::SchemasContext* output_schemas, const int32_t limit_cnt)
+    Runner(const int32_t id, const RunnerType type, const vm::SchemasContext* output_schemas, const int32_t limit_cnt)
         : id_(id),
           type_(type),
           limit_cnt_(limit_cnt),
@@ -436,8 +393,7 @@ class Runner : public node::NodeBase<Runner> {
         return true;
     }
     const std::vector<Runner*>& GetProducers() const { return producers_; }
-    virtual void PrintRunnerInfo(std::ostream& output,
-                                 const std::string& tab) const {
+    virtual void PrintRunnerInfo(std::ostream& output, const std::string& tab) const {
         output << tab << "[" << id_ << "]" << RunnerTypeName(type_);
         if (is_lazy_) {
             output << " lazy";
@@ -447,8 +403,7 @@ class Runner : public node::NodeBase<Runner> {
                        std::set<int32_t>* visited_ids) const {  // NOLINT
         PrintRunnerInfo(output, tab);
         PrintCacheInfo(output);
-        if (nullptr != visited_ids &&
-            visited_ids->find(id_) != visited_ids->cend()) {
+        if (nullptr != visited_ids && visited_ids->find(id_) != visited_ids->cend()) {
             output << "\n";
             output << "  " << tab << "...";
             return;
@@ -473,36 +428,26 @@ class Runner : public node::NodeBase<Runner> {
     const int32_t id_;
     const RunnerType type_;
     const int32_t limit_cnt_;
-    virtual std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs) = 0;
-    virtual std::shared_ptr<DataHandlerList> BatchRequestRun(
-        RunnerContext& ctx);  // NOLINT
-    virtual std::shared_ptr<DataHandler> RunWithCache(
-        RunnerContext& ctx);  // NOLINT
+    virtual std::shared_ptr<DataHandler> Run(RunnerContext& ctx,  // NOLINT
+                                             const std::vector<std::shared_ptr<DataHandler>>& inputs) = 0;
+    virtual std::shared_ptr<DataHandlerList> BatchRequestRun(RunnerContext& ctx);  // NOLINT
+    virtual std::shared_ptr<DataHandler> RunWithCache(RunnerContext& ctx);         // NOLINT
 
-    static int64_t GetColumnInt64(const int8_t* buf, const RowView* view,
-                                  int pos, type::Type type);
-    static bool GetColumnBool(const int8_t* buf, const RowView* view, int idx,
-                              type::Type type);
-    static Row WindowProject(const int8_t* fn, const uint64_t key,
-                             const Row row, const bool is_instance,
+    static int64_t GetColumnInt64(const int8_t* buf, const RowView* view, int pos, type::Type type);
+    static bool GetColumnBool(const int8_t* buf, const RowView* view, int idx, type::Type type);
+    static Row WindowProject(const int8_t* fn, const uint64_t key, const Row row, const bool is_instance,
                              size_t append_slices, Window* window);
     static Row GroupbyProject(const int8_t* fn, TableHandler* table);
-    static const Row RowLastJoinTable(size_t left_slices, const Row& left_row,
-                                      size_t right_slices,
+    static const Row RowLastJoinTable(size_t left_slices, const Row& left_row, size_t right_slices,
                                       std::shared_ptr<TableHandler> right_table,
                                       SortGenerator& right_sort,    // NOLINT
                                       ConditionGenerator& filter);  // NOLINT
-    static std::shared_ptr<TableHandler> TableReverse(
-        std::shared_ptr<TableHandler> table);
+    static std::shared_ptr<TableHandler> TableReverse(std::shared_ptr<TableHandler> table);
 
-    static void PrintData(std::ostringstream& oss,
-                          const vm::SchemasContext* schema_list,
+    static void PrintData(std::ostringstream& oss, const vm::SchemasContext* schema_list,
                           std::shared_ptr<DataHandler> data);
     static const bool IsProxyRunner(const RunnerType& type) {
-        return kRunnerRequestRunProxy == type ||
-               kRunnerBatchRequestRunProxy == type;
+        return kRunnerRequestRunProxy == type || kRunnerBatchRequestRunProxy == type;
     }
     static bool ExtractRows(std::shared_ptr<DataHandlerList> handlers,
                             std::vector<Row>& out_rows);  // NOLINT
@@ -512,13 +457,9 @@ class Runner : public node::NodeBase<Runner> {
                             std::vector<Row>& out_rows);  // NOLINT
     const vm::SchemasContext* output_schemas() const { return output_schemas_; }
 
-    void set_output_schemas(const vm::SchemasContext* schemas) {
-        output_schemas_ = schemas;
-    }
+    void set_output_schemas(const vm::SchemasContext* schemas) { output_schemas_ = schemas; }
 
-    virtual const std::string GetTypeName() const {
-        return RunnerTypeName(type_);
-    }
+    virtual const std::string GetTypeName() const { return RunnerTypeName(type_); }
     virtual bool Equals(const Runner* other) const { return this == other; }
 
  protected:
@@ -545,10 +486,8 @@ class IteratorStatus {
     IteratorStatus() : is_valid_(false), key_(0) {}
     explicit IteratorStatus(uint64_t key) : is_valid_(true), key_(key) {}
     virtual ~IteratorStatus() {}
-    static int32_t PickIteratorWithMininumKey(
-        std::vector<IteratorStatus>* status_list_ptr);
-    static int32_t PickIteratorWithMaximizeKey(
-        std::vector<IteratorStatus>* status_list_ptr);
+    static int32_t PickIteratorWithMininumKey(std::vector<IteratorStatus>* status_list_ptr);
+    static int32_t PickIteratorWithMaximizeKey(std::vector<IteratorStatus>* status_list_ptr);
     void MarkInValid() {
         is_valid_ = false;
         key_ = 0;
@@ -563,8 +502,7 @@ class InputsGenerator {
     InputsGenerator() : inputs_cnt_(0), input_runners_() {}
     virtual ~InputsGenerator() {}
 
-    std::vector<std::shared_ptr<DataHandler>> RunInputs(
-        RunnerContext& ctx);  // NOLINT
+    std::vector<std::shared_ptr<DataHandler>> RunInputs(RunnerContext& ctx);  // NOLINT
     const bool Valid() const { return 0 != inputs_cnt_; }
     void AddInput(Runner* runner) {
         input_runners_.push_back(runner);
@@ -598,13 +536,11 @@ class RequestWindowUnionGenerator : public InputsGenerator {
         AddInput(runner);
     }
     std::vector<std::shared_ptr<TableHandler>> GetRequestWindows(
-        const Row& row,
-        std::vector<std::shared_ptr<DataHandler>> union_inputs) {
+        const Row& row, std::vector<std::shared_ptr<DataHandler>> union_inputs) {
         std::vector<std::shared_ptr<TableHandler>> union_segments(inputs_cnt_);
         if (!windows_gen_.empty()) {
             for (size_t i = 0; i < inputs_cnt_; i++) {
-                union_segments[i] =
-                    windows_gen_[i].GetRequestWindow(row, union_inputs[i]);
+                union_segments[i] = windows_gen_[i].GetRequestWindow(row, union_inputs[i]);
             }
         }
         return union_segments;
@@ -613,8 +549,7 @@ class RequestWindowUnionGenerator : public InputsGenerator {
 };
 class JoinGenerator {
  public:
-    explicit JoinGenerator(const Join& join, size_t left_slices,
-                           size_t right_slices)
+    explicit JoinGenerator(const Join& join, size_t left_slices, size_t right_slices)
         : condition_gen_(join.condition_.fn_info()),
           left_key_gen_(join.left_key_.fn_info()),
           right_group_gen_(join.right_key_),
@@ -623,22 +558,17 @@ class JoinGenerator {
           left_slices_(left_slices),
           right_slices_(right_slices) {}
     virtual ~JoinGenerator() {}
-    bool TableJoin(std::shared_ptr<TableHandler> left,
-                   std::shared_ptr<TableHandler> right,
+    bool TableJoin(std::shared_ptr<TableHandler> left, std::shared_ptr<TableHandler> right,
                    std::shared_ptr<MemTimeTableHandler> output);  // NOLINT
-    bool TableJoin(std::shared_ptr<TableHandler> left,
-                   std::shared_ptr<PartitionHandler> right,
+    bool TableJoin(std::shared_ptr<TableHandler> left, std::shared_ptr<PartitionHandler> right,
                    std::shared_ptr<MemTimeTableHandler> output);  // NOLINT
-    bool PartitionJoin(std::shared_ptr<PartitionHandler> left,
-                       std::shared_ptr<TableHandler> right,
+    bool PartitionJoin(std::shared_ptr<PartitionHandler> left, std::shared_ptr<TableHandler> right,
                        std::shared_ptr<MemPartitionHandler> output);  // NOLINT
-    bool PartitionJoin(std::shared_ptr<PartitionHandler> left,
-                       std::shared_ptr<PartitionHandler> right,
+    bool PartitionJoin(std::shared_ptr<PartitionHandler> left, std::shared_ptr<PartitionHandler> right,
                        std::shared_ptr<MemPartitionHandler>);  // NOLINT
 
     Row RowLastJoin(const Row& left_row, std::shared_ptr<DataHandler> right);
-    Row RowLastJoinDropLeftSlices(const Row& left_row,
-                                  std::shared_ptr<DataHandler> right);
+    Row RowLastJoinDropLeftSlices(const Row& left_row, std::shared_ptr<DataHandler> right);
     ConditionGenerator condition_gen_;
     KeyGenerator left_key_gen_;
     PartitionGenerator right_group_gen_;
@@ -646,9 +576,8 @@ class JoinGenerator {
     SortGenerator right_sort_gen_;
 
  private:
-    Row RowLastJoinPartition(
-        const Row& left_row,
-        std::shared_ptr<PartitionHandler> partition);  // NOLINT
+    Row RowLastJoinPartition(const Row& left_row,
+                             std::shared_ptr<PartitionHandler> partition);  // NOLINT
     Row RowLastJoinTable(const Row& left_row,
                          std::shared_ptr<TableHandler> table);  // NOLINT
 
@@ -664,155 +593,116 @@ class WindowJoinGenerator : public InputsGenerator {
         joins_gen_.push_back(JoinGenerator(join, left_slices, right_slices));
         AddInput(runner);
     }
-    std::vector<std::shared_ptr<DataHandler>> RunInputs(
-        RunnerContext& ctx);  // NOLINT
-    Row Join(
-        const Row& left_row,
-        const std::vector<std::shared_ptr<DataHandler>>& join_right_tables);
+    std::vector<std::shared_ptr<DataHandler>> RunInputs(RunnerContext& ctx);  // NOLINT
+    Row Join(const Row& left_row, const std::vector<std::shared_ptr<DataHandler>>& join_right_tables);
     std::vector<JoinGenerator> joins_gen_;
 };
 
 class DataRunner : public Runner {
  public:
-    DataRunner(const int32_t id, const SchemasContext* schema,
-               std::shared_ptr<DataHandler> data_hander)
+    DataRunner(const int32_t id, const SchemasContext* schema, std::shared_ptr<DataHandler> data_hander)
         : Runner(id, kRunnerData, schema), data_handler_(data_hander) {}
     ~DataRunner() {}
-    virtual std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs);
-    std::shared_ptr<DataHandlerList> BatchRequestRun(
-        RunnerContext& ctx) override;  // NOLINT
+    virtual std::shared_ptr<DataHandler> Run(RunnerContext& ctx,  // NOLINT
+                                             const std::vector<std::shared_ptr<DataHandler>>& inputs);
+    std::shared_ptr<DataHandlerList> BatchRequestRun(RunnerContext& ctx) override;  // NOLINT
     const std::shared_ptr<DataHandler> data_handler_;
 };
 
 class RequestRunner : public Runner {
  public:
-    RequestRunner(const int32_t id, const SchemasContext* schema)
-        : Runner(id, kRunnerRequest, schema) {}
+    RequestRunner(const int32_t id, const SchemasContext* schema) : Runner(id, kRunnerRequest, schema) {}
     ~RequestRunner() {}
-    virtual std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs);
-    std::shared_ptr<DataHandlerList> BatchRequestRun(
-        RunnerContext& ctx);  // NOLINT
+    virtual std::shared_ptr<DataHandler> Run(RunnerContext& ctx,  // NOLINT
+                                             const std::vector<std::shared_ptr<DataHandler>>& inputs);
+    std::shared_ptr<DataHandlerList> BatchRequestRun(RunnerContext& ctx);  // NOLINT
 };
 class GroupRunner : public Runner {
  public:
-    GroupRunner(const int32_t id, const SchemasContext* schema,
-                const int32_t limit_cnt, const Key& group)
+    GroupRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Key& group)
         : Runner(id, kRunnerGroup, schema, limit_cnt), partition_gen_(group) {}
     ~GroupRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     PartitionGenerator partition_gen_;
 };
 class FilterRunner : public Runner {
  public:
-    FilterRunner(const int32_t id, const SchemasContext* schema,
-                 const int32_t limit_cnt, const Filter& filter)
+    FilterRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Filter& filter)
         : Runner(id, kRunnerFilter, schema, limit_cnt), filter_gen_(filter) {
         is_lazy_ = true;
     }
     ~FilterRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     FilterGenerator filter_gen_;
 };
 
 class SortRunner : public Runner {
  public:
-    SortRunner(const int32_t id, const SchemasContext* schema,
-               const int32_t limit_cnt, const Sort& sort)
+    SortRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Sort& sort)
         : Runner(id, kRunnerOrder, schema, limit_cnt), sort_gen_(sort) {}
     ~SortRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     SortGenerator sort_gen_;
 };
 class ConstProjectRunner : public Runner {
  public:
-    ConstProjectRunner(const int32_t id, const SchemasContext* schema,
-                       const int32_t limit_cnt, const FnInfo& fn_info)
-        : Runner(id, kRunnerConstProject, schema, limit_cnt),
-          project_gen_(fn_info) {}
+    ConstProjectRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const FnInfo& fn_info)
+        : Runner(id, kRunnerConstProject, schema, limit_cnt), project_gen_(fn_info) {}
     ~ConstProjectRunner() {}
 
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     ConstProjectGenerator project_gen_;
 };
 class TableProjectRunner : public Runner {
  public:
-    TableProjectRunner(const int32_t id, const SchemasContext* schema,
-                       const int32_t limit_cnt, const FnInfo& fn_info)
-        : Runner(id, kRunnerTableProject, schema, limit_cnt),
-          project_gen_(fn_info) {}
+    TableProjectRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const FnInfo& fn_info)
+        : Runner(id, kRunnerTableProject, schema, limit_cnt), project_gen_(fn_info) {}
     ~TableProjectRunner() {}
 
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     ProjectGenerator project_gen_;
 };
 class RowProjectRunner : public Runner {
  public:
-    RowProjectRunner(const int32_t id, const SchemasContext* schema,
-                     const int32_t limit_cnt, const FnInfo& fn_info)
-        : Runner(id, kRunnerRowProject, schema, limit_cnt),
-          project_gen_(fn_info) {}
+    RowProjectRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const FnInfo& fn_info)
+        : Runner(id, kRunnerRowProject, schema, limit_cnt), project_gen_(fn_info) {}
     ~RowProjectRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     ProjectGenerator project_gen_;
 };
 
 class SimpleProjectRunner : public Runner {
  public:
-    SimpleProjectRunner(const int32_t id, const SchemasContext* schema,
-                        const int32_t limit_cnt, const FnInfo& fn_info)
-        : Runner(id, kRunnerSimpleProject, schema, limit_cnt),
-          project_gen_(fn_info) {
+    SimpleProjectRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const FnInfo& fn_info)
+        : Runner(id, kRunnerSimpleProject, schema, limit_cnt), project_gen_(fn_info) {
         is_lazy_ = true;
     }
-    SimpleProjectRunner(const int32_t id, const SchemasContext* schema,
-                        const int32_t limit_cnt,
+    SimpleProjectRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt,
                         const ProjectGenerator& project_gen)
-        : Runner(id, kRunnerSimpleProject, schema, limit_cnt),
-          project_gen_(project_gen) {
+        : Runner(id, kRunnerSimpleProject, schema, limit_cnt), project_gen_(project_gen) {
         is_lazy_ = true;
     }
     ~SimpleProjectRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     ProjectGenerator project_gen_;
 };
 
 class SelectSliceRunner : public Runner {
  public:
-    SelectSliceRunner(const int32_t id, const SchemasContext* schema,
-                      const int32_t limit_cnt, size_t slice)
-        : Runner(id, kRunnerSelectSlice, schema, limit_cnt),
-          get_slice_fn_(slice) {
+    SelectSliceRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, size_t slice)
+        : Runner(id, kRunnerSelectSlice, schema, limit_cnt), get_slice_fn_(slice) {
         is_lazy_ = true;
     }
 
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs) override;
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,  // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;
 
     size_t slice() const { return get_slice_fn_.slice_; }
 
@@ -826,38 +716,28 @@ class SelectSliceRunner : public Runner {
 
 class GroupAggRunner : public Runner {
  public:
-    GroupAggRunner(const int32_t id, const SchemasContext* schema,
-                   const int32_t limit_cnt, const Key& group,
+    GroupAggRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Key& group,
                    const FnInfo& project)
-        : Runner(id, kRunnerGroupAgg, schema, limit_cnt),
-          group_(group.fn_info()),
-          agg_gen_(project) {}
+        : Runner(id, kRunnerGroupAgg, schema, limit_cnt), group_(group.fn_info()), agg_gen_(project) {}
     ~GroupAggRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     KeyGenerator group_;
     AggGenerator agg_gen_;
 };
 class AggRunner : public Runner {
  public:
-    AggRunner(const int32_t id, const SchemasContext* schema,
-              const int32_t limit_cnt, const FnInfo& fn_info)
+    AggRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const FnInfo& fn_info)
         : Runner(id, kRunnerAgg, schema, limit_cnt), agg_gen_(fn_info) {}
     ~AggRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
     AggGenerator agg_gen_;
 };
 class WindowAggRunner : public Runner {
  public:
-    WindowAggRunner(const int32_t id, const SchemasContext* schema,
-                    const int32_t limit_cnt, const WindowOp& window_op,
-                    const FnInfo& fn_info, const bool instance_not_in_window,
-                    const bool exclude_current_time,
+    WindowAggRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const WindowOp& window_op,
+                    const FnInfo& fn_info, const bool instance_not_in_window, const bool exclude_current_time,
                     const bool need_append_input)
         : Runner(id, kRunnerWindowAgg, schema, limit_cnt),
           instance_not_in_window_(instance_not_in_window),
@@ -872,18 +752,13 @@ class WindowAggRunner : public Runner {
     void AddWindowJoin(const Join& join, size_t left_slices, Runner* runner) {
         windows_join_gen_.AddWindowJoin(join, left_slices, runner);
     }
-    void AddWindowUnion(const WindowOp& window, Runner* runner) {
-        windows_union_gen_.AddWindowUnion(window, runner);
-    }
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
-    void RunWindowAggOnKey(
-        std::shared_ptr<PartitionHandler> instance_partition,
-        std::vector<std::shared_ptr<PartitionHandler>> union_partitions,
-        std::vector<std::shared_ptr<DataHandler>> joins, const std::string& key,
-        std::shared_ptr<MemTableHandler> output_table);
+    void AddWindowUnion(const WindowOp& window, Runner* runner) { windows_union_gen_.AddWindowUnion(window, runner); }
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
+    void RunWindowAggOnKey(std::shared_ptr<PartitionHandler> instance_partition,
+                           std::vector<std::shared_ptr<PartitionHandler>> union_partitions,
+                           std::vector<std::shared_ptr<DataHandler>> joins, const std::string& key,
+                           std::shared_ptr<MemTableHandler> output_table);
 
     const bool instance_not_in_window_;
     const bool exclude_current_time_;
@@ -897,23 +772,20 @@ class WindowAggRunner : public Runner {
 
 class RequestUnionRunner : public Runner {
  public:
-    RequestUnionRunner(const int32_t id, const SchemasContext* schema,
-                       const int32_t limit_cnt, const Range& range,
+    RequestUnionRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Range& range,
                        bool exclude_current_time, bool output_request_row)
         : Runner(id, kRunnerRequestUnion, schema, limit_cnt),
           range_gen_(range),
           exclude_current_time_(exclude_current_time),
           output_request_row_(output_request_row) {}
 
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
-    static std::shared_ptr<TableHandler> RequestUnionWindow(
-        const Row& request,
-        std::vector<std::shared_ptr<TableHandler>> union_segments,
-        int64_t request_ts, const WindowRange& window_range,
-        const bool output_request_row, const bool exclude_current_time);
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
+    static std::shared_ptr<TableHandler> RequestUnionWindow(const Row& request,
+                                                            std::vector<std::shared_ptr<TableHandler>> union_segments,
+                                                            int64_t request_ts, const WindowRange& window_range,
+                                                            const bool output_request_row,
+                                                            const bool exclude_current_time);
     void AddWindowUnion(const RequestWindowOp& window, Runner* runner) {
         windows_union_gen_.AddWindowUnion(window, runner);
     }
@@ -925,50 +797,38 @@ class RequestUnionRunner : public Runner {
 
 class PostRequestUnionRunner : public Runner {
  public:
-    PostRequestUnionRunner(const int32_t id, const SchemasContext* schema,
-                           const Range& request_ts)
-        : Runner(id, kRunnerPostRequestUnion, schema),
-          request_ts_gen_(request_ts.fn_info()) {}
+    PostRequestUnionRunner(const int32_t id, const SchemasContext* schema, const Range& request_ts)
+        : Runner(id, kRunnerPostRequestUnion, schema), request_ts_gen_(request_ts.fn_info()) {}
 
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
  private:
     OrderGenerator request_ts_gen_;
 };
 
 class LastJoinRunner : public Runner {
  public:
-    LastJoinRunner(const int32_t id, const SchemasContext* schema,
-                   const int32_t limit_cnt, const Join& join,
+    LastJoinRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Join& join,
                    size_t left_slices, size_t right_slices)
-        : Runner(id, kRunnerLastJoin, schema, limit_cnt),
-          join_gen_(join, left_slices, right_slices) {}
+        : Runner(id, kRunnerLastJoin, schema, limit_cnt), join_gen_(join, left_slices, right_slices) {}
     ~LastJoinRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
 
     JoinGenerator join_gen_;
 };
 class RequestLastJoinRunner : public Runner {
  public:
-    RequestLastJoinRunner(const int32_t id, const SchemasContext* schema,
-                          const int32_t limit_cnt, const Join& join,
-                          const size_t left_slices, const size_t right_slices,
-                          const bool output_right_only)
+    RequestLastJoinRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt, const Join& join,
+                          const size_t left_slices, const size_t right_slices, const bool output_right_only)
         : Runner(id, kRunnerRequestLastJoin, schema, limit_cnt),
           join_gen_(join, left_slices, right_slices),
           output_right_only_(output_right_only) {}
     ~RequestLastJoinRunner() {}
 
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,                                        // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs);  // NOLINT
-    virtual void PrintRunnerInfo(std::ostream& output,
-                                 const std::string& tab) const {
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                        // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs);  // NOLINT
+    virtual void PrintRunnerInfo(std::ostream& output, const std::string& tab) const {
         output << tab << "[" << id_ << "]" << RunnerTypeName(type_);
         if (is_lazy_) {
             output << " lazy";
@@ -982,53 +842,39 @@ class RequestLastJoinRunner : public Runner {
 };
 class ConcatRunner : public Runner {
  public:
-    ConcatRunner(const int32_t id, const SchemasContext* schema,
-                 const int32_t limit_cnt)
+    ConcatRunner(const int32_t id, const SchemasContext* schema, const int32_t limit_cnt)
         : Runner(id, kRunnerConcat, schema, limit_cnt) {
         is_lazy_ = true;
     }
     ~ConcatRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs)
-        override;  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                                 // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;  // NOLINT
 };
 class LimitRunner : public Runner {
  public:
     LimitRunner(int32_t id, const SchemasContext* schema, int32_t limit_cnt)
         : Runner(id, kRunnerLimit, schema, limit_cnt) {}
     ~LimitRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,                                        // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs);  // NOLINT
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,                                        // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs);  // NOLINT
 };
 
 class ProxyRequestRunner : public Runner {
  public:
-    ProxyRequestRunner(int32_t id, uint32_t task_id,
-                       const SchemasContext* schema_ctx)
-        : Runner(id, kRunnerRequestRunProxy, schema_ctx),
-          task_id_(task_id),
-          index_input_(nullptr) {
+    ProxyRequestRunner(int32_t id, uint32_t task_id, const SchemasContext* schema_ctx)
+        : Runner(id, kRunnerRequestRunProxy, schema_ctx), task_id_(task_id), index_input_(nullptr) {
         is_lazy_ = true;
     }
-    ProxyRequestRunner(int32_t id, uint32_t task_id, Runner* index_input,
-                       const SchemasContext* schema_ctx)
-        : Runner(id, kRunnerRequestRunProxy, schema_ctx),
-          task_id_(task_id),
-          index_input_(index_input) {
+    ProxyRequestRunner(int32_t id, uint32_t task_id, Runner* index_input, const SchemasContext* schema_ctx)
+        : Runner(id, kRunnerRequestRunProxy, schema_ctx), task_id_(task_id), index_input_(index_input) {
         is_lazy_ = true;
     }
     ~ProxyRequestRunner() {}
-    std::shared_ptr<DataHandler> Run(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<std::shared_ptr<DataHandler>>& inputs) override;
-    std::shared_ptr<DataHandlerList> BatchRequestRun(
-        RunnerContext& ctx) override;  // NOLINT
-    virtual void PrintRunnerInfo(std::ostream& output,
-                                 const std::string& tab) const {
-        output << tab << "[" << id_ << "]" << RunnerTypeName(type_)
-               << "(TASK_ID=" << task_id_ << ")";
+    std::shared_ptr<DataHandler> Run(RunnerContext& ctx,  // NOLINT
+                                     const std::vector<std::shared_ptr<DataHandler>>& inputs) override;
+    std::shared_ptr<DataHandlerList> BatchRequestRun(RunnerContext& ctx) override;  // NOLINT
+    virtual void PrintRunnerInfo(std::ostream& output, const std::string& tab) const {
+        output << tab << "[" << id_ << "]" << RunnerTypeName(type_) << "(TASK_ID=" << task_id_ << ")";
         if (is_lazy_) {
             output << " lazy";
         }
@@ -1041,8 +887,7 @@ class ProxyRequestRunner : public Runner {
             output << "\n    " << tab << "proxy_index_input:\n";
             index_input_->Print(output, "    " + tab + "+-", nullptr);
         }
-        if (nullptr != visited_ids &&
-            visited_ids->find(id_) != visited_ids->cend()) {
+        if (nullptr != visited_ids && visited_ids->find(id_) != visited_ids->cend()) {
             output << "\n";
             output << "  " << tab << "...";
             return;
@@ -1061,38 +906,24 @@ class ProxyRequestRunner : public Runner {
     const int32_t task_id() const { return task_id_; }
 
  private:
-    std::shared_ptr<DataHandlerList> RunBatchInput(
-        RunnerContext& ctx,  // NOLINT
-        std::shared_ptr<DataHandlerList> input,
-        std::shared_ptr<DataHandlerList> index_input);
+    std::shared_ptr<DataHandlerList> RunBatchInput(RunnerContext& ctx,  // NOLINT
+                                                   std::shared_ptr<DataHandlerList> input,
+                                                   std::shared_ptr<DataHandlerList> index_input);
     std::shared_ptr<DataHandler> RunWithRowInput(RunnerContext& ctx,  // NOLINT
-                                                 const Row& row,
-                                                 const Row& index_row);
-    std::shared_ptr<TableHandler> RunWithRowsInput(
-        RunnerContext& ctx,  // NOLINT
-        const std::vector<Row>& rows, const std::vector<Row>& index_rows,
-        const bool request_is_common);
+                                                 const Row& row, const Row& index_row);
+    std::shared_ptr<TableHandler> RunWithRowsInput(RunnerContext& ctx,  // NOLINT
+                                                   const std::vector<Row>& rows, const std::vector<Row>& index_rows,
+                                                   const bool request_is_common);
     uint32_t task_id_;
     Runner* index_input_;
 };
 class ClusterTask;
 class RouteInfo {
  public:
-    RouteInfo()
-        : index_(),
-          index_key_(),
-          index_key_input_runner_(nullptr),
-          input_(),
-          table_handler_() {}
-    RouteInfo(const std::string index,
-              std::shared_ptr<TableHandler> table_handler)
-        : index_(index),
-          index_key_(),
-          index_key_input_runner_(nullptr),
-          input_(),
-          table_handler_(table_handler) {}
-    RouteInfo(const std::string index, const Key& index_key,
-              std::shared_ptr<ClusterTask> input,
+    RouteInfo() : index_(), index_key_(), index_key_input_runner_(nullptr), input_(), table_handler_() {}
+    RouteInfo(const std::string index, std::shared_ptr<TableHandler> table_handler)
+        : index_(index), index_key_(), index_key_input_runner_(nullptr), input_(), table_handler_(table_handler) {}
+    RouteInfo(const std::string index, const Key& index_key, std::shared_ptr<ClusterTask> input,
               std::shared_ptr<TableHandler> table_handler)
         : index_(index),
           index_key_(index_key),
@@ -1100,24 +931,18 @@ class RouteInfo {
           input_(input),
           table_handler_(table_handler) {}
     ~RouteInfo() {}
-    const bool IsCompleted() const {
-        return table_handler_ && !index_.empty() && index_key_.ValidKey();
-    }
+    const bool IsCompleted() const { return table_handler_ && !index_.empty() && index_key_.ValidKey(); }
     const bool IsCluster() const { return table_handler_ && !index_.empty(); }
-    static const bool EqualWith(const RouteInfo& info1,
-                                const RouteInfo& info2) {
-        return info1.input_ == info2.input_ &&
-               info1.table_handler_ == info2.table_handler_ &&
-               info1.index_ == info2.index_ &&
-               node::ExprEquals(info1.index_key_.keys_, info2.index_key_.keys_);
+    static const bool EqualWith(const RouteInfo& info1, const RouteInfo& info2) {
+        return info1.input_ == info2.input_ && info1.table_handler_ == info2.table_handler_ &&
+               info1.index_ == info2.index_ && node::ExprEquals(info1.index_key_.keys_, info2.index_key_.keys_);
     }
 
     const std::string ToString() const {
         if (IsCompleted()) {
             std::ostringstream oss;
-            oss << ", routing index = " << table_handler_->GetDatabase() << "."
-                << table_handler_->GetName() << "." << index_ << ", "
-                << index_key_.ToString();
+            oss << ", routing index = " << table_handler_->GetDatabase() << "." << table_handler_->GetName() << "."
+                << index_ << ", " << index_key_.ToString();
             return oss.str();
         } else {
             return "";
@@ -1137,13 +962,10 @@ class RouteInfo {
 class ClusterTask {
  public:
     ClusterTask() : root_(nullptr), input_runners_(), route_info_() {}
-    explicit ClusterTask(Runner* root)
-        : root_(root), input_runners_(), route_info_() {}
-    ClusterTask(Runner* root, const std::shared_ptr<TableHandler> table_handler,
-                std::string index)
+    explicit ClusterTask(Runner* root) : root_(root), input_runners_(), route_info_() {}
+    ClusterTask(Runner* root, const std::shared_ptr<TableHandler> table_handler, std::string index)
         : root_(root), input_runners_(), route_info_(index, table_handler) {}
-    ClusterTask(Runner* root, const std::vector<Runner*>& input_runners,
-                const RouteInfo& route_info)
+    ClusterTask(Runner* root, const std::vector<Runner*>& input_runners, const RouteInfo& route_info)
         : root_(root), input_runners_(input_runners), route_info_(route_info) {}
     ~ClusterTask() {}
     void Print(std::ostream& output, const std::string& tab) const {
@@ -1165,45 +987,29 @@ class ClusterTask {
     }
     Runner* GetRoot() const { return root_; }
     void SetRoot(Runner* root) { root_ = root; }
-    Runner* GetInputRunner(size_t idx) const {
-        return idx >= input_runners_.size() ? nullptr : input_runners_[idx];
-    }
-    Runner* GetIndexKeyInput() const {
-        return route_info_.index_key_input_runner_;
-    }
+    Runner* GetInputRunner(size_t idx) const { return idx >= input_runners_.size() ? nullptr : input_runners_[idx]; }
+    Runner* GetIndexKeyInput() const { return route_info_.index_key_input_runner_; }
     std::shared_ptr<ClusterTask> GetInput() const { return route_info_.input_; }
     Key GetIndexKey() const { return route_info_.index_key_; }
     void SetIndexKey(const Key& key) { route_info_.index_key_ = key; }
-    void SetInput(std::shared_ptr<ClusterTask> input) {
-        route_info_.input_ = input;
-    }
+    void SetInput(std::shared_ptr<ClusterTask> input) { route_info_.input_ = input; }
 
     const bool IsValid() const { return nullptr != root_; }
 
-    const bool IsCompletedClusterTask() const {
-        return IsValid() && route_info_.IsCompleted();
-    }
-    const bool IsUnCompletedClusterTask() const {
-        return IsClusterTask() && !route_info_.IsCompleted();
-    }
+    const bool IsCompletedClusterTask() const { return IsValid() && route_info_.IsCompleted(); }
+    const bool IsUnCompletedClusterTask() const { return IsClusterTask() && !route_info_.IsCompleted(); }
     const bool IsClusterTask() const { return route_info_.IsCluster(); }
     const std::string& index() { return route_info_.index_; }
-    std::shared_ptr<TableHandler> table_handler() {
-        return route_info_.table_handler_;
-    }
+    std::shared_ptr<TableHandler> table_handler() { return route_info_.table_handler_; }
 
     // Cluster tasks with same input runners and index keys can be merged
-    static const bool TaskCanBeMerge(const ClusterTask& task1,
-                                     const ClusterTask& task2) {
+    static const bool TaskCanBeMerge(const ClusterTask& task1, const ClusterTask& task2) {
         return RouteInfo::EqualWith(task1.route_info_, task2.route_info_);
     }
-    static const ClusterTask TaskMerge(Runner* root, const ClusterTask& task1,
-                                       const ClusterTask& task2) {
+    static const ClusterTask TaskMerge(Runner* root, const ClusterTask& task1, const ClusterTask& task2) {
         return TaskMergeToLeft(root, task1, task2);
     }
-    static const ClusterTask TaskMergeToLeft(Runner* root,
-                                             const ClusterTask& task1,
-                                             const ClusterTask& task2) {
+    static const ClusterTask TaskMergeToLeft(Runner* root, const ClusterTask& task1, const ClusterTask& task2) {
         std::vector<Runner*> input_runners;
         for (auto runner : task1.input_runners_) {
             input_runners.push_back(runner);
@@ -1213,9 +1019,7 @@ class ClusterTask {
         }
         return ClusterTask(root, input_runners, task1.route_info_);
     }
-    static const ClusterTask TaskMergeToRight(Runner* root,
-                                              const ClusterTask& task1,
-                                              const ClusterTask& task2) {
+    static const ClusterTask TaskMergeToRight(Runner* root, const ClusterTask& task1, const ClusterTask& task2) {
         std::vector<Runner*> input_runners;
         for (auto runner : task1.input_runners_) {
             input_runners.push_back(runner);
@@ -1247,14 +1051,9 @@ class ClusterTask {
 
 class ClusterJob {
  public:
-    ClusterJob()
-        : tasks_(), main_task_id_(-1), sql_(""), common_column_indices_() {}
-    explicit ClusterJob(const std::string& sql,
-                        const std::set<size_t>& common_column_indices)
-        : tasks_(),
-          main_task_id_(-1),
-          sql_(sql),
-          common_column_indices_(common_column_indices) {}
+    ClusterJob() : tasks_(), main_task_id_(-1), sql_(""), common_column_indices_() {}
+    explicit ClusterJob(const std::string& sql, const std::set<size_t>& common_column_indices)
+        : tasks_(), main_task_id_(-1), sql_(sql), common_column_indices_(common_column_indices) {}
     ClusterTask GetTask(int32_t id) {
         if (id < 0 || id >= static_cast<int32_t>(tasks_.size())) {
             LOG(WARNING) << "fail get task: task " << id << " not exist";
@@ -1303,9 +1102,7 @@ class ClusterJob {
             output << "\n";
         }
     }
-    const std::set<size_t>& common_column_indices() const {
-        return common_column_indices_;
-    }
+    const std::set<size_t>& common_column_indices() const { return common_column_indices_; }
     void Print() const { this->Print(std::cout, "    "); }
 
  private:
@@ -1318,10 +1115,8 @@ class RunnerBuilder {
     enum TaskBiasType { kLeftBias, kRightBias, kNoBias };
 
  public:
-    explicit RunnerBuilder(node::NodeManager* nm, const std::string& sql,
-                           bool support_cluster_optimized,
-                           const std::set<size_t>& common_column_indices,
-                           const std::set<size_t>& batch_common_node_set)
+    explicit RunnerBuilder(node::NodeManager* nm, const std::string& sql, bool support_cluster_optimized,
+                           const std::set<size_t>& common_column_indices, const std::set<size_t>& batch_common_node_set)
         : nm_(nm),
           support_cluster_optimized_(support_cluster_optimized),
           id_(0),
@@ -1332,8 +1127,7 @@ class RunnerBuilder {
     virtual ~RunnerBuilder() {}
     ClusterTask RegisterTask(PhysicalOpNode* node, ClusterTask task) {
         task_map_[node] = task;
-        if (batch_common_node_set_.find(node->node_id()) !=
-            batch_common_node_set_.end()) {
+        if (batch_common_node_set_.find(node->node_id()) != batch_common_node_set_.end()) {
             task.GetRoot()->EnableBatchCache();
         }
         return task;
@@ -1384,58 +1178,38 @@ class RunnerBuilder {
     int32_t id_;
     ClusterJob cluster_job_;
 
-    std::unordered_map<::hybridse::vm::PhysicalOpNode*,
-                       ::hybridse::vm::ClusterTask>
-        task_map_;
+    std::unordered_map<::hybridse::vm::PhysicalOpNode*, ::hybridse::vm::ClusterTask> task_map_;
     std::shared_ptr<ClusterTask> request_task_;
-    std::unordered_map<hybridse::vm::Runner*, ::hybridse::vm::Runner*>
-        proxy_runner_map_;
+    std::unordered_map<hybridse::vm::Runner*, ::hybridse::vm::Runner*> proxy_runner_map_;
     std::set<size_t> batch_common_node_set_;
-    ClusterTask BinaryInherit(const ClusterTask& left, const ClusterTask& right,
-                              Runner* runner, const Key& index_key,
+    ClusterTask BinaryInherit(const ClusterTask& left, const ClusterTask& right, Runner* runner, const Key& index_key,
                               const TaskBiasType bias = kNoBias);
-    ClusterTask BuildLocalTaskForBinaryRunner(const ClusterTask& left,
-                                              const ClusterTask& right,
-                                              Runner* runner);
-    ClusterTask BuildClusterTaskForBinaryRunner(const ClusterTask& left,
-                                                const ClusterTask& right,
-                                                Runner* runner,
-                                                const Key& index_key,
-                                                const TaskBiasType bias);
+    ClusterTask BuildLocalTaskForBinaryRunner(const ClusterTask& left, const ClusterTask& right, Runner* runner);
+    ClusterTask BuildClusterTaskForBinaryRunner(const ClusterTask& left, const ClusterTask& right, Runner* runner,
+                                                const Key& index_key, const TaskBiasType bias);
     ClusterTask BuildProxyRunnerForClusterTask(const ClusterTask& task);
     ClusterTask InvalidTask() { return ClusterTask(); }
     ClusterTask CommonTask(Runner* runner) { return ClusterTask(runner); }
-    ClusterTask UnCompletedClusterTask(
-        Runner* runner, const std::shared_ptr<TableHandler> table_handler,
-        std::string index);
+    ClusterTask UnCompletedClusterTask(Runner* runner, const std::shared_ptr<TableHandler> table_handler,
+                                       std::string index);
     ClusterTask BuildRequestTask(RequestRunner* runner);
     ClusterTask UnaryInheritTask(const ClusterTask& input, Runner* runner);
 };
 
 class RunnerContext {
  public:
-    explicit RunnerContext(hybridse::vm::ClusterJob* cluster_job,
-                           const bool is_debug = false)
-        : cluster_job_(cluster_job),
-          sp_name_(""),
-          request_(),
-          requests_(),
-          is_debug_(is_debug),
-          batch_cache_() {}
-    explicit RunnerContext(hybridse::vm::ClusterJob* cluster_job,
-                           const hybridse::codec::Row& request,
-                           const std::string& sp_name = "",
-                           const bool is_debug = false)
+    explicit RunnerContext(hybridse::vm::ClusterJob* cluster_job, const bool is_debug = false)
+        : cluster_job_(cluster_job), sp_name_(""), request_(), requests_(), is_debug_(is_debug), batch_cache_() {}
+    explicit RunnerContext(hybridse::vm::ClusterJob* cluster_job, const hybridse::codec::Row& request,
+                           const std::string& sp_name = "", const bool is_debug = false)
         : cluster_job_(cluster_job),
           sp_name_(sp_name),
           request_(request),
           requests_(),
           is_debug_(is_debug),
           batch_cache_() {}
-    explicit RunnerContext(hybridse::vm::ClusterJob* cluster_job,
-                           const std::vector<Row>& request_batch,
-                           const std::string& sp_name = "",
-                           const bool is_debug = false)
+    explicit RunnerContext(hybridse::vm::ClusterJob* cluster_job, const std::vector<Row>& request_batch,
+                           const std::string& sp_name = "", const bool is_debug = false)
         : cluster_job_(cluster_job),
           sp_name_(sp_name),
           request_(),
@@ -1445,9 +1219,7 @@ class RunnerContext {
 
     const size_t GetRequestSize() const { return requests_.size(); }
     const hybridse::codec::Row& GetRequest() const { return request_; }
-    const hybridse::codec::Row& GetRequest(size_t idx) const {
-        return requests_[idx];
-    }
+    const hybridse::codec::Row& GetRequest(size_t idx) const { return requests_[idx]; }
     hybridse::vm::ClusterJob* cluster_job() { return cluster_job_; }
     void SetRequest(const hybridse::codec::Row& request);
     void SetRequests(const std::vector<hybridse::codec::Row>& requests);

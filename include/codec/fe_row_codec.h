@@ -32,8 +32,7 @@ namespace codec {
 
 const uint32_t BitMapSize(uint32_t size);
 
-typedef ::google::protobuf::RepeatedPtrField<::hybridse::type::ColumnDef>
-    Schema;
+typedef ::google::protobuf::RepeatedPtrField<::hybridse::type::ColumnDef> Schema;
 
 static constexpr uint8_t VERSION_LENGTH = 2;
 static constexpr uint8_t SIZE_LENGTH = 4;
@@ -56,15 +55,10 @@ inline uint8_t GetAddrLength(uint32_t size) {
         return 4;
     }
 }
-inline uint32_t GetBitmapSize(uint32_t column_size) {
-    return BitMapSize(column_size);
-}
-inline uint32_t GetStartOffset(int32_t column_count) {
-    return HEADER_LENGTH + BitMapSize(column_count);
-}
+inline uint32_t GetBitmapSize(uint32_t column_size) { return BitMapSize(column_size); }
+inline uint32_t GetStartOffset(int32_t column_count) { return HEADER_LENGTH + BitMapSize(column_count); }
 
-void FillNullStringOffset(int8_t* buf, uint32_t start, uint32_t addr_length,
-                          uint32_t str_idx, uint32_t str_offset);
+void FillNullStringOffset(int8_t* buf, uint32_t start, uint32_t addr_length, uint32_t str_idx, uint32_t str_offset);
 
 class RowBuilder {
  public:
@@ -103,8 +97,7 @@ class RowBuilder {
 class RowView {
  public:
     RowView();
-    RowView(const hybridse::codec::Schema& schema, const int8_t* row,
-            uint32_t size);
+    RowView(const hybridse::codec::Schema& schema, const int8_t* row, uint32_t size);
     explicit RowView(const hybridse::codec::Schema& schema);
     RowView(const RowView& row_view);
     ~RowView() = default;
@@ -141,14 +134,11 @@ class RowView {
     static inline uint32_t GetSize(const int8_t* row) {
         return *(reinterpret_cast<const uint32_t*>(row + VERSION_LENGTH));
     }
-    int32_t GetValue(const int8_t* row, uint32_t idx,
-                     ::hybridse::type::Type type, void* val) const;
+    int32_t GetValue(const int8_t* row, uint32_t idx, ::hybridse::type::Type type, void* val) const;
 
-    int32_t GetInteger(const int8_t* row, uint32_t idx,
-                       ::hybridse::type::Type type, int64_t* val);
+    int32_t GetInteger(const int8_t* row, uint32_t idx, ::hybridse::type::Type type, int64_t* val);
 
-    int32_t GetValue(const int8_t* row, uint32_t idx, const char** val,
-                     uint32_t* length) const;
+    int32_t GetValue(const int8_t* row, uint32_t idx, const char** val, uint32_t* length) const;
 
     std::string GetAsString(uint32_t idx);
     std::string GetRowString();
@@ -182,8 +172,7 @@ struct ColInfo {
     std::string name;
 
     ColInfo() {}
-    ColInfo(const std::string& name, ::hybridse::type::Type type, uint32_t idx,
-            uint32_t offset)
+    ColInfo(const std::string& name, ::hybridse::type::Type type, uint32_t idx, uint32_t offset)
         : type(type), idx(idx), offset(offset), name(name) {}
 };
 
@@ -192,12 +181,9 @@ struct StringColInfo : public ColInfo {
     uint32_t str_start_offset;
 
     StringColInfo() {}
-    StringColInfo(const std::string& name, ::hybridse::type::Type type,
-                  uint32_t idx, uint32_t offset, uint32_t str_next_offset,
-                  uint32_t str_start_offset)
-        : ColInfo(name, type, idx, offset),
-          str_next_offset(str_next_offset),
-          str_start_offset(str_start_offset) {}
+    StringColInfo(const std::string& name, ::hybridse::type::Type type, uint32_t idx, uint32_t offset,
+                  uint32_t str_next_offset, uint32_t str_start_offset)
+        : ColInfo(name, type, idx, offset), str_next_offset(str_next_offset), str_start_offset(str_start_offset) {}
 };
 
 class RowFormat {

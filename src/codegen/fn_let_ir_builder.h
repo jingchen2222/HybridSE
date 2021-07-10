@@ -40,32 +40,24 @@ class RowFnLetIRBuilder {
 
     ~RowFnLetIRBuilder();
 
-    Status Build(const std::string& name, const node::LambdaNode* project_func,
-                 const node::FrameNode* primary_frame,
-                 const std::vector<const node::FrameNode*>& project_frames,
-                 const vm::Schema& output_schema);
+    Status Build(const std::string& name, const node::LambdaNode* project_func, const node::FrameNode* primary_frame,
+                 const std::vector<const node::FrameNode*>& project_frames, const vm::Schema& output_schema);
 
  private:
-    bool BuildFnHeader(const std::string& name,
-                       const std::vector<::llvm::Type*>& args_type,
-                       ::llvm::Type* ret_type, ::llvm::Function** fn);
+    bool BuildFnHeader(const std::string& name, const std::vector<::llvm::Type*>& args_type, ::llvm::Type* ret_type,
+                       ::llvm::Function** fn);
 
-    bool FillArgs(const std::vector<std::string>& args, ::llvm::Function* fn,
-                  ScopeVar* sv);
+    bool FillArgs(const std::vector<std::string>& args, ::llvm::Function* fn, ScopeVar* sv);
 
-    bool EncodeBuf(
-        const std::map<uint32_t, NativeValue>* values, const vm::Schema& schema,
-        VariableIRBuilder& variable_ir_builder,  // NOLINT (runtime/references)
-        ::llvm::BasicBlock* block, const std::string& output_ptr_name);
+    bool EncodeBuf(const std::map<uint32_t, NativeValue>* values, const vm::Schema& schema,
+                   VariableIRBuilder& variable_ir_builder,  // NOLINT (runtime/references)
+                   ::llvm::BasicBlock* block, const std::string& output_ptr_name);
 
-    Status BuildProject(ExprIRBuilder* expr_ir_builder, const uint32_t index,
-                        const node::ExprNode* expr,
+    Status BuildProject(ExprIRBuilder* expr_ir_builder, const uint32_t index, const node::ExprNode* expr,
                         std::map<uint32_t, NativeValue>* output);
 
-    Status BindProjectFrame(ExprIRBuilder* expr_ir_builder,
-                            const node::FrameNode* frame,
-                            const node::LambdaNode* compile_func,
-                            ::llvm::BasicBlock* block, ScopeVar* sv);
+    Status BindProjectFrame(ExprIRBuilder* expr_ir_builder, const node::FrameNode* frame,
+                            const node::LambdaNode* compile_func, ::llvm::BasicBlock* block, ScopeVar* sv);
 
  private:
     CodeGenContext* ctx_;

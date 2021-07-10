@@ -43,25 +43,19 @@ struct ContainerStorageTypeTrait {
 template <>
 struct ContainerStorageTypeTrait<codec::StringRef> {
     using type = codec::StringRef;
-    static codec::StringRef to_stored_value(codec::StringRef* t) {
-        return t == nullptr ? codec::StringRef() : *t;
-    }
+    static codec::StringRef to_stored_value(codec::StringRef* t) { return t == nullptr ? codec::StringRef() : *t; }
 };
 
 template <>
 struct ContainerStorageTypeTrait<codec::Date> {
     using type = codec::Date;
-    static codec::Date to_stored_value(codec::Date* t) {
-        return t == nullptr ? codec::Date(0) : *t;
-    }
+    static codec::Date to_stored_value(codec::Date* t) { return t == nullptr ? codec::Date(0) : *t; }
 };
 
 template <>
 struct ContainerStorageTypeTrait<codec::Timestamp> {
     using type = codec::Timestamp;
-    static codec::Timestamp to_stored_value(codec::Timestamp* t) {
-        return t == nullptr ? codec::Timestamp(0) : *t;
-    }
+    static codec::Timestamp to_stored_value(codec::Timestamp* t) { return t == nullptr ? codec::Timestamp(0) : *t; }
 };
 
 template <typename T, typename BoundT>
@@ -85,8 +79,7 @@ class TopKContainer {
 
     static void Destroy(ContainerT* ptr) { ptr->~ContainerT(); }
 
-    static ContainerT* Push(ContainerT* ptr, InputT t, bool is_null,
-                            BoundT bound) {
+    static ContainerT* Push(ContainerT* ptr, InputT t, bool is_null, BoundT bound) {
         if (ptr->bound_ <= 0) {
             ptr->bound_ = bound;
         }
@@ -117,8 +110,7 @@ class TopKContainer {
         uint32_t remain_space = str_len;
         for (auto iter = map.rbegin(); iter != map.rend(); ++iter) {
             for (size_t k = 0; k < iter->second; ++k) {
-                uint32_t key_len =
-                    v1::format_string(iter->first, cur, remain_space);
+                uint32_t key_len = v1::format_string(iter->first, cur, remain_space);
                 cur += key_len;
                 remain_space -= key_len;
                 if (remain_space-- > 0) {
@@ -156,8 +148,7 @@ class TopKContainer {
     BoundT bound_ = -1;  // delayed to be set by first push
 };
 
-template <typename K, typename V,
-          typename StorageV = typename ContainerStorageTypeTrait<V>::type>
+template <typename K, typename V, typename StorageV = typename ContainerStorageTypeTrait<V>::type>
 class BoundedGroupByDict {
  public:
     // actual input type
@@ -170,8 +161,7 @@ class BoundedGroupByDict {
     // self type
     using ContainerT = BoundedGroupByDict<K, V, StorageV>;
 
-    using FormatValueF =
-        std::function<uint32_t(const StorageV&, char*, size_t)>;
+    using FormatValueF = std::function<uint32_t(const StorageV&, char*, size_t)>;
 
     // convert to internal key and value
     static inline StorageK to_stored_key(const InputK& key) {
@@ -193,16 +183,12 @@ class BoundedGroupByDict {
         ptr->~ContainerT();
     }
 
-    static void OutputString(ContainerT* ptr, bool is_desc,
-                             codec::StringRef* output) {
+    static void OutputString(ContainerT* ptr, bool is_desc, codec::StringRef* output) {
         OutputString(ptr, is_desc, output,
-                     [](const StorageV& value, char* buf, size_t size) {
-                         return v1::format_string(value, buf, size);
-                     });
+                     [](const StorageV& value, char* buf, size_t size) { return v1::format_string(value, buf, size); });
     }
 
-    static void OutputString(ContainerT* ptr, bool is_desc,
-                             codec::StringRef* output,
+    static void OutputString(ContainerT* ptr, bool is_desc, codec::StringRef* output,
                              const FormatValueF& format_value) {
         auto& map = ptr->map_;
         if (map.empty()) {
@@ -252,14 +238,12 @@ class BoundedGroupByDict {
                 if (iter == stop_rpos) {
                     break;
                 }
-                uint32_t key_len =
-                    v1::format_string(iter->first, cur, remain_space);
+                uint32_t key_len = v1::format_string(iter->first, cur, remain_space);
                 cur += key_len;
                 *(cur++) = ':';
                 remain_space -= key_len + 1;
 
-                uint32_t value_len =
-                    format_value(iter->second, cur, remain_space);
+                uint32_t value_len = format_value(iter->second, cur, remain_space);
                 cur += value_len;
                 remain_space -= value_len;
                 if (remain_space-- > 0) {
@@ -271,14 +255,12 @@ class BoundedGroupByDict {
                 if (iter == stop_pos) {
                     break;
                 }
-                uint32_t key_len =
-                    v1::format_string(iter->first, cur, remain_space);
+                uint32_t key_len = v1::format_string(iter->first, cur, remain_space);
                 cur += key_len;
                 *(cur++) = ':';
                 remain_space -= key_len + 1;
 
-                uint32_t value_len =
-                    format_value(iter->second, cur, remain_space);
+                uint32_t value_len = format_value(iter->second, cur, remain_space);
                 cur += value_len;
                 remain_space -= value_len;
                 if (remain_space-- > 0) {
@@ -289,8 +271,7 @@ class BoundedGroupByDict {
 
         *(buffer + str_len - 1) = '\0';
         output->data_ = buffer;
-        output->size_ =
-            str_len - 1;  // must leave one '\0' for string format impl
+        output->size_ = str_len - 1;  // must leave one '\0' for string format impl
     }
 
     std::map<StorageK, StorageV>& map() { return map_; }

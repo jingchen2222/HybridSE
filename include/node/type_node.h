@@ -31,20 +31,12 @@ class NodeManager;
 class TypeNode : public SqlNode {
  public:
     TypeNode() : SqlNode(node::kType, 0, 0), base_(hybridse::node::kNull) {}
-    explicit TypeNode(hybridse::node::DataType base)
-        : SqlNode(node::kType, 0, 0), base_(base), generics_({}) {}
+    explicit TypeNode(hybridse::node::DataType base) : SqlNode(node::kType, 0, 0), base_(base), generics_({}) {}
     explicit TypeNode(hybridse::node::DataType base, const TypeNode *v1)
-        : SqlNode(node::kType, 0, 0),
-          base_(base),
-          generics_({v1}),
-          generics_nullable_({false}) {}
-    explicit TypeNode(hybridse::node::DataType base,
-                      const hybridse::node::TypeNode *v1,
+        : SqlNode(node::kType, 0, 0), base_(base), generics_({v1}), generics_nullable_({false}) {}
+    explicit TypeNode(hybridse::node::DataType base, const hybridse::node::TypeNode *v1,
                       const hybridse::node::TypeNode *v2)
-        : SqlNode(node::kType, 0, 0),
-          base_(base),
-          generics_({v1, v2}),
-          generics_nullable_({false, false}) {}
+        : SqlNode(node::kType, 0, 0), base_(base), generics_({v1, v2}), generics_nullable_({false, false}) {}
     ~TypeNode() {}
     virtual const std::string GetName() const {
         std::string type_name = DataTypeName(base_);
@@ -57,18 +49,14 @@ class TypeNode : public SqlNode {
         return type_name;
     }
 
-    const hybridse::node::TypeNode *GetGenericType(size_t idx) const {
-        return generics_[idx];
-    }
+    const hybridse::node::TypeNode *GetGenericType(size_t idx) const { return generics_[idx]; }
 
     bool IsGenericNullable(size_t idx) const { return generics_nullable_[idx]; }
 
     size_t GetGenericSize() const { return generics_.size(); }
 
     hybridse::node::DataType base() const { return base_; }
-    const std::vector<const hybridse::node::TypeNode *> &generics() const {
-        return generics_;
-    }
+    const std::vector<const hybridse::node::TypeNode *> &generics() const { return generics_; }
 
     void AddGeneric(const node::TypeNode *dtype, bool nullable) {
         generics_.push_back(dtype);
@@ -101,14 +89,11 @@ class TypeNode : public SqlNode {
 
 class OpaqueTypeNode : public TypeNode {
  public:
-    explicit OpaqueTypeNode(size_t bytes)
-        : TypeNode(node::kOpaque), bytes_(bytes) {}
+    explicit OpaqueTypeNode(size_t bytes) : TypeNode(node::kOpaque), bytes_(bytes) {}
 
     size_t bytes() const { return bytes_; }
 
-    const std::string GetName() const override {
-        return "opaque<" + std::to_string(bytes_) + ">";
-    }
+    const std::string GetName() const override { return "opaque<" + std::to_string(bytes_) + ">"; }
 
     OpaqueTypeNode *ShadowCopy(NodeManager *) const override;
 

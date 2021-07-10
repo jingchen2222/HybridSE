@@ -25,8 +25,7 @@ using hybridse::node::ExprAttrNode;
 namespace hybridse {
 namespace passes {
 
-Status ExprInplaceTransformUp::Apply(ExprAnalysisContext* ctx, ExprNode* expr,
-                                     ExprNode** out) {
+Status ExprInplaceTransformUp::Apply(ExprAnalysisContext* ctx, ExprNode* expr, ExprNode** out) {
     Reset(ctx);
     return DoApply(expr, out);
 }
@@ -57,8 +56,7 @@ Status ExprInplaceTransformUp::DoApply(ExprNode* expr, ExprNode** out) {
         } else if (new_child != expr->GetChild(i)) {
             expr->SetChild(i, new_child);
             changed = true;
-        } else if (new_child->GetOutputType() != origin_dtype ||
-                   new_child->nullable() != origin_nullable) {
+        } else if (new_child->GetOutputType() != origin_dtype || new_child->nullable() != origin_nullable) {
             changed = true;
         }
     }
@@ -70,8 +68,7 @@ Status ExprInplaceTransformUp::DoApply(ExprNode* expr, ExprNode** out) {
     }
     switch (expr->GetExprType()) {
         case node::kExprGetField: {
-            CHECK_STATUS(
-                VisitGetField(dynamic_cast<node::GetFieldExpr*>(expr), out));
+            CHECK_STATUS(VisitGetField(dynamic_cast<node::GetFieldExpr*>(expr), out));
             break;
         }
         case node::kExprCall: {
@@ -81,8 +78,7 @@ Status ExprInplaceTransformUp::DoApply(ExprNode* expr, ExprNode** out) {
             std::vector<ExprAttrNode> arg_attrs;
             for (size_t i = 0; i < call->GetChildNum(); ++i) {
                 auto child = call->GetChild(i);
-                arg_attrs.push_back(
-                    ExprAttrNode(child->GetOutputType(), child->nullable()));
+                arg_attrs.push_back(ExprAttrNode(child->GetOutputType(), child->nullable()));
             }
             CHECK_STATUS(VisitFnDef(fn, arg_attrs, &new_fn));
             if (new_fn != fn) {
@@ -92,8 +88,7 @@ Status ExprInplaceTransformUp::DoApply(ExprNode* expr, ExprNode** out) {
                 for (size_t i = 0; i < call->GetChildNum(); ++i) {
                     arg_types.push_back(call->GetChild(i)->GetOutputType());
                 }
-                CHECK_STATUS(
-                    resolver.VisitFnDef(new_fn, arg_types, &resolved_fn));
+                CHECK_STATUS(resolver.VisitFnDef(new_fn, arg_types, &resolved_fn));
                 call->SetFnDef(resolved_fn);
 
                 node::ExprNode* update_expr = nullptr;
@@ -120,13 +115,9 @@ Status ExprInplaceTransformUp::DoApply(ExprNode* expr, ExprNode** out) {
     return Status::OK();
 }
 
-Status ExprInplaceTransformUp::VisitCall(node::CallExprNode* expr,
-                                         ExprNode** out) {
-    return VisitDefault(expr, out);
-}
+Status ExprInplaceTransformUp::VisitCall(node::CallExprNode* expr, ExprNode** out) { return VisitDefault(expr, out); }
 
-Status ExprInplaceTransformUp::VisitGetField(node::GetFieldExpr* expr,
-                                             ExprNode** out) {
+Status ExprInplaceTransformUp::VisitGetField(node::GetFieldExpr* expr, ExprNode** out) {
     return VisitDefault(expr, out);
 }
 
@@ -135,18 +126,15 @@ Status ExprInplaceTransformUp::VisitDefault(ExprNode* expr, ExprNode** out) {
     return Status::OK();
 }
 
-Status ExprInplaceTransformUp::VisitFnDef(
-    node::FnDefNode* fn, const std::vector<node::ExprAttrNode>& arg_attrs,
-    node::FnDefNode** out) {
+Status ExprInplaceTransformUp::VisitFnDef(node::FnDefNode* fn, const std::vector<node::ExprAttrNode>& arg_attrs,
+                                          node::FnDefNode** out) {
     *out = fn;
     switch (fn->GetType()) {
         case node::kLambdaDef: {
-            return VisitLambda(dynamic_cast<node::LambdaNode*>(fn), arg_attrs,
-                               out);
+            return VisitLambda(dynamic_cast<node::LambdaNode*>(fn), arg_attrs, out);
         }
         case node::kUdafDef: {
-            return VisitUdaf(dynamic_cast<node::UdafDefNode*>(fn), arg_attrs,
-                             out);
+            return VisitUdaf(dynamic_cast<node::UdafDefNode*>(fn), arg_attrs, out);
         }
         default: {
             return Status::OK();
@@ -154,9 +142,8 @@ Status ExprInplaceTransformUp::VisitFnDef(
     }
 }
 
-Status ExprInplaceTransformUp::VisitLambda(
-    node::LambdaNode* lambda, const std::vector<node::ExprAttrNode>& arg_attrs,
-    node::FnDefNode** out) {
+Status ExprInplaceTransformUp::VisitLambda(node::LambdaNode* lambda, const std::vector<node::ExprAttrNode>& arg_attrs,
+                                           node::FnDefNode** out) {
     CHECK_TRUE(arg_attrs.size() == lambda->GetArgSize(), common::kPlanError);
     node::ExprNode* new_body = nullptr;
     CHECK_STATUS(DoApply(lambda->body(), &new_body));
@@ -167,9 +154,8 @@ Status ExprInplaceTransformUp::VisitLambda(
     return Status::OK();
 }
 
-Status ExprInplaceTransformUp::VisitUdaf(
-    node::UdafDefNode* udaf, const std::vector<node::ExprAttrNode>& arg_attrs,
-    node::FnDefNode** out) {
+Status ExprInplaceTransformUp::VisitUdaf(node::UdafDefNode* udaf, const std::vector<node::ExprAttrNode>& arg_attrs,
+                                         node::FnDefNode** out) {
     CHECK_TRUE(arg_attrs.size() == udaf->GetArgSize(), common::kPlanError);
     bool changed = false;
 
@@ -225,9 +211,8 @@ Status ExprInplaceTransformUp::VisitUdaf(
     }
 
     if (changed) {
-        *out = ctx_->node_manager()->MakeUdafDefNode(
-            udaf->GetName(), udaf->GetArgTypeList(), init, update, merge,
-            output_fn);
+        *out = ctx_->node_manager()->MakeUdafDefNode(udaf->GetName(), udaf->GetArgTypeList(), init, update, merge,
+                                                     output_fn);
     } else {
         *out = udaf;
     }
@@ -237,8 +222,7 @@ Status ExprInplaceTransformUp::VisitUdaf(
 /**
  * GetField(MakeTuple(e1, e2, ..., ek, ...), k) => ek
  */
-Status ExprSimplifier::VisitGetField(node::GetFieldExpr* get_field,
-                                     ExprNode** out) {
+Status ExprSimplifier::VisitGetField(node::GetFieldExpr* get_field, ExprNode** out) {
     *out = get_field;
     auto input = get_field->GetChild(0);
     auto input_type = input->GetOutputType();

@@ -79,16 +79,13 @@ node::ProjectListNode* GetPlanNodeList(node::PlanNodeList trees) {
     }
 
     ::hybridse::node::ProjectListNode* pp_node_ptr =
-        dynamic_cast<hybridse::node::ProjectListNode*>(
-            plan_node->project_list_vec_[0]);
+        dynamic_cast<hybridse::node::ProjectListNode*>(plan_node->project_list_vec_[0]);
     return pp_node_ptr;
 }
 
-
-void CheckFnLetBuilder(::hybridse::node::NodeManager* manager,
-                       vm::SchemasContext* schemas_ctx, std::string udf_str,
-                       std::string sql, int8_t* row_ptr, int8_t* window_ptr,
-                       vm::Schema* output_schema, int8_t** output) {
+void CheckFnLetBuilder(::hybridse::node::NodeManager* manager, vm::SchemasContext* schemas_ctx, std::string udf_str,
+                       std::string sql, int8_t* row_ptr, int8_t* window_ptr, vm::Schema* output_schema,
+                       int8_t** output) {
     // Create an LLJIT instance.
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("test_project", *ctx);
@@ -109,48 +106,40 @@ void CheckFnLetBuilder(::hybridse::node::NodeManager* manager,
     if (pp_node_ptr->GetW() != nullptr) {
         frame_node = pp_node_ptr->GetW()->frame_node();
     }
-    status = vm::ExtractProjectInfos(pp_node_ptr->GetProjects(), frame_node,
-                                     schemas_ctx, manager, &column_projects);
+    status = vm::ExtractProjectInfos(pp_node_ptr->GetProjects(), frame_node, schemas_ctx, manager, &column_projects);
     ASSERT_TRUE(status.isOK()) << status.str();
 
     bool is_agg = window_ptr != nullptr;
-    vm::PhysicalPlanContext plan_ctx(
-        manager, lib, "db", std::make_shared<vm::SimpleCatalog>(), false);
-    status = plan_ctx.InitFnDef(column_projects, schemas_ctx, !is_agg,
-                                &column_projects);
+    vm::PhysicalPlanContext plan_ctx(manager, lib, "db", std::make_shared<vm::SimpleCatalog>(), false);
+    status = plan_ctx.InitFnDef(column_projects, schemas_ctx, !is_agg, &column_projects);
     ASSERT_TRUE(status.isOK()) << status.str();
 
     // Instantiate llvm function
     const auto& fn_info = column_projects.fn_info();
-    codegen::CodeGenContext codegen_ctx(m.get(), fn_info.schemas_ctx(),
-                                        manager);
+    codegen::CodeGenContext codegen_ctx(m.get(), fn_info.schemas_ctx(), manager);
     codegen::RowFnLetIRBuilder builder(&codegen_ctx);
-    status =
-        builder.Build("test_at_fn", fn_info.fn_def(), fn_info.GetPrimaryFrame(),
-                      fn_info.GetFrames(), *fn_info.fn_schema());
+    status = builder.Build("test_at_fn", fn_info.fn_def(), fn_info.GetPrimaryFrame(), fn_info.GetFrames(),
+                           *fn_info.fn_schema());
     LOG(INFO) << "fn let ir build status: " << status;
     ASSERT_TRUE(status.isOK());
     *output_schema = *fn_info.fn_schema();
 
     m->print(::llvm::errs(), NULL);
-    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(
-        vm::HybridSeJitWrapper::Create());
+    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(vm::HybridSeJitWrapper::Create());
     jit->Init();
     vm::HybridSeJitWrapper::InitJitSymbols(jit.get());
 
     ASSERT_TRUE(jit->AddModule(std::move(m), std::move(ctx)));
     auto address = jit->FindFunction("test_at_fn");
 
-    int32_t (*decode)(int64_t, int8_t*, int8_t*, int8_t**) =
-        (int32_t(*)(int64_t, int8_t*, int8_t*, int8_t**))address;
+    int32_t (*decode)(int64_t, int8_t*, int8_t*, int8_t**) = (int32_t(*)(int64_t, int8_t*, int8_t*, int8_t**))address;
     int32_t ret2 = decode(0, row_ptr, window_ptr, output);
     ASSERT_EQ(0, ret2);
 }
 
-void CheckFnLetBuilder(::hybridse::node::NodeManager* manager,
-                       type::TableDef& table, std::string udf_str,  // NOLINT
-                       std::string sql, int8_t* row_ptr, int8_t* window_ptr,
-                       vm::Schema* output_schema, int8_t** output) {
+void CheckFnLetBuilder(::hybridse::node::NodeManager* manager, type::TableDef& table, std::string udf_str,  // NOLINT
+                       std::string sql, int8_t* row_ptr, int8_t* window_ptr, vm::Schema* output_schema,
+                       int8_t** output) {
     vm::SchemasContext schemas_ctx;
     auto source = schemas_ctx.AddSource();
     source->SetSourceName(table.name());
@@ -159,8 +148,7 @@ void CheckFnLetBuilder(::hybridse::node::NodeManager* manager,
         source->SetColumnID(i, i);
     }
     schemas_ctx.Build();
-    CheckFnLetBuilder(manager, &schemas_ctx, udf_str, sql, row_ptr, window_ptr,
-                      output_schema, output);
+    CheckFnLetBuilder(manager, &schemas_ctx, udf_str, sql, row_ptr, window_ptr, output_schema, output);
 }
 
 }  // namespace codegen

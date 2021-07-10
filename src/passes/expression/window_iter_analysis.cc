@@ -24,8 +24,7 @@ namespace passes {
 
 using ::hybridse::common::kCodegenError;
 
-Status WindowIterAnalysis::VisitFunctionLet(const node::ExprIdNode* row_arg,
-                                            const node::ExprIdNode* window_arg,
+Status WindowIterAnalysis::VisitFunctionLet(const node::ExprIdNode* row_arg, const node::ExprIdNode* window_arg,
                                             const node::ExprNode* body) {
     this->row_arg_ = row_arg;
     this->window_arg_ = window_arg;
@@ -39,8 +38,7 @@ Status WindowIterAnalysis::VisitFunctionLet(const node::ExprIdNode* row_arg,
     return Status::OK();
 }
 
-Status WindowIterAnalysis::VisitExpr(node::ExprNode* expr,
-                                     WindowIterRank* rank) {
+Status WindowIterAnalysis::VisitExpr(node::ExprNode* expr, WindowIterRank* rank) {
     CHECK_TRUE(expr != nullptr && rank != nullptr, kCodegenError);
     if (GetRank(expr, rank)) {
         return Status::OK();
@@ -66,8 +64,7 @@ Status WindowIterAnalysis::VisitExpr(node::ExprNode* expr,
             for (size_t i = 0; i < expr->GetChildNum(); ++i) {
                 WindowIterRank child_rank;
                 CHECK_STATUS(VisitExpr(expr->GetChild(i), &child_rank));
-                max_rank =
-                    child_rank.rank > max_rank ? child_rank.rank : max_rank;
+                max_rank = child_rank.rank > max_rank ? child_rank.rank : max_rank;
             }
             rank->rank = max_rank;
             rank->is_iter = false;
@@ -77,11 +74,9 @@ Status WindowIterAnalysis::VisitExpr(node::ExprNode* expr,
     return Status::OK();
 }
 
-Status WindowIterAnalysis::VisitCall(
-    node::FnDefNode* fn, const std::vector<WindowIterRank>& arg_ranks,
-    WindowIterRank* rank) {
-    CHECK_TRUE(arg_ranks.size() == fn->GetArgSize(), kCodegenError,
-               "Incompatible arg num: ", arg_ranks.size(), ", ",
+Status WindowIterAnalysis::VisitCall(node::FnDefNode* fn, const std::vector<WindowIterRank>& arg_ranks,
+                                     WindowIterRank* rank) {
+    CHECK_TRUE(arg_ranks.size() == fn->GetArgSize(), kCodegenError, "Incompatible arg num: ", arg_ranks.size(), ", ",
                fn->GetArgSize(), " function name ", fn->GetFlatString());
     switch (fn->GetType()) {
         case node::kUdafDef: {
@@ -132,16 +127,14 @@ Status WindowIterAnalysis::VisitCall(
     return Status::OK();
 }
 
-Status WindowIterAnalysis::VisitUdaf(node::UdafDefNode* udaf,
-                                     WindowIterRank* rank) {
+Status WindowIterAnalysis::VisitUdaf(node::UdafDefNode* udaf, WindowIterRank* rank) {
     auto update = udaf->update_func();
     std::vector<WindowIterRank> arg_ranks(update->GetArgSize());
     return VisitCall(update, arg_ranks, rank);
 }
 
-Status WindowIterAnalysis::VisitLambdaCall(
-    node::LambdaNode* lambda, const std::vector<WindowIterRank>& arg_ranks,
-    WindowIterRank* rank) {
+Status WindowIterAnalysis::VisitLambdaCall(node::LambdaNode* lambda, const std::vector<WindowIterRank>& arg_ranks,
+                                           WindowIterRank* rank) {
     Status status;
     EnterLambdaScope();
     for (size_t i = 0; i < arg_ranks.size(); ++i) {
@@ -152,14 +145,11 @@ Status WindowIterAnalysis::VisitLambdaCall(
     return status;
 }
 
-void WindowIterAnalysis::EnterLambdaScope() {
-    scope_cache_list_.emplace_back(ScopeCache());
-}
+void WindowIterAnalysis::EnterLambdaScope() { scope_cache_list_.emplace_back(ScopeCache()); }
 
 void WindowIterAnalysis::ExitLambdaScope() { scope_cache_list_.pop_back(); }
 
-bool WindowIterAnalysis::GetRank(const node::ExprNode* expr,
-                                 WindowIterRank* rank) const {
+bool WindowIterAnalysis::GetRank(const node::ExprNode* expr, WindowIterRank* rank) const {
     if (expr == nullptr) {
         return false;
     }
@@ -167,8 +157,7 @@ bool WindowIterAnalysis::GetRank(const node::ExprNode* expr,
     if (expr_id != nullptr && expr_id->GetId() < 0) {
         return false;
     }
-    for (auto iter = scope_cache_list_.rbegin();
-         iter != scope_cache_list_.rend(); ++iter) {
+    for (auto iter = scope_cache_list_.rbegin(); iter != scope_cache_list_.rend(); ++iter) {
         auto& cache = *iter;
         if (expr_id) {
             auto iter = cache.arg_dict.find(expr_id->GetId());
@@ -187,8 +176,7 @@ bool WindowIterAnalysis::GetRank(const node::ExprNode* expr,
     return false;
 }
 
-void WindowIterAnalysis::SetRank(const node::ExprNode* expr,
-                                 const WindowIterRank& rank) {
+void WindowIterAnalysis::SetRank(const node::ExprNode* expr, const WindowIterRank& rank) {
     auto& cache = scope_cache_list_.back();
     if (expr->GetExprType() == node::kExprId) {
         auto expr_id = dynamic_cast<const node::ExprIdNode*>(expr);

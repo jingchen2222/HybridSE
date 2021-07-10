@@ -35,8 +35,7 @@ DECLARE_bool(enable_keep_alive);
 namespace hybridse {
 namespace tablet {
 
-TabletServerImpl::TabletServerImpl()
-    : slock_(), engine_(), catalog_(), dbms_ch_(NULL) {}
+TabletServerImpl::TabletServerImpl() : slock_(), engine_(), catalog_(), dbms_ch_(NULL) {}
 
 TabletServerImpl::~TabletServerImpl() { delete dbms_ch_; }
 
@@ -71,10 +70,8 @@ void TabletServerImpl::KeepAlive() {
     stub.KeepAlive(&cntl, &request, &response, NULL);
 }
 
-void TabletServerImpl::CreateTable(RpcController* ctrl,
-                                   const CreateTableRequest* request,
-                                   CreateTableResponse* response,
-                                   Closure* done) {
+void TabletServerImpl::CreateTable(RpcController* ctrl, const CreateTableRequest* request,
+                                   CreateTableResponse* response, Closure* done) {
     brpc::ClosureGuard done_guard(done);
     ::hybridse::common::Status* status = response->mutable_status();
     if (request->pids_size() == 0) {
@@ -84,26 +81,22 @@ void TabletServerImpl::CreateTable(RpcController* ctrl,
     }
     if (request->tid() <= 0) {
         status->set_code(common::kBadRequest);
-        status->set_msg("create table with invalid tid " +
-                        std::to_string(request->tid()));
+        status->set_msg("create table with invalid tid " + std::to_string(request->tid()));
         return;
     }
 
     for (int32_t i = 0; i < request->pids_size(); ++i) {
-        std::shared_ptr<storage::Table> table(new storage::Table(
-            request->tid(), request->pids(i), request->table()));
+        std::shared_ptr<storage::Table> table(new storage::Table(request->tid(), request->pids(i), request->table()));
         bool ok = table->Init();
         if (!ok) {
-            LOG(WARNING) << "fail to init table storage for table "
-                         << request->table().name();
+            LOG(WARNING) << "fail to init table storage for table " << request->table().name();
             status->set_code(common::kBadRequest);
             status->set_msg("fail to init table storage");
             return;
         }
         ok = AddTableLocked(table);
         if (!ok) {
-            LOG(WARNING) << "table with name " << request->table().name()
-                         << " exists";
+            LOG(WARNING) << "table with name " << request->table().name() << " exists";
             status->set_code(common::kTableExists);
             status->set_msg("table exist");
             return;
@@ -112,12 +105,11 @@ void TabletServerImpl::CreateTable(RpcController* ctrl,
         break;
     }
     status->set_code(common::kOk);
-    DLOG(INFO) << "create table with name " << request->table().name()
-               << " done";
+    DLOG(INFO) << "create table with name " << request->table().name() << " done";
 }
 
-void TabletServerImpl::Insert(RpcController* ctrl, const InsertRequest* request,
-                              InsertResponse* response, Closure* done) {
+void TabletServerImpl::Insert(RpcController* ctrl, const InsertRequest* request, InsertResponse* response,
+                              Closure* done) {
     brpc::ClosureGuard done_guard(done);
     ::hybridse::common::Status* status = response->mutable_status();
     if (request->db().empty() || request->table().empty()) {
@@ -125,8 +117,7 @@ void TabletServerImpl::Insert(RpcController* ctrl, const InsertRequest* request,
         status->set_msg("db or table name is empty");
         return;
     }
-    std::shared_ptr<TabletTableHandler> handler =
-        GetTableLocked(request->db(), request->table());
+    std::shared_ptr<TabletTableHandler> handler = GetTableLocked(request->db(), request->table());
 
     if (!handler) {
         status->set_code(common::kTableNotFound);
@@ -134,20 +125,17 @@ void TabletServerImpl::Insert(RpcController* ctrl, const InsertRequest* request,
         return;
     }
 
-    bool ok =
-        handler->GetTable()->Put(request->row().c_str(), request->row().size());
+    bool ok = handler->GetTable()->Put(request->row().c_str(), request->row().size());
     if (!ok) {
         status->set_code(common::kTablePutFailed);
         status->set_msg("fail to put row");
-        LOG(WARNING) << "fail to put data to table " << request->table()
-                     << " with key " << request->key();
+        LOG(WARNING) << "fail to put data to table " << request->table() << " with key " << request->key();
         return;
     }
     status->set_code(common::kOk);
 }
 
-void TabletServerImpl::Query(RpcController* ctrl, const QueryRequest* request,
-                             QueryResponse* response, Closure* done) {
+void TabletServerImpl::Query(RpcController* ctrl, const QueryRequest* request, QueryResponse* response, Closure* done) {
     brpc::ClosureGuard done_guard(done);
     common::Status* status = response->mutable_status();
     status->set_code(common::kOk);
@@ -158,8 +146,7 @@ void TabletServerImpl::Query(RpcController* ctrl, const QueryRequest* request,
         vm::BatchRunSession session;
         {
             base::Status base_status;
-            bool ok = engine_->Get(request->sql(), request->db(), session,
-                                   base_status);
+            bool ok = engine_->Get(request->sql(), request->db(), session, base_status);
             if (!ok) {
                 status->set_msg(base_status.str());
                 status->set_code(base_status.code);
@@ -204,8 +191,7 @@ void TabletServerImpl::Query(RpcController* ctrl, const QueryRequest* request,
         vm::RequestRunSession session;
         {
             base::Status base_status;
-            bool ok = engine_->Get(request->sql(), request->db(), session,
-                                   base_status);
+            bool ok = engine_->Get(request->sql(), request->db(), session, base_status);
             if (!ok) {
                 status->set_msg(base_status.str());
                 status->set_code(base_status.code);
@@ -233,30 +219,26 @@ void TabletServerImpl::Query(RpcController* ctrl, const QueryRequest* request,
     }
 }
 
-void TabletServerImpl::Explain(RpcController* ctrl,
-                               const ExplainRequest* request,
-                               ExplainResponse* response, Closure* done) {
+void TabletServerImpl::Explain(RpcController* ctrl, const ExplainRequest* request, ExplainResponse* response,
+                               Closure* done) {
     brpc::ClosureGuard done_guard(done);
     common::Status* status = response->mutable_status();
     vm::ExplainOutput output;
     base::Status base_status;
-    bool ok = engine_->Explain(request->sql(), request->db(), vm::kRequestMode,
-                               &output, &base_status);
+    bool ok = engine_->Explain(request->sql(), request->db(), vm::kRequestMode, &output, &base_status);
     if (!ok || base_status.code != 0) {
         status->set_msg(base_status.str());
         status->set_code(base_status.code);
         LOG(WARNING) << base_status.str();
         return;
     }
-    ok = codec::SchemaCodec::Encode(output.input_schema,
-                                    response->mutable_input_schema());
+    ok = codec::SchemaCodec::Encode(output.input_schema, response->mutable_input_schema());
     if (!ok) {
         status->set_msg("fail encode schema");
         status->set_code(common::kSchemaCodecError);
         return;
     }
-    ok = codec::SchemaCodec::Encode(output.output_schema,
-                                    response->mutable_output_schema());
+    ok = codec::SchemaCodec::Encode(output.output_schema, response->mutable_output_schema());
     if (!ok) {
         status->set_msg("fail encode schema");
         status->set_code(common::kSchemaCodecError);
@@ -268,14 +250,11 @@ void TabletServerImpl::Explain(RpcController* ctrl,
     status->set_code(common::kOk);
 }
 
-void TabletServerImpl::GetTableSchema(RpcController* ctrl,
-                                      const GetTablesSchemaRequest* request,
-                                      GetTableSchemaReponse* response,
-                                      Closure* done) {
+void TabletServerImpl::GetTableSchema(RpcController* ctrl, const GetTablesSchemaRequest* request,
+                                      GetTableSchemaReponse* response, Closure* done) {
     brpc::ClosureGuard done_guard(done);
     ::hybridse::common::Status* status = response->mutable_status();
-    std::shared_ptr<TabletTableHandler> handler =
-        GetTableLocked(request->db(), request->name());
+    std::shared_ptr<TabletTableHandler> handler = GetTableLocked(request->db(), request->name());
     if (!handler) {
         status->set_code(common::kTableNotFound);
         status->set_msg("table is not found");

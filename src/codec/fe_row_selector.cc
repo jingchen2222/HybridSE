@@ -28,8 +28,7 @@ hybridse::codec::Schema RowSelector::CreateTargetSchema() {
     for (auto& pair : indices_) {
         size_t schema_idx = pair.first;
         size_t col_idx = pair.second;
-        if (schema_idx < schemas_.size() &&
-            col_idx < static_cast<size_t>(schemas_[schema_idx]->size())) {
+        if (schema_idx < schemas_.size() && col_idx < static_cast<size_t>(schemas_[schema_idx]->size())) {
             *target_schema.Add() = schemas_[schema_idx]->Get(col_idx);
         }
     }
@@ -44,8 +43,7 @@ static auto RowSelectorMakeIndices(const std::vector<size_t>& indices) {
     return result;
 }
 
-RowSelector::RowSelector(const hybridse::codec::Schema* schema,
-                         const std::vector<size_t>& indices)
+RowSelector::RowSelector(const hybridse::codec::Schema* schema, const std::vector<size_t>& indices)
     : schemas_({schema}),
       indices_(RowSelectorMakeIndices(indices)),
       target_schema_(CreateTargetSchema()),
@@ -53,13 +51,9 @@ RowSelector::RowSelector(const hybridse::codec::Schema* schema,
     row_views_.push_back(RowView(*schema));
 }
 
-RowSelector::RowSelector(
-    const std::vector<const hybridse::codec::Schema*>& schemas,
-    const std::vector<std::pair<size_t, size_t>>& indices)
-    : schemas_(schemas),
-      indices_(indices),
-      target_schema_(CreateTargetSchema()),
-      target_row_builder_(target_schema_) {
+RowSelector::RowSelector(const std::vector<const hybridse::codec::Schema*>& schemas,
+                         const std::vector<std::pair<size_t, size_t>>& indices)
+    : schemas_(schemas), indices_(indices), target_schema_(CreateTargetSchema()), target_row_builder_(target_schema_) {
     for (auto schema : schemas) {
         row_views_.push_back(RowView(*schema));
     }
@@ -67,8 +61,7 @@ RowSelector::RowSelector(
 
 bool RowSelector::Select(const Row& row, int8_t** out_slice, size_t* out_size) {
     if (static_cast<size_t>(row.GetRowPtrCnt()) != row_views_.size()) {
-        LOG(WARNING) << "Illegal row slices, expect " << row_views_.size()
-                     << ", get " << row.GetRowPtrCnt();
+        LOG(WARNING) << "Illegal row slices, expect " << row_views_.size() << ", get " << row.GetRowPtrCnt();
         return false;
     }
     for (size_t i = 0; i < row_views_.size(); ++i) {
@@ -85,8 +78,7 @@ bool RowSelector::Select(const Row& row, int8_t** out_slice, size_t* out_size) {
         auto schema = schemas_[schema_idx];
         auto& row_view = row_views_[schema_idx];
         if (col_idx < static_cast<size_t>(schema->size())) {
-            if (schema->Get(col_idx).type() == type::kVarchar &&
-                !row_view.IsNULL(col_idx)) {
+            if (schema->Get(col_idx).type() == type::kVarchar && !row_view.IsNULL(col_idx)) {
                 str_size += row_view.GetStringUnsafe(col_idx).size();
             }
         }
@@ -110,18 +102,15 @@ bool RowSelector::Select(const Row& row, int8_t** out_slice, size_t* out_size) {
         }
         switch (schema->Get(col_idx).type()) {
             case type::kInt16: {
-                target_row_builder_.AppendInt16(
-                    row_view.GetInt16Unsafe(col_idx));
+                target_row_builder_.AppendInt16(row_view.GetInt16Unsafe(col_idx));
                 break;
             }
             case type::kInt32: {
-                target_row_builder_.AppendInt32(
-                    row_view.GetInt32Unsafe(col_idx));
+                target_row_builder_.AppendInt32(row_view.GetInt32Unsafe(col_idx));
                 break;
             }
             case type::kInt64: {
-                target_row_builder_.AppendInt64(
-                    row_view.GetInt64Unsafe(col_idx));
+                target_row_builder_.AppendInt64(row_view.GetInt64Unsafe(col_idx));
                 break;
             }
             case type::kBool: {
@@ -129,13 +118,11 @@ bool RowSelector::Select(const Row& row, int8_t** out_slice, size_t* out_size) {
                 break;
             }
             case type::kFloat: {
-                target_row_builder_.AppendFloat(
-                    row_view.GetFloatUnsafe(col_idx));
+                target_row_builder_.AppendFloat(row_view.GetFloatUnsafe(col_idx));
                 break;
             }
             case type::kDouble: {
-                target_row_builder_.AppendDouble(
-                    row_view.GetDoubleUnsafe(col_idx));
+                target_row_builder_.AppendDouble(row_view.GetDoubleUnsafe(col_idx));
                 break;
             }
             case type::kDate: {
@@ -147,8 +134,7 @@ bool RowSelector::Select(const Row& row, int8_t** out_slice, size_t* out_size) {
                 break;
             }
             case type::kTimestamp: {
-                target_row_builder_.AppendTimestamp(
-                    row_view.GetTimestampUnsafe(col_idx));
+                target_row_builder_.AppendTimestamp(row_view.GetTimestampUnsafe(col_idx));
                 break;
             }
             case type::kVarchar: {
@@ -163,8 +149,7 @@ bool RowSelector::Select(const Row& row, int8_t** out_slice, size_t* out_size) {
     return true;
 }
 
-bool RowSelector::Select(const int8_t* slice, size_t size, int8_t** out_slice,
-                         size_t* out_size) {
+bool RowSelector::Select(const int8_t* slice, size_t size, int8_t** out_slice, size_t* out_size) {
     if (row_views_.size() < 1) {
         LOG(WARNING) << "Empty row views";
         return false;
@@ -181,8 +166,7 @@ bool RowSelector::Select(const int8_t* slice, size_t size, int8_t** out_slice,
             return false;
         }
         if (col_idx < static_cast<size_t>(schema->size())) {
-            if (schema->Get(col_idx).type() == type::kVarchar &&
-                !row_view.IsNULL(col_idx)) {
+            if (schema->Get(col_idx).type() == type::kVarchar && !row_view.IsNULL(col_idx)) {
                 str_size += row_view.GetStringUnsafe(col_idx).size();
             }
         }
@@ -203,18 +187,15 @@ bool RowSelector::Select(const int8_t* slice, size_t size, int8_t** out_slice,
         }
         switch (schema->Get(col_idx).type()) {
             case type::kInt16: {
-                target_row_builder_.AppendInt16(
-                    row_view.GetInt16Unsafe(col_idx));
+                target_row_builder_.AppendInt16(row_view.GetInt16Unsafe(col_idx));
                 break;
             }
             case type::kInt32: {
-                target_row_builder_.AppendInt32(
-                    row_view.GetInt32Unsafe(col_idx));
+                target_row_builder_.AppendInt32(row_view.GetInt32Unsafe(col_idx));
                 break;
             }
             case type::kInt64: {
-                target_row_builder_.AppendInt64(
-                    row_view.GetInt64Unsafe(col_idx));
+                target_row_builder_.AppendInt64(row_view.GetInt64Unsafe(col_idx));
                 break;
             }
             case type::kBool: {
@@ -222,13 +203,11 @@ bool RowSelector::Select(const int8_t* slice, size_t size, int8_t** out_slice,
                 break;
             }
             case type::kFloat: {
-                target_row_builder_.AppendFloat(
-                    row_view.GetFloatUnsafe(col_idx));
+                target_row_builder_.AppendFloat(row_view.GetFloatUnsafe(col_idx));
                 break;
             }
             case type::kDouble: {
-                target_row_builder_.AppendDouble(
-                    row_view.GetDoubleUnsafe(col_idx));
+                target_row_builder_.AppendDouble(row_view.GetDoubleUnsafe(col_idx));
                 break;
             }
             case type::kDate: {
@@ -240,8 +219,7 @@ bool RowSelector::Select(const int8_t* slice, size_t size, int8_t** out_slice,
                 break;
             }
             case type::kTimestamp: {
-                target_row_builder_.AppendTimestamp(
-                    row_view.GetTimestampUnsafe(col_idx));
+                target_row_builder_.AppendTimestamp(row_view.GetTimestampUnsafe(col_idx));
                 break;
             }
             case type::kVarchar: {

@@ -16,8 +16,8 @@
 
 #include "vm/mem_catalog.h"
 #include "gtest/gtest.h"
-#include "vm/catalog_wrapper.h"
 #include "testing/test_base.h"
+#include "vm/catalog_wrapper.h"
 
 namespace hybridse {
 namespace vm {
@@ -147,8 +147,7 @@ TEST_F(MemCataLogTest, table_hander_wrapper_test) {
     ::hybridse::type::TableDef table;
     BuildRows(table, rows);
     std::shared_ptr<MemTableHandler> table_handler =
-        std::shared_ptr<MemTableHandler>(
-            new vm::MemTableHandler("t1", "temp", &(table.columns())));
+        std::shared_ptr<MemTableHandler>(new vm::MemTableHandler("t1", "temp", &(table.columns())));
     for (auto row : rows) {
         table_handler->AddRow(row);
     }
@@ -183,8 +182,7 @@ TEST_F(MemCataLogTest, partition_hander_wrapper_test) {
     ::hybridse::type::TableDef table;
     BuildRows(table, rows);
     std::shared_ptr<vm::MemPartitionHandler> partition_handler =
-        std::shared_ptr<vm::MemPartitionHandler>(
-            new vm::MemPartitionHandler("t1", "temp", &(table.columns())));
+        std::shared_ptr<vm::MemPartitionHandler>(new vm::MemPartitionHandler("t1", "temp", &(table.columns())));
 
     uint64_t ts = 1;
     for (auto row : rows) {
@@ -440,26 +438,19 @@ TEST_F(MemCataLogTest, mem_row_comcat_test) {
     BuildT2Rows(table_right, rows_right);
     // construct test
     for (size_t i = 0; i < rows.size(); i++) {
-        std::shared_ptr<MemRowHandler> row =
-            std::shared_ptr<MemRowHandler>(new MemRowHandler(rows[i]));
-        std::shared_ptr<MemRowHandler> right_row =
-            std::shared_ptr<MemRowHandler>(new MemRowHandler(rows_right[i]));
+        std::shared_ptr<MemRowHandler> row = std::shared_ptr<MemRowHandler>(new MemRowHandler(rows[i]));
+        std::shared_ptr<MemRowHandler> right_row = std::shared_ptr<MemRowHandler>(new MemRowHandler(rows_right[i]));
         // test leftrow concat rightrow
         std::shared_ptr<RowHandler> concat_left_right =
-            std::shared_ptr<RowHandler>(
-                new RowCombineWrapper(row, 1, right_row, 1));
+            std::shared_ptr<RowHandler>(new RowCombineWrapper(row, 1, right_row, 1));
         Row concat_left_right_row = Row(1, rows[i], 1, rows_right[i]);
-        ASSERT_EQ(0,
-                  concat_left_right->GetValue().compare(concat_left_right_row));
+        ASSERT_EQ(0, concat_left_right->GetValue().compare(concat_left_right_row));
 
         // tests left row concat right row concat right row
         std::shared_ptr<RowHandler> concat_left_right_right =
-            std::shared_ptr<RowHandler>(
-                new RowCombineWrapper(concat_left_right, 2, right_row, 1));
-        Row concat_left_right_right_row =
-            Row(2, concat_left_right_row, 1, rows_right[i]);
-        ASSERT_EQ(0, concat_left_right_right->GetValue().compare(
-                         concat_left_right_right_row));
+            std::shared_ptr<RowHandler>(new RowCombineWrapper(concat_left_right, 2, right_row, 1));
+        Row concat_left_right_right_row = Row(2, concat_left_right_row, 1, rows_right[i]);
+        ASSERT_EQ(0, concat_left_right_right->GetValue().compare(concat_left_right_right_row));
     }
 }
 

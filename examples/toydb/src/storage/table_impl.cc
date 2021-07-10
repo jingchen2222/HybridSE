@@ -29,10 +29,7 @@ static constexpr uint32_t SEED = 0xe17a1465;
 static constexpr uint32_t COMBINE_KEY_RESERVE_SIZE = 128;
 
 Table::Table(uint32_t id, uint32_t pid, const TableDef& table_def)
-    : id_(id),
-      pid_(pid),
-      table_def_(table_def),
-      row_view_(table_def_.columns()) {}
+    : id_(id), pid_(pid), table_def_(table_def), row_view_(table_def_.columns()) {}
 
 Table::~Table() {
     if (segments_ != NULL) {
@@ -52,16 +49,14 @@ bool Table::Init() {
         col_map.insert(std::make_pair(table_def_.columns(idx).name(), idx));
     }
     for (int idx = 0; idx < table_def_.indexes_size(); idx++) {
-        if (index_map_.find(table_def_.indexes(idx).name()) !=
-            index_map_.end()) {
+        if (index_map_.find(table_def_.indexes(idx).name()) != index_map_.end()) {
             return false;
         }
         IndexSt st;
         st.name = table_def_.indexes(idx).name();
         st.ts_pos = hybridse::vm::INVALID_POS;
         if (!table_def_.indexes(idx).second_key().empty()) {
-            if (col_map.find(table_def_.indexes(idx).second_key()) ==
-                col_map.end()) {
+            if (col_map.find(table_def_.indexes(idx).second_key()) == col_map.end()) {
                 return false;
             }
             st.ts_pos = col_map[table_def_.indexes(idx).second_key()];
@@ -72,8 +67,7 @@ bool Table::Init() {
                 }
                 default: {
                     LOG(WARNING) << "Invalid index ts type: "
-                                 << hybridse::type::Type_Name(
-                                        table_def_.columns(st.ts_pos).type());
+                                 << hybridse::type::Type_Name(table_def_.columns(st.ts_pos).type());
                     return false;
                 }
             }
@@ -86,8 +80,7 @@ bool Table::Init() {
             auto iter = col_map.find(name);
             if (iter == col_map.end()) return false;
             if (st.ts_pos == iter->second) {
-                LOG(WARNING)
-                    << "Invalid index: ts column can't be used as key column";
+                LOG(WARNING) << "Invalid index: ts column can't be used as key column";
                 return false;
             }
             switch (table_def_.columns(iter->second).type()) {
@@ -101,21 +94,17 @@ bool Table::Init() {
                     break;
                 }
                 default: {
-                    LOG(WARNING)
-                        << "Invalid index key type: "
-                        << hybridse::type::Type_Name(
-                               table_def_.columns(iter->second).type());
+                    LOG(WARNING) << "Invalid index key type: "
+                                 << hybridse::type::Type_Name(table_def_.columns(iter->second).type());
                     return false;
                 }
             }
 
-            col_vec.push_back(std::make_pair(
-                table_def_.columns(iter->second).type(), iter->second));
+            col_vec.push_back(std::make_pair(table_def_.columns(iter->second).type(), iter->second));
         }
         if (col_vec.empty()) return false;
         st.keys = col_vec;
-        index_map_.insert(
-            std::make_pair(table_def_.indexes(idx).name(), std::move(st)));
+        index_map_.insert(std::make_pair(table_def_.indexes(idx).name(), std::move(st)));
     }
     if (index_map_.empty()) {
         LOG(WARNING) << "no index in table" << table_def_.name();
@@ -131,23 +120,19 @@ bool Table::Init() {
     DLOG(INFO) << "table " << table_def_.name() << " init ok";
     return true;
 }  // namespace storage
-bool Table::DecodeKeysAndTs(const IndexSt& index, const char* row,
-                            uint32_t size, std::string& key,
-                            int64_t* time_ptr) {
+bool Table::DecodeKeysAndTs(const IndexSt& index, const char* row, uint32_t size, std::string& key, int64_t* time_ptr) {
     if (index.keys.size() > 1) {
         key.reserve(COMBINE_KEY_RESERVE_SIZE);
         for (const auto& col : index.keys) {
             if (!key.empty()) {
                 key.append("|");
             }
-            if (row_view_.IsNULL(reinterpret_cast<const int8_t*>(row),
-                                 col.second)) {
+            if (row_view_.IsNULL(reinterpret_cast<const int8_t*>(row), col.second)) {
                 key.append(codec::NONETOKEN);
             } else if (col.first == ::hybridse::type::kVarchar) {
                 const char* val = NULL;
                 uint32_t length = 0;
-                row_view_.GetValue(reinterpret_cast<const int8_t*>(row),
-                                   col.second, &val, &length);
+                row_view_.GetValue(reinterpret_cast<const int8_t*>(row), col.second, &val, &length);
                 if (length != 0) {
                     key.append(val, length);
                 } else {
@@ -155,28 +140,24 @@ bool Table::DecodeKeysAndTs(const IndexSt& index, const char* row,
                 }
             } else {
                 int64_t value = 0;
-                row_view_.GetInteger(reinterpret_cast<const int8_t*>(row),
-                                     col.second, col.first, &value);
+                row_view_.GetInteger(reinterpret_cast<const int8_t*>(row), col.second, col.first, &value);
                 key.append(std::to_string(value));
             }
         }
     } else {
-        if (row_view_.IsNULL(reinterpret_cast<const int8_t*>(row),
-                             index.keys[0].second)) {
+        if (row_view_.IsNULL(reinterpret_cast<const int8_t*>(row), index.keys[0].second)) {
             key = codec::NONETOKEN;
         } else if (index.keys[0].first == ::hybridse::type::kVarchar) {
             const char* buf = nullptr;
             uint32_t size = 0;
-            key = row_view_.GetValue(reinterpret_cast<const int8_t*>(row),
-                                     index.keys[0].second, &buf, &size);
+            key = row_view_.GetValue(reinterpret_cast<const int8_t*>(row), index.keys[0].second, &buf, &size);
             key = std::string(buf, size);
             if (key == "") {
                 key = codec::EMPTY_STRING;
             }
         } else {
             int64_t value = 0;
-            row_view_.GetInteger(reinterpret_cast<const int8_t*>(row),
-                                 index.keys[0].second, index.keys[0].first,
+            row_view_.GetInteger(reinterpret_cast<const int8_t*>(row), index.keys[0].second, index.keys[0].first,
                                  &value);
             key = std::to_string(value);
         }
@@ -188,16 +169,15 @@ bool Table::DecodeKeysAndTs(const IndexSt& index, const char* row,
         *time_ptr = cur_time.tv_sec * 1000 + cur_time.tv_usec / 1000;
         return true;
     }
-    row_view_.GetInteger(reinterpret_cast<const int8_t*>(row), index.ts_pos,
-                         table_def_.columns(index.ts_pos).type(), time_ptr);
+    row_view_.GetInteger(reinterpret_cast<const int8_t*>(row), index.ts_pos, table_def_.columns(index.ts_pos).type(),
+                         time_ptr);
     return true;
 }
 bool Table::Put(const char* row, uint32_t size) {
     if (row_view_.GetSize(reinterpret_cast<const int8_t*>(row)) != size) {
         return false;
     }
-    DataBlock* block =
-        reinterpret_cast<DataBlock*>(malloc(sizeof(DataBlock) + size));
+    DataBlock* block = reinterpret_cast<DataBlock*>(malloc(sizeof(DataBlock) + size));
     block->ref_cnt = table_def_.indexes_size();
     memcpy(block->data, row, size);
     for (const auto& kv : index_map_) {
@@ -208,9 +188,7 @@ bool Table::Put(const char* row, uint32_t size) {
             return false;
         }
         if (seg_cnt_ > 1) {
-            seg_index =
-                ::hybridse::base::hash(key.c_str(), key.length(), SEED) %
-                seg_cnt_;
+            seg_index = ::hybridse::base::hash(key.c_str(), key.length(), SEED) % seg_cnt_;
         }
         Segment* segment = segments_[kv.second.index][seg_index];
         Slice spk(key);
@@ -219,12 +197,10 @@ bool Table::Put(const char* row, uint32_t size) {
     return true;
 }
 
-std::unique_ptr<TableIterator> Table::NewIndexIterator(const std::string& pk,
-                                                       const uint32_t index) {
+std::unique_ptr<TableIterator> Table::NewIndexIterator(const std::string& pk, const uint32_t index) {
     uint32_t seg_idx = 0;
     if (seg_cnt_ > 1) {
-        seg_idx =
-            ::hybridse::base::hash(pk.c_str(), pk.length(), SEED) % seg_cnt_;
+        seg_idx = ::hybridse::base::hash(pk.c_str(), pk.length(), SEED) % seg_cnt_;
     }
     base::Slice spk(pk);
     Segment* segment = segments_[index][seg_idx];
@@ -235,12 +211,10 @@ std::unique_ptr<TableIterator> Table::NewIndexIterator(const std::string& pk,
     if (segment->GetEntries()->Get(spk, entry) < 0 || entry == NULL) {
         return std::unique_ptr<TableIterator>(new TableIterator());
     }
-    return std::unique_ptr<TableIterator>(new TableIterator(
-        (reinterpret_cast<TimeEntry*>(entry))->NewIterator()));
+    return std::unique_ptr<TableIterator>(new TableIterator((reinterpret_cast<TimeEntry*>(entry))->NewIterator()));
 }
 
-std::unique_ptr<TableIterator> Table::NewIterator(
-    const std::string& pk, const std::string& index_name) {
+std::unique_ptr<TableIterator> Table::NewIterator(const std::string& pk, const std::string& index_name) {
     auto iter = index_map_.find(index_name);
     if (iter == index_map_.end()) {
         LOG(WARNING) << "index name \"" << index_name << "\" not exist";
@@ -249,41 +223,33 @@ std::unique_ptr<TableIterator> Table::NewIterator(
     return NewIndexIterator(pk, iter->second.index);
 }
 
-std::unique_ptr<TableIterator> Table::NewIterator(const std::string& pk,
-                                                  const uint64_t ts) {
+std::unique_ptr<TableIterator> Table::NewIterator(const std::string& pk, const uint64_t ts) {
     auto iter = NewIndexIterator(pk, 0);
     iter->Seek(ts);
     base::Slice spk(pk);
     return iter;
 }
 
-std::unique_ptr<TableIterator> Table::NewIterator(const std::string& pk) {
-    return NewIndexIterator(pk, 0);
-}
+std::unique_ptr<TableIterator> Table::NewIterator(const std::string& pk) { return NewIndexIterator(pk, 0); }
 
-std::unique_ptr<TableIterator> Table::NewTraverseIterator(
-    const std::string& index_name) {
+std::unique_ptr<TableIterator> Table::NewTraverseIterator(const std::string& index_name) {
     auto iter = index_map_.find(index_name);
     if (iter == index_map_.end()) {
         LOG(WARNING) << "index name \"" << index_name << "\" not exist";
         return nullptr;
     }
-    return std::unique_ptr<TableIterator>(
-        new TableIterator(segments_[iter->second.index], seg_cnt_));
+    return std::unique_ptr<TableIterator>(new TableIterator(segments_[iter->second.index], seg_cnt_));
 }
 
 std::unique_ptr<TableIterator> Table::NewTraverseIterator() {
-    return std::unique_ptr<TableIterator>(
-        new TableIterator(segments_[0], seg_cnt_));
+    return std::unique_ptr<TableIterator>(new TableIterator(segments_[0], seg_cnt_));
 }
 
 // Iterator
 
-TableIterator::TableIterator(base::Iterator<uint64_t, DataBlock*>* ts_it)
-    : ts_it_(ts_it) {}
+TableIterator::TableIterator(base::Iterator<uint64_t, DataBlock*>* ts_it) : ts_it_(ts_it) {}
 
-TableIterator::TableIterator(Segment** segments, uint32_t seg_cnt)
-    : segments_(segments), seg_cnt_(seg_cnt) {}
+TableIterator::TableIterator(Segment** segments, uint32_t seg_cnt) : segments_(segments), seg_cnt_(seg_cnt) {}
 
 TableIterator::~TableIterator() {
     delete ts_it_;
@@ -302,8 +268,7 @@ void TableIterator::Seek(const std::string& key, uint64_t ts) {
         return;
     }
     if (seg_cnt_ > 1) {
-        seg_idx_ =
-            ::hybridse::base::hash(key.c_str(), key.length(), SEED) % seg_cnt_;
+        seg_idx_ = ::hybridse::base::hash(key.c_str(), key.length(), SEED) % seg_cnt_;
         delete pk_it_;
         pk_it_ = segments_[seg_idx_]->GetEntries()->NewIterator();
     }
@@ -314,8 +279,7 @@ void TableIterator::Seek(const std::string& key, uint64_t ts) {
         delete ts_it_;
         ts_it_ = NULL;
         while (pk_it_->Valid()) {
-            ts_it_ = (reinterpret_cast<TimeEntry*>(pk_it_->GetValue()))
-                         ->NewIterator();
+            ts_it_ = (reinterpret_cast<TimeEntry*>(pk_it_->GetValue()))->NewIterator();
             ts_it_->SeekToFirst();
             if (ts_it_->Valid()) break;
             delete ts_it_;
@@ -344,8 +308,7 @@ bool TableIterator::Valid() const {
 
 bool TableIterator::SeekToNextTsInPks() {
     while (pk_it_->Valid()) {
-        ts_it_ =
-            (reinterpret_cast<TimeEntry*>(pk_it_->GetValue()))->NewIterator();
+        ts_it_ = (reinterpret_cast<TimeEntry*>(pk_it_->GetValue()))->NewIterator();
         ts_it_->SeekToFirst();
         if (ts_it_->Valid()) return true;
         delete ts_it_;
@@ -398,8 +361,7 @@ void TableIterator::Next() {
 
 const base::Slice& TableIterator::GetValue() {
     value_ = base::Slice(ts_it_->GetValue()->data,
-                         codec::RowView::GetSize(reinterpret_cast<int8_t*>(
-                             ts_it_->GetValue()->data)));
+                         codec::RowView::GetSize(reinterpret_cast<int8_t*>(ts_it_->GetValue()->data)));
     return value_;
 }
 

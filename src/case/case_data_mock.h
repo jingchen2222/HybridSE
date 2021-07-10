@@ -33,8 +33,7 @@ class Repeater {
  public:
     Repeater() : idx_(0), values_({}) {}
     explicit Repeater(T value) : idx_(0), values_({value}) {}
-    explicit Repeater(const std::vector<T>& values)
-        : idx_(0), values_(values) {}
+    explicit Repeater(const std::vector<T>& values) : idx_(0), values_(values) {}
 
     virtual T GetValue() {
         T value = values_[idx_];

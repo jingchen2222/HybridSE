@@ -21,9 +21,8 @@ using hybridse::codec::Row;
 bool CaseDataMock::LoadResource(const std::string& resource_path,
                                 type::TableDef& table_def,  // NOLINT
                                 std::vector<Row>& rows) {   // NOLINT
-    if (!SqlCase::LoadSchemaAndRowsFromYaml(
-            hybridse::sqlcase::FindSqlCaseBaseDirPath(), resource_path,
-            table_def, rows)) {
+    if (!SqlCase::LoadSchemaAndRowsFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(), resource_path, table_def,
+                                            rows)) {
         return false;
     }
     return true;
@@ -31,8 +30,7 @@ bool CaseDataMock::LoadResource(const std::string& resource_path,
 void CaseDataMock::BuildOnePkTableData(type::TableDef& table_def,  // NOLINT
                                        std::vector<Row>& buffer,   // NOLINT
                                        int64_t data_size) {
-    ::hybridse::sqlcase::Repeater<std::string> col0(
-        std::vector<std::string>({"hello"}));
+    ::hybridse::sqlcase::Repeater<std::string> col0(std::vector<std::string>({"hello"}));
     IntRepeater<int32_t> col1;
     col1.Range(1, 100, 1);
     IntRepeater<int16_t> col2;
@@ -43,8 +41,8 @@ void CaseDataMock::BuildOnePkTableData(type::TableDef& table_def,  // NOLINT
     col4.Range(100.0, 10000.0, 10.0);
     IntRepeater<int64_t> col5;
     col5.Range(1576571615000 - 100000000, 1576571615000, 1000);
-    Repeater<std::string> col6({"astring", "bstring", "cstring", "dstring",
-                                "estring", "fstring", "gstring", "hstring"});
+    Repeater<std::string> col6(
+        {"astring", "bstring", "cstring", "dstring", "estring", "fstring", "gstring", "hstring"});
 
     CaseSchemaMock::BuildTableDef(table_def);
     for (int i = 0; i < data_size; ++i) {
@@ -86,8 +84,7 @@ void CaseDataMock::BuildTableAndData(type::TableDef& table_def,  // NOLINT
         buffer.push_back(Row(base::RefCountedSlice::Create(ptr, total_size)));
     }
 }
-void CaseSchemaMock::BuildTableDef(
-    ::hybridse::type::TableDef& table) {  // NOLINT
+void CaseSchemaMock::BuildTableDef(::hybridse::type::TableDef& table) {  // NOLINT
     table.set_name("t1");
     table.set_catalog("db");
     {

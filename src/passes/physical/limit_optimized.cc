@@ -49,8 +49,7 @@ bool LimitOptimized::ApplyLimitCnt(PhysicalOpNode* node, int32_t limit_cnt) {
     if (node->producers().empty()) {
         return false;
     }
-    if (node->GetOpType() == vm::kPhysicalOpSimpleProject ||
-        node->GetOpType() == vm::kPhysicalOpRename) {
+    if (node->GetOpType() == vm::kPhysicalOpSimpleProject || node->GetOpType() == vm::kPhysicalOpRename) {
         return false;
     }
     if (node->is_block()) {

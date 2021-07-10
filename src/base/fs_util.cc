@@ -35,8 +35,7 @@ bool ListDir(const std::string& path,
     }
     struct dirent* entry = nullptr;
     while ((entry = ::readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            continue;
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
         files.push_back(entry->d_name);
     }
     ::closedir(dir);

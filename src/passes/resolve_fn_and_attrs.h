@@ -37,31 +37,25 @@ class ResolveFnAndAttrs : public ExprPass {
  public:
     explicit ResolveFnAndAttrs(node::ExprAnalysisContext* ctx) : ctx_(ctx) {}
 
-    Status Apply(node::ExprAnalysisContext* ctx, node::ExprNode* expr,
-                 node::ExprNode** output) override;
+    Status Apply(node::ExprAnalysisContext* ctx, node::ExprNode* expr, node::ExprNode** output) override;
 
-    Status VisitFnDef(node::FnDefNode* fn,
-                      const std::vector<const node::TypeNode*>& arg_types,
+    Status VisitFnDef(node::FnDefNode* fn, const std::vector<const node::TypeNode*>& arg_types,
                       node::FnDefNode** output);
 
-    Status VisitLambda(node::LambdaNode* lambda,
-                       const std::vector<const node::TypeNode*>& arg_types,
+    Status VisitLambda(node::LambdaNode* lambda, const std::vector<const node::TypeNode*>& arg_types,
                        node::LambdaNode** output);
 
-    Status VisitUdfDef(node::UdfDefNode* lambda,
-                       const std::vector<const node::TypeNode*>& arg_types,
+    Status VisitUdfDef(node::UdfDefNode* lambda, const std::vector<const node::TypeNode*>& arg_types,
                        node::UdfDefNode** output);
 
-    Status VisitUdafDef(node::UdafDefNode* lambda,
-                        const std::vector<const node::TypeNode*>& arg_types,
+    Status VisitUdafDef(node::UdafDefNode* lambda, const std::vector<const node::TypeNode*>& arg_types,
                         node::UdafDefNode** output);
 
     Status VisitOneStep(node::ExprNode* expr, node::ExprNode** output);
     Status VisitExpr(node::ExprNode* expr, node::ExprNode** output);
 
  private:
-    Status CheckSignature(node::FnDefNode* fn,
-                          const std::vector<const node::TypeNode*>& arg_types);
+    Status CheckSignature(node::FnDefNode* fn, const std::vector<const node::TypeNode*>& arg_types);
 
     node::ExprAnalysisContext* ctx_;
 

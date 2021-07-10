@@ -380,8 +380,7 @@ TEST_F(CodecTest, ManyCol) {
         row.resize(size);
         builder.SetBuffer(reinterpret_cast<int8_t*>(&(row[0])), size);
         for (int idx = 0; idx < col_num; idx++) {
-            ASSERT_TRUE(
-                builder.AppendString(std::to_string(base + idx).c_str(), 10));
+            ASSERT_TRUE(builder.AppendString(std::to_string(base + idx).c_str(), 10));
             ASSERT_TRUE(builder.AppendInt64(ts + idx));
             ASSERT_TRUE(builder.AppendDouble(1.3));
         }
@@ -521,8 +520,7 @@ TEST_F(CodecTest, RowFormatOffsetTest) {
 
         codec::StringColInfo str_info;
         decoder.GetStringColumnInfo(5, &str_info);
-        LOG(INFO) << "offset: " << str_info.offset
-                  << " next_offset: " << str_info.str_next_offset
+        LOG(INFO) << "offset: " << str_info.offset << " next_offset: " << str_info.str_next_offset
                   << " str_start_offset " << str_info.str_start_offset;
         ASSERT_EQ(0u, str_info.offset);
         ASSERT_EQ(1u, str_info.str_next_offset);
@@ -534,8 +532,7 @@ TEST_F(CodecTest, RowFormatOffsetTest) {
 
         codec::StringColInfo str_info;
         decoder.GetStringColumnInfo(6, &str_info);
-        LOG(INFO) << "offset: " << str_info.offset
-                  << " next_offset: " << str_info.str_next_offset
+        LOG(INFO) << "offset: " << str_info.offset << " next_offset: " << str_info.str_next_offset
                   << " str_start_offset " << str_info.str_start_offset;
         ASSERT_EQ(1u, str_info.offset);
         ASSERT_EQ(0u, str_info.str_next_offset);
@@ -630,8 +627,7 @@ TEST_F(CodecTest, RowFormatOffsetLongHeaderTest) {
 
         codec::StringColInfo str_info;
         decoder.GetStringColumnInfo(5, &str_info);
-        LOG(INFO) << "offset: " << str_info.offset
-                  << " next_offset: " << str_info.str_next_offset
+        LOG(INFO) << "offset: " << str_info.offset << " next_offset: " << str_info.str_next_offset
                   << " str_start_offset " << str_info.str_start_offset;
         ASSERT_EQ(0u, str_info.offset);
         ASSERT_EQ(1u, str_info.str_next_offset);
@@ -643,8 +639,7 @@ TEST_F(CodecTest, RowFormatOffsetLongHeaderTest) {
 
         codec::StringColInfo str_info;
         decoder.GetStringColumnInfo(6, &str_info);
-        LOG(INFO) << "offset: " << str_info.offset
-                  << " next_offset: " << str_info.str_next_offset
+        LOG(INFO) << "offset: " << str_info.offset << " next_offset: " << str_info.str_next_offset
                   << " str_start_offset " << str_info.str_start_offset;
         ASSERT_EQ(1u, str_info.offset);
         ASSERT_EQ(0u, str_info.str_next_offset);

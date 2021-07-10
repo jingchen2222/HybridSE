@@ -40,8 +40,7 @@ class VariableIRBuilderTest : public ::testing::Test {
 };
 
 template <class V1>
-void MutableVariableCheck(::hybridse::node::DataType type, V1 value1,
-                          V1 result) {
+void MutableVariableCheck(::hybridse::node::DataType type, V1 value1, V1 result) {
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("predicate_func", *ctx);
     llvm::Type *llvm_type = NULL;
@@ -49,9 +48,8 @@ void MutableVariableCheck(::hybridse::node::DataType type, V1 value1,
 
     // Create the add1 function entry and insert this entry into module M.  The
     // function will have a return type of "D" and take an argument of "S".
-    Function *load_fn =
-        Function::Create(FunctionType::get(llvm_type, {llvm_type}, false),
-                         Function::ExternalLinkage, "load_fn", m.get());
+    Function *load_fn = Function::Create(FunctionType::get(llvm_type, {llvm_type}, false), Function::ExternalLinkage,
+                                         "load_fn", m.get());
 
     BasicBlock *entry_block = BasicBlock::Create(*ctx, "EntryBlock", load_fn);
     IRBuilder<> builder(entry_block);
@@ -63,8 +61,7 @@ void MutableVariableCheck(::hybridse::node::DataType type, V1 value1,
     NativeValue output;
     base::Status status;
 
-    ASSERT_TRUE(
-        ir_builder.StoreValue("x", NativeValue::Create(arg0), false, status));
+    ASSERT_TRUE(ir_builder.StoreValue("x", NativeValue::Create(arg0), false, status));
     ASSERT_TRUE(ir_builder.LoadValue("x", &output, status));
     builder.CreateRet(output.GetValue(&builder));
     m->print(::llvm::errs(), NULL, true, true);
@@ -89,9 +86,8 @@ void ArrayVariableCheck(node::DataType type, V1 *array, int pos, V1 exp) {
     ASSERT_TRUE(nullptr != llvm_type);
     // Create the add1 function entry and insert this entry into module M.  The
     // function will have a return type of "D" and take an argument of "S".
-    Function *load_fn =
-        Function::Create(FunctionType::get(element_type, {llvm_type}, false),
-                         Function::ExternalLinkage, "load_fn", m.get());
+    Function *load_fn = Function::Create(FunctionType::get(element_type, {llvm_type}, false), Function::ExternalLinkage,
+                                         "load_fn", m.get());
 
     BasicBlock *entry_block = BasicBlock::Create(*ctx, "EntryBlock", load_fn);
     IRBuilder<> builder(entry_block);
@@ -105,8 +101,7 @@ void ArrayVariableCheck(node::DataType type, V1 *array, int pos, V1 exp) {
     ASSERT_TRUE(ir_builder.LoadValue("array_arg", &output, status));
 
     llvm::Value *output_elem = nullptr;
-    ASSERT_TRUE(
-        ir_builder.LoadArrayIndex("array_arg", pos, &output_elem, status));
+    ASSERT_TRUE(ir_builder.LoadArrayIndex("array_arg", pos, &output_elem, status));
     builder.CreateRet(output_elem);
     m->print(::llvm::errs(), NULL, true, true);
     auto J = ExitOnErr(LLJITBuilder().create());
@@ -119,12 +114,9 @@ void ArrayVariableCheck(node::DataType type, V1 *array, int pos, V1 exp) {
 
 TEST_F(VariableIRBuilderTest, test_mutable_variable_assign) {
     MutableVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, 999, 999);
-    MutableVariableCheck<int64_t>(::hybridse::node::DataType::kInt64, 99999999L,
-                                  99999999L);
-    MutableVariableCheck<float>(::hybridse::node::DataType::kFloat, 0.999f,
-                                0.999f);
-    MutableVariableCheck<double>(::hybridse::node::DataType::kDouble, 0.999,
-                                 0.999);
+    MutableVariableCheck<int64_t>(::hybridse::node::DataType::kInt64, 99999999L, 99999999L);
+    MutableVariableCheck<float>(::hybridse::node::DataType::kFloat, 0.999f, 0.999f);
+    MutableVariableCheck<double>(::hybridse::node::DataType::kDouble, 0.999, 0.999);
     MutableVariableCheck<int16_t>(::hybridse::node::DataType::kInt16, 99, 99);
 }
 
@@ -134,27 +126,23 @@ TEST_F(VariableIRBuilderTest, test_int32_array_variable) {
     for (int j = 0; j < len; ++j) {
         int_num[j] = j + 1;
     }
-    ArrayVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, int_num, 0,
-                                1);
-    ArrayVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, int_num, 1,
-                                2);
-    ArrayVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, int_num, 9,
-                                10);
+    ArrayVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, int_num, 0, 1);
+    ArrayVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, int_num, 1, 2);
+    ArrayVariableCheck<int32_t>(::hybridse::node::DataType::kInt32, int_num, 9, 10);
 }
 
 TEST_F(VariableIRBuilderTest, test_int8ptr_array_variable) {
-    std::vector<std::string> strs = {"abcd", "efg", "hijk", "lmn",
-                                     "opq",  "rst", "uvw",  "xyz"};
+    std::vector<std::string> strs = {"abcd", "efg", "hijk", "lmn", "opq", "rst", "uvw", "xyz"};
     int8_t **int_num = new int8_t *[strs.size()];
     for (size_t j = 0; j < strs.size(); ++j) {
         int_num[j] = reinterpret_cast<int8_t *>(&(strs[j]));
     }
-    ArrayVariableCheck<int8_t *>(::hybridse::node::DataType::kInt8Ptr, int_num,
-                                 0, reinterpret_cast<int8_t *>(&strs[0]));
-    ArrayVariableCheck<int8_t *>(::hybridse::node::DataType::kInt8Ptr, int_num,
-                                 1, reinterpret_cast<int8_t *>(&strs[1]));
-    ArrayVariableCheck<int8_t *>(::hybridse::node::DataType::kInt8Ptr, int_num,
-                                 7, reinterpret_cast<int8_t *>(&strs[7]));
+    ArrayVariableCheck<int8_t *>(::hybridse::node::DataType::kInt8Ptr, int_num, 0,
+                                 reinterpret_cast<int8_t *>(&strs[0]));
+    ArrayVariableCheck<int8_t *>(::hybridse::node::DataType::kInt8Ptr, int_num, 1,
+                                 reinterpret_cast<int8_t *>(&strs[1]));
+    ArrayVariableCheck<int8_t *>(::hybridse::node::DataType::kInt8Ptr, int_num, 7,
+                                 reinterpret_cast<int8_t *>(&strs[7]));
 }
 
 }  // namespace codegen

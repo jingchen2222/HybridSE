@@ -30,15 +30,11 @@ using hybridse::vm::PhysicalWindowAggrerationNode;
 
 class WindowColumnPruning : public PhysicalPass {
  public:
-    Status Apply(PhysicalPlanContext* ctx, PhysicalOpNode* input,
-                 PhysicalOpNode** out) override;
+    Status Apply(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out) override;
 
  private:
-    Status DoApply(PhysicalPlanContext* ctx, PhysicalOpNode* input,
-                   PhysicalOpNode** out);
-    Status ProcessWindow(PhysicalPlanContext* ctx,
-                         PhysicalWindowAggrerationNode* input,
-                         PhysicalOpNode** out);
+    Status DoApply(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out);
+    Status ProcessWindow(PhysicalPlanContext* ctx, PhysicalWindowAggrerationNode* input, PhysicalOpNode** out);
 
     std::map<size_t, PhysicalOpNode*> cache_;
 };

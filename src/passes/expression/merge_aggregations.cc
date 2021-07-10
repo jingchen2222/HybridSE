@@ -26,8 +26,7 @@ using hybridse::common::kPlanError;
 using hybridse::node::ExprIdNode;
 using hybridse::node::ExprNode;
 
-bool IsCandidate(const WindowIterAnalysis& window_iter_analyzer,
-                 const ExprIdNode* window, ExprNode* expr) {
+bool IsCandidate(const WindowIterAnalysis& window_iter_analyzer, const ExprIdNode* window, ExprNode* expr) {
     if (expr->GetExprType() != node::kExprCall) {
         return false;
     }
@@ -72,10 +71,8 @@ bool IsCandidate(const WindowIterAnalysis& window_iter_analyzer,
 /**
  * Find all rank-1 udaf call to be merged.
  */
-Status CollectUdafCalls(const WindowIterAnalysis& window_iter_analyzer,
-                        const ExprIdNode* window, ExprNode* expr,
-                        std::set<size_t>* visisted,
-                        std::vector<ExprNode*>* candidates) {
+Status CollectUdafCalls(const WindowIterAnalysis& window_iter_analyzer, const ExprIdNode* window, ExprNode* expr,
+                        std::set<size_t>* visisted, std::vector<ExprNode*>* candidates) {
     if (visisted->find(expr->node_id()) != visisted->end()) {
         return Status::OK();
     }
@@ -85,14 +82,12 @@ Status CollectUdafCalls(const WindowIterAnalysis& window_iter_analyzer,
         return Status::OK();
     }
     for (size_t i = 0; i < expr->GetChildNum(); ++i) {
-        CHECK_STATUS(CollectUdafCalls(window_iter_analyzer, window,
-                                      expr->GetChild(i), visisted, candidates));
+        CHECK_STATUS(CollectUdafCalls(window_iter_analyzer, window, expr->GetChild(i), visisted, candidates));
     }
     return Status::OK();
 }
 
-Status ApplyArgs(node::FnDefNode* func, const std::vector<ExprNode*>& args,
-                 node::NodeManager* nm, ExprNode** output) {
+Status ApplyArgs(node::FnDefNode* func, const std::vector<ExprNode*>& args, node::NodeManager* nm, ExprNode** output) {
     if (func->GetType() == node::kLambdaDef) {
         auto lambda = dynamic_cast<node::LambdaNode*>(func);
         CHECK_TRUE(args.size() == func->GetArgSize(), kPlanError);
@@ -107,12 +102,11 @@ Status ApplyArgs(node::FnDefNode* func, const std::vector<ExprNode*>& args,
     return Status::OK();
 }
 
-Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
-                      node::NodeManager* nm, ExprNode** output) {
+Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window, node::NodeManager* nm,
+                      ExprNode** output) {
     std::vector<node::UdafDefNode*> udafs;
     for (auto expr : calls) {
-        udafs.push_back(dynamic_cast<node::UdafDefNode*>(
-            dynamic_cast<node::CallExprNode*>(expr)->GetFnDef()));
+        udafs.push_back(dynamic_cast<node::UdafDefNode*>(dynamic_cast<node::CallExprNode*>(expr)->GetFnDef()));
     }
 
     // udaf idx -> (sub arg idx -> new arg idx)
@@ -138,25 +132,20 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
     for (size_t i = 0; i < udafs.size(); ++i) {
         auto sub_update = udafs[i]->update_func();
         size_t arg_size = sub_update->GetArgSize();
-        CHECK_TRUE(arg_size > 1 && arg_size - 1 == calls[i]->GetChildNum(),
-                   kPlanError);
+        CHECK_TRUE(arg_size > 1 && arg_size - 1 == calls[i]->GetChildNum(), kPlanError);
         auto state_type = sub_update->GetArgType(0);
-        CHECK_TRUE(state_type != nullptr, kPlanError,
-                   "Argument type not known");
+        CHECK_TRUE(state_type != nullptr, kPlanError, "Argument type not known");
 
         // collect state mappings
         size_t begin_offset = new_state_type->generics_.size();
         if (state_type->base() == node::kTuple) {
             for (size_t j = 0; j < state_type->GetGenericSize(); ++j) {
-                new_state_type->AddGeneric(state_type->GetGenericType(j),
-                                           state_type->IsGenericNullable(j));
+                new_state_type->AddGeneric(state_type->GetGenericType(j), state_type->IsGenericNullable(j));
             }
-            state_range.push_back(std::make_pair(
-                begin_offset, begin_offset + state_type->GetGenericSize()));
+            state_range.push_back(std::make_pair(begin_offset, begin_offset + state_type->GetGenericSize()));
         } else {
             new_state_type->AddGeneric(state_type, false);
-            state_range.push_back(
-                std::make_pair(begin_offset, begin_offset + 1));
+            state_range.push_back(std::make_pair(begin_offset, begin_offset + 1));
         }
 
         // collect non-state arg mappings
@@ -168,8 +157,7 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
                 arg_mappings[i][j - 1] = 1;
             } else {
                 arg_mappings[i][j - 1] = arg_offset;
-                auto new_arg = nm->MakeExprIdNode("arg_" + std::to_string(i) +
-                                                  "_" + std::to_string(j));
+                auto new_arg = nm->MakeExprIdNode("arg_" + std::to_string(i) + "_" + std::to_string(j));
                 new_arg->SetOutputType(sub_update->GetArgType(j));
                 new_arg->SetNullable(sub_update->IsArgNullable(j));
                 new_update_args.push_back(new_arg);
@@ -190,11 +178,9 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
             for (size_t j = state_begin_idx; j < state_end_idx; ++j) {
                 tuple.push_back(nm->MakeGetFieldExpr(new_state, j));
             }
-            sub_update_args.push_back(
-                nm->MakeFuncNode("make_tuple", tuple, nullptr));
+            sub_update_args.push_back(nm->MakeFuncNode("make_tuple", tuple, nullptr));
         } else {
-            sub_update_args.push_back(
-                nm->MakeGetFieldExpr(new_state, state_begin_idx));
+            sub_update_args.push_back(nm->MakeGetFieldExpr(new_state, state_begin_idx));
         }
         auto update_func = udafs[i]->update_func();
         for (size_t j = 1; j < update_func->GetArgSize(); ++j) {
@@ -204,15 +190,13 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
         CHECK_STATUS(ApplyArgs(update_func, sub_update_args, nm, &sub_call));
         if (is_tuple) {
             for (size_t j = state_begin_idx; j < state_end_idx; ++j) {
-                sub_update_results.push_back(
-                    nm->MakeGetFieldExpr(sub_call, j - state_begin_idx));
+                sub_update_results.push_back(nm->MakeGetFieldExpr(sub_call, j - state_begin_idx));
             }
         } else {
             sub_update_results.push_back(sub_call);
         }
     }
-    auto update_results =
-        nm->MakeFuncNode("make_tuple", sub_update_results, nullptr);
+    auto update_results = nm->MakeFuncNode("make_tuple", sub_update_results, nullptr);
     auto new_update_func = nm->MakeLambdaNode(new_update_args, update_results);
 
     // build output function
@@ -233,23 +217,19 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
             }
             sub_output_arg = nm->MakeFuncNode("make_tuple", tuple, nullptr);
         } else {
-            sub_output_arg =
-                nm->MakeGetFieldExpr(final_new_state, state_begin_idx);
+            sub_output_arg = nm->MakeGetFieldExpr(final_new_state, state_begin_idx);
         }
         auto output_func = udafs[i]->output_func();
         if (output_func == nullptr) {
             sub_output_results.push_back(sub_output_arg);
         } else {
             ExprNode* sub_call = nullptr;
-            CHECK_STATUS(
-                ApplyArgs(output_func, {sub_output_arg}, nm, &sub_call));
+            CHECK_STATUS(ApplyArgs(output_func, {sub_output_arg}, nm, &sub_call));
             sub_output_results.push_back(sub_call);
         }
     }
-    auto output_results =
-        nm->MakeFuncNode("make_tuple", sub_output_results, nullptr);
-    auto new_output_func =
-        nm->MakeLambdaNode({final_new_state}, output_results);
+    auto output_results = nm->MakeFuncNode("make_tuple", sub_output_results, nullptr);
+    auto new_output_func = nm->MakeLambdaNode({final_new_state}, output_results);
 
     // build init state
     std::vector<ExprNode*> sub_inits;
@@ -259,8 +239,7 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
         bool is_tuple = state_end_idx - state_begin_idx > 1;
         if (is_tuple) {
             for (size_t j = state_begin_idx; j < state_end_idx; ++j) {
-                sub_inits.push_back(nm->MakeGetFieldExpr(udafs[i]->init_expr(),
-                                                         j - state_begin_idx));
+                sub_inits.push_back(nm->MakeGetFieldExpr(udafs[i]->init_expr(), j - state_begin_idx));
             }
         } else {
             sub_inits.push_back(udafs[i]->init_expr());
@@ -282,28 +261,24 @@ Status MergeUdafCalls(const std::vector<ExprNode*>& calls, ExprIdNode* window,
     for (auto expr : call_args) {
         call_arg_types.push_back(expr->GetOutputType());
     }
-    auto new_udaf =
-        nm->MakeUdafDefNode("merged_window_agg", call_arg_types, new_init_expr,
-                            new_update_func, nullptr, new_output_func);
+    auto new_udaf = nm->MakeUdafDefNode("merged_window_agg", call_arg_types, new_init_expr, new_update_func, nullptr,
+                                        new_output_func);
     *output = nm->MakeFuncNode(new_udaf, call_args, nullptr);
     return Status::OK();
 }
 
-Status MergeAggregations::Apply(ExprAnalysisContext* ctx, ExprNode* expr,
-                                ExprNode** out) {
+Status MergeAggregations::Apply(ExprAnalysisContext* ctx, ExprNode* expr, ExprNode** out) {
     if (this->GetWindow() == nullptr) {
         *out = expr;
         return Status::OK();
     }
     WindowIterAnalysis window_iter_analyzer(ctx);
-    CHECK_STATUS(window_iter_analyzer.VisitFunctionLet(
-        this->GetRow(), this->GetWindow(), expr));
+    CHECK_STATUS(window_iter_analyzer.VisitFunctionLet(this->GetRow(), this->GetWindow(), expr));
 
     // find merge candidates
     std::set<size_t> visisted;
     std::vector<ExprNode*> candidates;
-    CHECK_STATUS(CollectUdafCalls(window_iter_analyzer, this->GetWindow(), expr,
-                                  &visisted, &candidates));
+    CHECK_STATUS(CollectUdafCalls(window_iter_analyzer, this->GetWindow(), expr, &visisted, &candidates));
     if (candidates.size() < 2) {
         *out = expr;
         return Status::OK();
@@ -311,15 +286,12 @@ Status MergeAggregations::Apply(ExprAnalysisContext* ctx, ExprNode* expr,
 
     // build merged udaf call
     ExprNode* merged_call = nullptr;
-    CHECK_STATUS(MergeUdafCalls(candidates, this->GetWindow(),
-                                ctx->node_manager(), &merged_call));
+    CHECK_STATUS(MergeUdafCalls(candidates, this->GetWindow(), ctx->node_manager(), &merged_call));
 
     // replace sub udaf calls
     ExprReplacer replacer;
     for (size_t i = 0; i < candidates.size(); ++i) {
-        replacer.AddReplacement(
-            candidates[i],
-            ctx->node_manager()->MakeGetFieldExpr(merged_call, i));
+        replacer.AddReplacement(candidates[i], ctx->node_manager()->MakeGetFieldExpr(merged_call, i));
     }
     CHECK_STATUS(replacer.Replace(expr, out));
 

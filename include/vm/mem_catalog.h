@@ -37,33 +37,24 @@ using hybridse::codec::RowIterator;
 using hybridse::codec::WindowIterator;
 
 struct AscKeyComparor {
-    bool operator()(std::pair<std::string, Row> i,
-                    std::pair<std::string, Row> j) {
-        return i.first < j.first;
-    }
+    bool operator()(std::pair<std::string, Row> i, std::pair<std::string, Row> j) { return i.first < j.first; }
 };
 struct AscComparor {
-    bool operator()(std::pair<uint64_t, Row> i, std::pair<uint64_t, Row> j) {
-        return i.first < j.first;
-    }
+    bool operator()(std::pair<uint64_t, Row> i, std::pair<uint64_t, Row> j) { return i.first < j.first; }
 };
 
 struct DescComparor {
-    bool operator()(std::pair<uint64_t, Row> i, std::pair<uint64_t, Row> j) {
-        return i.first > j.first;
-    }
+    bool operator()(std::pair<uint64_t, Row> i, std::pair<uint64_t, Row> j) { return i.first > j.first; }
 };
 
 typedef std::deque<std::pair<uint64_t, Row>> MemTimeTable;
 typedef std::vector<Row> MemTable;
-typedef std::map<std::string, MemTimeTable, std::greater<std::string>>
-    MemSegmentMap;
+typedef std::map<std::string, MemTimeTable, std::greater<std::string>> MemSegmentMap;
 
 class MemTimeTableIterator : public RowIterator {
  public:
     MemTimeTableIterator(const MemTimeTable* table, const vm::Schema* schema);
-    MemTimeTableIterator(const MemTimeTable* table, const vm::Schema* schema,
-                         int32_t start, int32_t end);
+    MemTimeTableIterator(const MemTimeTable* table, const vm::Schema* schema, int32_t start, int32_t end);
     ~MemTimeTableIterator();
     void Seek(const uint64_t& ts);
     void SeekToFirst();
@@ -84,8 +75,7 @@ class MemTimeTableIterator : public RowIterator {
 class MemTableIterator : public RowIterator {
  public:
     MemTableIterator(const MemTable* table, const vm::Schema* schema);
-    MemTableIterator(const MemTable* table, const vm::Schema* schema,
-                     int32_t start, int32_t end);
+    MemTableIterator(const MemTable* table, const vm::Schema* schema, int32_t start, int32_t end);
     ~MemTableIterator();
     void Seek(const uint64_t& ts);
     void SeekToFirst();
@@ -128,8 +118,7 @@ class MemWindowIterator : public WindowIterator {
 
 class MemRowHandler : public RowHandler {
  public:
-    explicit MemRowHandler(const Row row)
-        : RowHandler(), table_name_(""), db_(""), schema_(nullptr), row_(row) {}
+    explicit MemRowHandler(const Row row) : RowHandler(), table_name_(""), db_(""), schema_(nullptr), row_(row) {}
     MemRowHandler(const Row row, const vm::Schema* schema)
         : RowHandler(), table_name_(""), db_(""), schema_(schema), row_(row) {}
     ~MemRowHandler() {}
@@ -151,8 +140,7 @@ class MemTableHandler : public TableHandler {
  public:
     MemTableHandler();
     explicit MemTableHandler(const Schema* schema);
-    MemTableHandler(const std::string& table_name, const std::string& db,
-                    const Schema* schema);
+    MemTableHandler(const std::string& table_name, const std::string& db, const Schema* schema);
     ~MemTableHandler() override;
 
     const Types& GetTypes() override { return types_; }
@@ -163,21 +151,16 @@ class MemTableHandler : public TableHandler {
 
     std::unique_ptr<RowIterator> GetIterator() override;
     RowIterator* GetRawIterator() override;
-    std::unique_ptr<WindowIterator> GetWindowIterator(
-        const std::string& idx_name);
+    std::unique_ptr<WindowIterator> GetWindowIterator(const std::string& idx_name);
 
     void AddRow(const Row& row);
     void Reverse();
     virtual const uint64_t GetCount() { return table_.size(); }
-    virtual Row At(uint64_t pos) {
-        return pos < table_.size() ? table_.at(pos) : Row();
-    }
+    virtual Row At(uint64_t pos) { return pos < table_.size() ? table_.at(pos) : Row(); }
 
     const OrderType GetOrderType() const { return order_type_; }
     void SetOrderType(const OrderType order_type) { order_type_ = order_type; }
-    const std::string GetHandlerTypeName() override {
-        return "MemTableHandler";
-    }
+    const std::string GetHandlerTypeName() override { return "MemTableHandler"; }
 
  protected:
     void Resize(const size_t size);
@@ -195,8 +178,7 @@ class MemTimeTableHandler : public TableHandler {
  public:
     MemTimeTableHandler();
     explicit MemTimeTableHandler(const Schema* schema);
-    MemTimeTableHandler(const std::string& table_name, const std::string& db,
-                        const Schema* schema);
+    MemTimeTableHandler(const std::string& table_name, const std::string& db, const Schema* schema);
     const Types& GetTypes() override;
     ~MemTimeTableHandler() override;
     inline const Schema* GetSchema() { return schema_; }
@@ -205,29 +187,20 @@ class MemTimeTableHandler : public TableHandler {
     std::unique_ptr<RowIterator> GetIterator();
     RowIterator* GetRawIterator();
     inline const std::string& GetDatabase() { return db_; }
-    std::unique_ptr<WindowIterator> GetWindowIterator(
-        const std::string& idx_name);
+    std::unique_ptr<WindowIterator> GetWindowIterator(const std::string& idx_name);
     void AddRow(const uint64_t key, const Row& v);
     void AddFrontRow(const uint64_t key, const Row& v);
     void PopBackRow();
     void PopFrontRow();
-    virtual const std::pair<uint64_t, Row>& GetFrontRow() {
-        return table_.front();
-    }
-    virtual const std::pair<uint64_t, Row>& GetBackRow() {
-        return table_.back();
-    }
+    virtual const std::pair<uint64_t, Row>& GetFrontRow() { return table_.front(); }
+    virtual const std::pair<uint64_t, Row>& GetBackRow() { return table_.back(); }
     void Sort(const bool is_asc);
     void Reverse();
     virtual const uint64_t GetCount() { return table_.size(); }
-    virtual Row At(uint64_t pos) {
-        return pos < table_.size() ? table_.at(pos).second : Row();
-    }
+    virtual Row At(uint64_t pos) { return pos < table_.size() ? table_.at(pos).second : Row(); }
     void SetOrderType(const OrderType order_type) { order_type_ = order_type; }
     const OrderType GetOrderType() const { return order_type_; }
-    const std::string GetHandlerTypeName() override {
-        return "MemTimeTableHandler";
-    }
+    const std::string GetHandlerTypeName() override { return "MemTimeTableHandler"; }
 
  protected:
     const std::string table_name_;
@@ -241,26 +214,16 @@ class MemTimeTableHandler : public TableHandler {
 
 class Window : public MemTimeTableHandler {
  public:
-    enum WindowFrameType {
-        kFrameRows,
-        kFrameRowsRange,
-        kFrameRowsMergeRowsRange
-    };
-    Window()
-        : MemTimeTableHandler(),
-          exclude_current_time_(false),
-          instance_not_in_window_(false) {}
+    enum WindowFrameType { kFrameRows, kFrameRowsRange, kFrameRowsMergeRowsRange };
+    Window() : MemTimeTableHandler(), exclude_current_time_(false), instance_not_in_window_(false) {}
     virtual ~Window() {}
 
     std::unique_ptr<RowIterator> GetIterator() override {
-        std::unique_ptr<vm::MemTimeTableIterator> it(
-            new vm::MemTimeTableIterator(&table_, schema_));
+        std::unique_ptr<vm::MemTimeTableIterator> it(new vm::MemTimeTableIterator(&table_, schema_));
         return std::move(it);
     }
 
-    RowIterator* GetRawIterator() {
-        return new vm::MemTimeTableIterator(&table_, schema_);
-    }
+    RowIterator* GetRawIterator() { return new vm::MemTimeTableIterator(&table_, schema_); }
     virtual bool BufferData(uint64_t key, const Row& row) = 0;
     virtual void PopBackData() { PopBackRow(); }
     virtual void PopFrontData() = 0;
@@ -274,17 +237,11 @@ class Window : public MemTimeTableHandler {
         }
     }
     const std::string GetHandlerTypeName() override { return "Window"; }
-    const bool instance_not_in_window() const {
-        return instance_not_in_window_;
-    }
-    void set_instance_not_in_window(const bool flag) {
-        instance_not_in_window_ = flag;
-    }
+    const bool instance_not_in_window() const { return instance_not_in_window_; }
+    void set_instance_not_in_window(const bool flag) { instance_not_in_window_ = flag; }
 
     const bool exclude_current_time() const { return exclude_current_time_; }
-    void set_exclude_current_time(const bool flag) {
-        exclude_current_time_ = flag;
-    }
+    void set_exclude_current_time(const bool flag) { exclude_current_time_ = flag; }
 
  protected:
     bool exclude_current_time_;
@@ -293,14 +250,9 @@ class Window : public MemTimeTableHandler {
 class WindowRange {
  public:
     WindowRange()
-        : frame_type_(Window::kFrameRows),
-          start_offset_(0),
-          end_offset_(0),
-          start_row_(0),
-          end_row_(0),
-          max_size_(0) {}
-    WindowRange(Window::WindowFrameType frame_type, int64_t start_offset,
-                int64_t end_offset, uint64_t rows_preceding, uint64_t max_size)
+        : frame_type_(Window::kFrameRows), start_offset_(0), end_offset_(0), start_row_(0), end_row_(0), max_size_(0) {}
+    WindowRange(Window::WindowFrameType frame_type, int64_t start_offset, int64_t end_offset, uint64_t rows_preceding,
+                uint64_t max_size)
         : frame_type_(frame_type),
           start_offset_(start_offset),
           end_offset_(end_offset),
@@ -312,39 +264,31 @@ class WindowRange {
     static WindowRange CreateRowsWindow(uint64_t rows_preceding) {
         return WindowRange(Window::kFrameRows, 0, 0, rows_preceding, 0);
     }
-    static WindowRange CreateRowsRangeWindow(int64_t start_offset,
-                                             int64_t end_offset,
-                                             uint64_t max_size = 0) {
-        return WindowRange(Window::kFrameRowsRange, start_offset, end_offset, 0,
-                           max_size);
+    static WindowRange CreateRowsRangeWindow(int64_t start_offset, int64_t end_offset, uint64_t max_size = 0) {
+        return WindowRange(Window::kFrameRowsRange, start_offset, end_offset, 0, max_size);
     }
-    static WindowRange CreateRowsMergeRowsRangeWindow(int64_t start_offset,
-                                                      uint64_t rows_preceding,
+    static WindowRange CreateRowsMergeRowsRangeWindow(int64_t start_offset, uint64_t rows_preceding,
                                                       uint64_t max_size = 0) {
-        return WindowRange(Window::kFrameRowsMergeRowsRange, start_offset, 0,
-                           rows_preceding, max_size);
+        return WindowRange(Window::kFrameRowsMergeRowsRange, start_offset, 0, rows_preceding, max_size);
     }
     enum WindowPositionStatus {
         kInWindow,
         kExceedWindow,
         kBeforeWindow,
     };
-    inline const WindowPositionStatus GetWindowPositionStatus(
-        bool out_of_rows, bool before_window, bool exceed_window) const {
+    inline const WindowPositionStatus GetWindowPositionStatus(bool out_of_rows, bool before_window,
+                                                              bool exceed_window) const {
         switch (frame_type_) {
             case Window::WindowFrameType::kFrameRows:
                 return out_of_rows ? kExceedWindow : kInWindow;
             case Window::WindowFrameType::kFrameRowsMergeRowsRange: {
-                return out_of_rows
-                           ? (before_window
-                                  ? kBeforeWindow
-                                  : exceed_window ? kExceedWindow : kInWindow)
-                           : kInWindow;
+                return out_of_rows ? (before_window   ? kBeforeWindow
+                                      : exceed_window ? kExceedWindow
+                                                      : kInWindow)
+                                   : kInWindow;
             }
             case Window::WindowFrameType::kFrameRowsRange:
-                return exceed_window
-                           ? kExceedWindow
-                           : before_window ? kBeforeWindow : kInWindow;
+                return exceed_window ? kExceedWindow : before_window ? kBeforeWindow : kInWindow;
             default:
                 return kExceedWindow;
         }
@@ -409,8 +353,7 @@ class HistoryWindow : public Window {
     }
 
  protected:
-    bool BufferCurrentHistoryBuffer(uint64_t key, const Row& row,
-                                    uint64_t end_ts) {
+    bool BufferCurrentHistoryBuffer(uint64_t key, const Row& row, uint64_t end_ts) {
         current_history_buffer_.emplace_front(std::make_pair(key, row));
         int64_t sub = (key + window_range_.start_offset_);
         uint64_t start_ts = sub < 0 ? 0u : static_cast<uint64_t>(sub);
@@ -425,12 +368,10 @@ class HistoryWindow : public Window {
         return true;
     }
 
-    bool BufferEffectiveWindow(uint64_t key, const Row& row,
-                               uint64_t start_ts) {
+    bool BufferEffectiveWindow(uint64_t key, const Row& row, uint64_t start_ts) {
         AddFrontRow(key, row);
         auto cur_size = table_.size();
-        while (window_range_.max_size_ > 0 &&
-               cur_size > window_range_.max_size_) {
+        while (window_range_.max_size_ > 0 && cur_size > window_range_.max_size_) {
             PopBackRow();
             --cur_size;
         }
@@ -438,13 +379,11 @@ class HistoryWindow : public Window {
         // Slide window when window size >= rows_preceding
         while (cur_size > 0) {
             const auto& pair = GetBackRow();
-            if ((kFrameRows == window_range_.frame_type_ ||
-                 kFrameRowsMergeRowsRange == window_range_.frame_type_) &&
+            if ((kFrameRows == window_range_.frame_type_ || kFrameRowsMergeRowsRange == window_range_.frame_type_) &&
                 cur_size <= window_range_.start_row_ + 1) {
                 break;
             }
-            if (kFrameRows == window_range_.frame_type_ ||
-                pair.first < start_ts) {
+            if (kFrameRows == window_range_.frame_type_ || pair.first < start_ts) {
                 PopBackRow();
                 --cur_size;
 
@@ -454,8 +393,7 @@ class HistoryWindow : public Window {
         }
         return true;
     }
-    bool BufferCurrentTimeBuffer(uint64_t key, const Row& row,
-                                 uint64_t start_ts) {
+    bool BufferCurrentTimeBuffer(uint64_t key, const Row& row, uint64_t start_ts) {
         if (!exclude_current_time_) {
             return BufferEffectiveWindow(key, row, start_ts);
         } else {
@@ -476,17 +414,12 @@ class HistoryWindow : public Window {
  */
 class CurrentHistoryWindow : public HistoryWindow {
  public:
-    explicit CurrentHistoryWindow(const WindowRange& window_range)
-        : HistoryWindow(window_range) {}
-    explicit CurrentHistoryWindow(const Window::WindowFrameType window_frame,
-                                  uint64_t start_offset, uint64_t max_size)
-        : HistoryWindow(
-              WindowRange(window_frame, start_offset, 0, 0, max_size)) {}
-    explicit CurrentHistoryWindow(const Window::WindowFrameType window_frame,
-                                  uint64_t start_offset, uint64_t start_rows,
-                                  uint64_t max_size)
-        : HistoryWindow(WindowRange(window_frame, start_offset, 0, start_rows,
-                                    max_size)) {}
+    explicit CurrentHistoryWindow(const WindowRange& window_range) : HistoryWindow(window_range) {}
+    explicit CurrentHistoryWindow(const Window::WindowFrameType window_frame, uint64_t start_offset, uint64_t max_size)
+        : HistoryWindow(WindowRange(window_frame, start_offset, 0, 0, max_size)) {}
+    explicit CurrentHistoryWindow(const Window::WindowFrameType window_frame, uint64_t start_offset,
+                                  uint64_t start_rows, uint64_t max_size)
+        : HistoryWindow(WindowRange(window_frame, start_offset, 0, start_rows, max_size)) {}
     ~CurrentHistoryWindow() {}
 
     virtual void PopFrontData() { PopFrontRow(); }
@@ -506,44 +439,32 @@ class CurrentHistoryWindow : public HistoryWindow {
     }
 };
 
-typedef std::map<std::string,
-                 std::map<std::string, std::shared_ptr<MemTimeTableHandler>>>
-    MemTables;
+typedef std::map<std::string, std::map<std::string, std::shared_ptr<MemTimeTableHandler>>> MemTables;
 typedef std::map<std::string, std::shared_ptr<type::Database>> Databases;
 
 class MemSegmentHandler : public TableHandler {
  public:
-    MemSegmentHandler(std::shared_ptr<PartitionHandler> partition_hander,
-                      const std::string& key)
+    MemSegmentHandler(std::shared_ptr<PartitionHandler> partition_hander, const std::string& key)
         : partition_hander_(partition_hander), key_(key) {}
 
     virtual ~MemSegmentHandler() {}
 
-    inline const vm::Schema* GetSchema() {
-        return partition_hander_->GetSchema();
-    }
+    inline const vm::Schema* GetSchema() { return partition_hander_->GetSchema(); }
 
     inline const std::string& GetName() { return partition_hander_->GetName(); }
 
-    inline const std::string& GetDatabase() {
-        return partition_hander_->GetDatabase();
-    }
+    inline const std::string& GetDatabase() { return partition_hander_->GetDatabase(); }
 
     inline const vm::Types& GetTypes() { return partition_hander_->GetTypes(); }
 
-    inline const vm::IndexHint& GetIndex() {
-        return partition_hander_->GetIndex();
-    }
+    inline const vm::IndexHint& GetIndex() { return partition_hander_->GetIndex(); }
 
-    const OrderType GetOrderType() const {
-        return partition_hander_->GetOrderType();
-    }
+    const OrderType GetOrderType() const { return partition_hander_->GetOrderType(); }
     std::unique_ptr<vm::RowIterator> GetIterator() {
         auto iter = partition_hander_->GetWindowIterator();
         if (iter) {
             iter->Seek(key_);
-            return iter->Valid() ? iter->GetValue()
-                                 : std::unique_ptr<RowIterator>();
+            return iter->Valid() ? iter->GetValue() : std::unique_ptr<RowIterator>();
         }
         return std::unique_ptr<RowIterator>();
     }
@@ -555,8 +476,7 @@ class MemSegmentHandler : public TableHandler {
         }
         return nullptr;
     }
-    std::unique_ptr<vm::WindowIterator> GetWindowIterator(
-        const std::string& idx_name) {
+    std::unique_ptr<vm::WindowIterator> GetWindowIterator(const std::string& idx_name) {
         LOG(WARNING) << "SegmentHandler can't support window iterator";
         return std::unique_ptr<WindowIterator>();
     }
@@ -584,23 +504,18 @@ class MemSegmentHandler : public TableHandler {
         }
         return iter->Valid() ? iter->GetValue() : Row();
     }
-    const std::string GetHandlerTypeName() override {
-        return "MemSegmentHandler";
-    }
+    const std::string GetHandlerTypeName() override { return "MemSegmentHandler"; }
 
  private:
     std::shared_ptr<vm::PartitionHandler> partition_hander_;
     std::string key_;
 };
 
-class MemPartitionHandler
-    : public PartitionHandler,
-      public std::enable_shared_from_this<PartitionHandler> {
+class MemPartitionHandler : public PartitionHandler, public std::enable_shared_from_this<PartitionHandler> {
  public:
     MemPartitionHandler();
     explicit MemPartitionHandler(const Schema* schema);
-    MemPartitionHandler(const std::string& table_name, const std::string& db,
-                        const Schema* schema);
+    MemPartitionHandler(const std::string& table_name, const std::string& db, const Schema* schema);
 
     ~MemPartitionHandler();
     const Types& GetTypes() override;
@@ -615,14 +530,11 @@ class MemPartitionHandler
     void Print();
     virtual const uint64_t GetCount() { return partitions_.size(); }
     virtual std::shared_ptr<TableHandler> GetSegment(const std::string& key) {
-        return std::shared_ptr<MemSegmentHandler>(
-            new MemSegmentHandler(shared_from_this(), key));
+        return std::shared_ptr<MemSegmentHandler>(new MemSegmentHandler(shared_from_this(), key));
     }
     void SetOrderType(const OrderType order_type) { order_type_ = order_type; }
     const OrderType GetOrderType() const { return order_type_; }
-    const std::string GetHandlerTypeName() override {
-        return "MemPartitionHandler";
-    }
+    const std::string GetHandlerTypeName() override { return "MemPartitionHandler"; }
 
  private:
     std::string table_name_;
@@ -635,8 +547,8 @@ class MemPartitionHandler
 };
 class ConcatTableHandler : public MemTimeTableHandler {
  public:
-    ConcatTableHandler(std::shared_ptr<TableHandler> left, size_t left_slices,
-                       std::shared_ptr<TableHandler> right, size_t right_slices)
+    ConcatTableHandler(std::shared_ptr<TableHandler> left, size_t left_slices, std::shared_ptr<TableHandler> right,
+                       size_t right_slices)
         : MemTimeTableHandler(),
           status_(base::Status::Running()),
           left_(left),
@@ -688,13 +600,10 @@ class ConcatTableHandler : public MemTimeTableHandler {
         left_iter->SeekToFirst();
         while (left_iter->Valid()) {
             if (!right_iter || !right_iter->Valid()) {
-                AddRow(left_iter->GetKey(),
-                       Row(left_slices_, left_iter->GetValue(), right_slices_,
-                           Row()));
+                AddRow(left_iter->GetKey(), Row(left_slices_, left_iter->GetValue(), right_slices_, Row()));
             } else {
                 AddRow(left_iter->GetKey(),
-                       Row(left_slices_, left_iter->GetValue(), right_slices_,
-                           right_iter->GetValue()));
+                       Row(left_slices_, left_iter->GetValue(), right_slices_, right_iter->GetValue()));
                 right_iter->Next();
             }
             left_iter->Next();
@@ -716,11 +625,8 @@ class MemCatalog : public Catalog {
 
     bool Init();
 
-    std::shared_ptr<type::Database> GetDatabase(const std::string& db) {
-        return dbs_[db];
-    }
-    std::shared_ptr<TableHandler> GetTable(const std::string& db,
-                                           const std::string& table_name) {
+    std::shared_ptr<type::Database> GetDatabase(const std::string& db) { return dbs_[db]; }
+    std::shared_ptr<TableHandler> GetTable(const std::string& db, const std::string& table_name) {
         return tables_[db][table_name];
     }
     bool IndexSupport() override { return true; }
@@ -737,21 +643,16 @@ class MemCatalog : public Catalog {
  */
 class RequestUnionTableHandler : public TableHandler {
  public:
-    RequestUnionTableHandler(uint64_t request_ts, const Row& request_row,
-                             const std::shared_ptr<TableHandler>& window)
+    RequestUnionTableHandler(uint64_t request_ts, const Row& request_row, const std::shared_ptr<TableHandler>& window)
         : request_ts_(request_ts), request_row_(request_row), window_(window) {}
     ~RequestUnionTableHandler() {}
 
-    std::unique_ptr<RowIterator> GetIterator() override {
-        return std::unique_ptr<RowIterator>(GetRawIterator());
-    }
+    std::unique_ptr<RowIterator> GetIterator() override { return std::unique_ptr<RowIterator>(GetRawIterator()); }
     RowIterator* GetRawIterator() override;
 
     const Types& GetTypes() override { return window_->GetTypes(); }
     const IndexHint& GetIndex() override { return window_->GetIndex(); }
-    std::unique_ptr<WindowIterator> GetWindowIterator(const std::string&) {
-        return nullptr;
-    }
+    std::unique_ptr<WindowIterator> GetWindowIterator(const std::string&) { return nullptr; }
     const OrderType GetOrderType() const { return window_->GetOrderType(); }
     const Schema* GetSchema() override { return window_->GetSchema(); }
     const std::string& GetName() override { return window_->GetName(); }

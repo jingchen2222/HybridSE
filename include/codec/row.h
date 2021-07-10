@@ -38,24 +38,18 @@ class Row {
     Row();
     explicit Row(const std::string &str);
     Row(const Row &s);
-    Row(size_t major_slices, const Row &major, size_t secondary_slices,
-        const Row &secondary);
-    Row(const hybridse::base::RefCountedSlice &s, size_t secondary_slices,
-        const Row &secondary);
+    Row(size_t major_slices, const Row &major, size_t secondary_slices, const Row &secondary);
+    Row(const hybridse::base::RefCountedSlice &s, size_t secondary_slices, const Row &secondary);
 
     explicit Row(const hybridse::base::RefCountedSlice &s);
 
     virtual ~Row();
 
     inline int8_t *buf() const { return slice_.buf(); }
-    inline int8_t *buf(int32_t pos) const {
-        return 0 == pos ? slice_.buf() : slices_[pos - 1].buf();
-    }
+    inline int8_t *buf(int32_t pos) const { return 0 == pos ? slice_.buf() : slices_[pos - 1].buf(); }
 
     inline int32_t size() const { return slice_.size(); }
-    inline int32_t size(int32_t pos) const {
-        return 0 == pos ? slice_.size() : slices_[pos - 1].size();
-    }
+    inline int32_t size(int32_t pos) const { return 0 == pos ? slice_.size() : slices_[pos - 1].size(); }
 
     // Return true if the length of the referenced data is zero
     inline bool empty() const { return slice_.empty() && slices_.empty(); }
@@ -77,15 +71,11 @@ class Row {
         }
         return 0 == slice_index ? slice_ : slices_[slice_index - 1];
     }
-    inline void Append(const hybridse::base::RefCountedSlice &slice) {
-        slices_.emplace_back(slice);
-    }
+    inline void Append(const hybridse::base::RefCountedSlice &slice) { slices_.emplace_back(slice); }
     // Return a string that contains the copy of the referenced data.
     std::string ToString() const;
 
-    void Reset(const int8_t *buf, size_t size) {
-        slice_.reset(reinterpret_cast<const char *>(buf), size);
-    }
+    void Reset(const int8_t *buf, size_t size) { slice_.reset(reinterpret_cast<const char *>(buf), size); }
 
  private:
     void Append(const std::vector<hybridse::base::RefCountedSlice> &slices);

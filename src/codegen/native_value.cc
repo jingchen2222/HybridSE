@@ -42,9 +42,7 @@ namespace codegen {
     return is_null;
 }
 
-::llvm::Value* NativeValue::GetIsNull(CodeGenContext* ctx) const {
-    return GetIsNull(ctx->GetBuilder());
-}
+::llvm::Value* NativeValue::GetIsNull(CodeGenContext* ctx) const { return GetIsNull(ctx->GetBuilder()); }
 
 ::llvm::Value* NativeValue::GetValue(::llvm::IRBuilder<>* builder) const {
     if (IsConstNull()) {
@@ -56,17 +54,14 @@ namespace codegen {
     }
 }
 
-::llvm::Value* NativeValue::GetValue(CodeGenContext* ctx) const {
-    return GetValue(ctx->GetBuilder());
-}
+::llvm::Value* NativeValue::GetValue(CodeGenContext* ctx) const { return GetValue(ctx->GetBuilder()); }
 
 ::llvm::Value* NativeValue::GetAddr(::llvm::IRBuilder<>* builder) const {
     if (IsConstNull()) {
         LOG(WARNING) << "Get addr from const null";
         return nullptr;
     } else if (IsReg()) {
-        ::llvm::Value* alloca =
-            CreateAllocaAtHead(builder, type_, "addr_alloca");
+        ::llvm::Value* alloca = CreateAllocaAtHead(builder, type_, "addr_alloca");
         builder->CreateStore(raw_, alloca);
         return alloca;
     } else {
@@ -79,23 +74,15 @@ void NativeValue::SetType(::llvm::Type* type) { type_ = type; }
 
 ::llvm::Value* NativeValue::GetRaw() const { return raw_; }
 
-bool NativeValue::IsMem() const {
-    return raw_ != nullptr && raw_->getType() == type_->getPointerTo();
-}
+bool NativeValue::IsMem() const { return raw_ != nullptr && raw_->getType() == type_->getPointerTo(); }
 
-bool NativeValue::IsReg() const {
-    return raw_ != nullptr && raw_->getType() == type_;
-}
+bool NativeValue::IsReg() const { return raw_ != nullptr && raw_->getType() == type_; }
 
 bool NativeValue::HasFlag() const { return flag_ != nullptr; }
 
-bool NativeValue::IsMemFlag() const {
-    return HasFlag() && flag_->getType()->isPointerTy();
-}
+bool NativeValue::IsMemFlag() const { return HasFlag() && flag_->getType()->isPointerTy(); }
 
-bool NativeValue::IsRegFlag() const {
-    return HasFlag() && !flag_->getType()->isPointerTy();
-}
+bool NativeValue::IsRegFlag() const { return HasFlag() && !flag_->getType()->isPointerTy(); }
 
 bool NativeValue::IsNullable() const { return IsConstNull() || HasFlag(); }
 bool NativeValue::IsConstNull() const { return raw_ == nullptr; }
@@ -111,30 +98,20 @@ void NativeValue::SetName(const std::string& name) {
     }
 }
 
-NativeValue NativeValue::Create(::llvm::Value* raw) {
-    return NativeValue(raw, nullptr, raw->getType());
-}
+NativeValue NativeValue::Create(::llvm::Value* raw) { return NativeValue(raw, nullptr, raw->getType()); }
 
 NativeValue NativeValue::CreateMem(::llvm::Value* raw) {
-    return NativeValue(raw, nullptr,
-                       reinterpret_cast<::llvm::PointerType*>(raw->getType())
-                           ->getElementType());
+    return NativeValue(raw, nullptr, reinterpret_cast<::llvm::PointerType*>(raw->getType())->getElementType());
 }
 
-NativeValue NativeValue::CreateNull(::llvm::Type* ty) {
-    return NativeValue(nullptr, nullptr, ty);
-}
+NativeValue NativeValue::CreateNull(::llvm::Type* ty) { return NativeValue(nullptr, nullptr, ty); }
 
-NativeValue NativeValue::CreateWithFlag(::llvm::Value* raw,
-                                        ::llvm::Value* flag) {
+NativeValue NativeValue::CreateWithFlag(::llvm::Value* raw, ::llvm::Value* flag) {
     return NativeValue(raw, flag, raw->getType());
 }
 
-NativeValue NativeValue::CreateMemWithFlag(::llvm::Value* raw,
-                                           ::llvm::Value* flag) {
-    return NativeValue(raw, flag,
-                       reinterpret_cast<::llvm::PointerType*>(raw->getType())
-                           ->getElementType());
+NativeValue NativeValue::CreateMemWithFlag(::llvm::Value* raw, ::llvm::Value* flag) {
+    return NativeValue(raw, flag, reinterpret_cast<::llvm::PointerType*>(raw->getType())->getElementType());
 }
 
 NativeValue NativeValue::Replace(::llvm::Value* val) const {
@@ -157,8 +134,7 @@ NativeValue NativeValue::WithFlag(::llvm::Value* flag) const {
     }
 }
 
-NativeValue::NativeValue(::llvm::Value* raw, ::llvm::Value* flag,
-                         ::llvm::Type* type)
+NativeValue::NativeValue(::llvm::Value* raw, ::llvm::Value* flag, ::llvm::Type* type)
     : raw_(raw), flag_(flag), type_(type) {}
 
 }  // namespace codegen

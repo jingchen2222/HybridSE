@@ -26,14 +26,12 @@ using hybridse::codec::Schema;
 
 class LeftJoinOptimized : public TransformUpPysicalPass {
  public:
-    explicit LeftJoinOptimized(PhysicalPlanContext* plan_ctx)
-        : TransformUpPysicalPass(plan_ctx) {}
+    explicit LeftJoinOptimized(PhysicalPlanContext* plan_ctx) : TransformUpPysicalPass(plan_ctx) {}
 
  private:
     bool Transform(PhysicalOpNode* in, PhysicalOpNode** output);
     bool ColumnExist(const Schema& schema, const std::string& column);
-    bool CheckExprListFromSchema(const node::ExprListNode* expr_list,
-                                 const Schema* schema);
+    bool CheckExprListFromSchema(const node::ExprListNode* expr_list, const Schema* schema);
 };
 }  // namespace passes
 }  // namespace hybridse

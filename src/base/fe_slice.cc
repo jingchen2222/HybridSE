@@ -40,13 +40,9 @@ void RefCountedSlice::Update(const RefCountedSlice& slice) {
     }
 }
 
-RefCountedSlice::RefCountedSlice(const RefCountedSlice& slice) {
-    this->Update(slice);
-}
+RefCountedSlice::RefCountedSlice(const RefCountedSlice& slice) { this->Update(slice); }
 
-RefCountedSlice::RefCountedSlice(RefCountedSlice&& slice) {
-    this->Update(slice);
-}
+RefCountedSlice::RefCountedSlice(RefCountedSlice&& slice) { this->Update(slice); }
 
 RefCountedSlice& RefCountedSlice::operator=(const RefCountedSlice& slice) {
     if (&slice == this) {

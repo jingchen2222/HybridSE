@@ -51,10 +51,9 @@ class BlockIRBuilder {
     bool BuildForInBlock(const ::hybridse::node::FnForInBlock* node,
                          base::Status& status);  // NOLINT
 
-    bool DoBuildBranchBlock(
-        const ::hybridse::node::FnIfElseBlock* if_else_block, size_t branch_idx,
-        CodeGenContext* ctx,
-        Status& status);  // NOLINT
+    bool DoBuildBranchBlock(const ::hybridse::node::FnIfElseBlock* if_else_block, size_t branch_idx,
+                            CodeGenContext* ctx,
+                            Status& status);  // NOLINT
 
     CodeGenContext* ctx_;
 };

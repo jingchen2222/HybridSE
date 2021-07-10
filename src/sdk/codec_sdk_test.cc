@@ -207,8 +207,7 @@ TEST_F(CodecSDKTest, Encode) {
             } else {
                 butil::IOBuf tmp;
                 ASSERT_EQ(view.GetString(i, &tmp), 0);
-                ASSERT_STREQ(tmp.to_string().c_str(),
-                             std::string(10, 'a' + i).c_str());
+                ASSERT_STREQ(tmp.to_string().c_str(), std::string(10, 'a' + i).c_str());
             }
         }
     }

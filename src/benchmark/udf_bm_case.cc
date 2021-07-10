@@ -82,8 +82,7 @@ void CopyMemTable(benchmark::State* state, MODE mode, int64_t data_size) {
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
-                benchmark::DoNotOptimize(
-                    RunCopyToTable(&table, &(table_def.columns())));
+                benchmark::DoNotOptimize(RunCopyToTable(&table, &(table_def.columns())));
             }
             break;
         }
@@ -126,8 +125,7 @@ int64_t RunCopyToArrayList(MemTimeTableHandler& window,  // NOLINT
 }
 int32_t RunCopyToTable(vm::TableHandler* table,     // NOLINT
                        const vm::Schema* schema) {  // NOLINT
-    auto window_table =
-        std::shared_ptr<vm::MemTableHandler>(new MemTableHandler(schema));
+    auto window_table = std::shared_ptr<vm::MemTableHandler>(new MemTableHandler(schema));
     auto from_iter = table->GetIterator();
     while (from_iter->Valid()) {
         window_table->AddRow(from_iter->GetValue());
@@ -137,8 +135,7 @@ int32_t RunCopyToTable(vm::TableHandler* table,     // NOLINT
 }
 int32_t RunCopyToTimeTable(MemTimeTableHandler& segment,  // NOLINT
                            type::TableDef& table_def) {   // NOLINT
-    auto window_table = std::shared_ptr<vm::MemTimeTableHandler>(
-        new MemTimeTableHandler(&table_def.columns()));
+    auto window_table = std::shared_ptr<vm::MemTimeTableHandler>(new MemTimeTableHandler(&table_def.columns()));
     auto from_iter = segment.GetIterator();
     while (from_iter->Valid()) {
         window_table->AddRow(from_iter->GetKey(), from_iter->GetValue());
@@ -149,14 +146,10 @@ int32_t RunCopyToTimeTable(MemTimeTableHandler& segment,  // NOLINT
 
 template <typename V>
 auto CreateSumFunc() {
-    return udf::UdfFunctionBuilder("sum")
-        .args<codec::ListRef<V>>()
-        .template returns<V>()
-        .build();
+    return udf::UdfFunctionBuilder("sum").args<codec::ListRef<V>>().template returns<V>().build();
 }
 
-void SumArrayListCol(benchmark::State* state, MODE mode, int64_t data_size,
-                     const std::string& col_name) {
+void SumArrayListCol(benchmark::State* state, MODE mode, int64_t data_size, const std::string& col_name) {
     vm::MemTimeTableHandler window;
     type::TableDef table_def;
     BuildData(table_def, window, data_size);
@@ -175,12 +168,8 @@ void SumArrayListCol(benchmark::State* state, MODE mode, int64_t data_size,
     schemas_context.BuildTrivial({&table_def});
     size_t schema_idx;
     size_t col_idx;
-    ASSERT_TRUE(
-        schemas_context
-            .ResolveColumnIndexByName("", col_name, &schema_idx, &col_idx)
-            .isOK());
-    const codec::ColInfo* info =
-        schemas_context.GetRowFormat(schema_idx)->GetColumnInfo(col_idx);
+    ASSERT_TRUE(schemas_context.ResolveColumnIndexByName("", col_name, &schema_idx, &col_idx).isOK());
+    const codec::ColInfo* info = schemas_context.GetRowFormat(schema_idx)->GetColumnInfo(col_idx);
 
     codegen::MemoryWindowDecodeIRBuilder builder(&schemas_context, nullptr);
     node::TypeNode type;
@@ -191,9 +180,8 @@ void SumArrayListCol(benchmark::State* state, MODE mode, int64_t data_size,
 
     int8_t* buf = reinterpret_cast<int8_t*>(alloca(col_size));
 
-    ASSERT_EQ(0, ::hybridse::codec::v1::GetCol(
-                     reinterpret_cast<int8_t*>(&list_table_ref), 0, info->idx,
-                     info->offset, info->type, buf));
+    ASSERT_EQ(0, ::hybridse::codec::v1::GetCol(reinterpret_cast<int8_t*>(&list_table_ref), 0, info->idx, info->offset,
+                                               info->type, buf));
 
     {
         switch (mode) {
@@ -279,21 +267,17 @@ void SumArrayListCol(benchmark::State* state, MODE mode, int64_t data_size,
     }
 }
 
-void DoSumTableCol(vm::TableHandler* window, benchmark::State* state, MODE mode,
-                   int64_t data_size, const std::string& col_name) {
+void DoSumTableCol(vm::TableHandler* window, benchmark::State* state, MODE mode, int64_t data_size,
+                   const std::string& col_name) {
     vm::SchemasContext schemas_context;
     schemas_context.BuildTrivial({window->GetSchema()});
     codegen::MemoryWindowDecodeIRBuilder builder(&schemas_context, nullptr);
 
     size_t schema_idx;
     size_t col_idx;
-    ASSERT_TRUE(
-        schemas_context
-            .ResolveColumnIndexByName("", col_name, &schema_idx, &col_idx)
-            .isOK());
+    ASSERT_TRUE(schemas_context.ResolveColumnIndexByName("", col_name, &schema_idx, &col_idx).isOK());
 
-    const codec::ColInfo* info =
-        schemas_context.GetRowFormat(schema_idx)->GetColumnInfo(col_idx);
+    const codec::ColInfo* info = schemas_context.GetRowFormat(schema_idx)->GetColumnInfo(col_idx);
 
     node::TypeNode type;
     ASSERT_TRUE(codegen::SchemaType2DataType(info->type, &type));
@@ -304,9 +288,8 @@ void DoSumTableCol(vm::TableHandler* window, benchmark::State* state, MODE mode,
     int8_t* buf = reinterpret_cast<int8_t*>(alloca(col_size));
     codec::ListRef<> window_ref;
     window_ref.list = reinterpret_cast<int8_t*>(window);
-    ASSERT_EQ(0, ::hybridse::codec::v1::GetCol(
-                     reinterpret_cast<int8_t*>(&window_ref), 0, info->idx,
-                     info->offset, info->type, buf));
+    ASSERT_EQ(0, ::hybridse::codec::v1::GetCol(reinterpret_cast<int8_t*>(&window_ref), 0, info->idx, info->offset,
+                                               info->type, buf));
     {
         switch (mode) {
             case BENCHMARK: {
@@ -391,8 +374,7 @@ void DoSumTableCol(vm::TableHandler* window, benchmark::State* state, MODE mode,
     }
 }
 
-void SumMemTableCol(benchmark::State* state, MODE mode, int64_t data_size,
-                    const std::string& col_name) {
+void SumMemTableCol(benchmark::State* state, MODE mode, int64_t data_size, const std::string& col_name) {
     type::TableDef table_def;
     std::vector<Row> buffer;
     CaseDataMock::BuildOnePkTableData(table_def, buffer, data_size);
@@ -403,8 +385,7 @@ void SumMemTableCol(benchmark::State* state, MODE mode, int64_t data_size,
     DoSumTableCol(&window, state, mode, data_size, col_name);
 }
 
-void SumRequestUnionTableCol(benchmark::State* state, MODE mode,
-                             int64_t data_size, const std::string& col_name) {
+void SumRequestUnionTableCol(benchmark::State* state, MODE mode, int64_t data_size, const std::string& col_name) {
     type::TableDef table_def;
     std::vector<Row> buffer;
     CaseDataMock::BuildOnePkTableData(table_def, buffer, data_size);
@@ -412,8 +393,7 @@ void SumRequestUnionTableCol(benchmark::State* state, MODE mode,
     for (int i = 0; i < data_size - 1; ++i) {
         window->AddRow(buffer[i]);
     }
-    auto request_union = std::make_shared<vm::RequestUnionTableHandler>(
-        1, buffer[data_size - 1], window);
+    auto request_union = std::make_shared<vm::RequestUnionTableHandler>(1, buffer[data_size - 1], window);
     DoSumTableCol(request_union.get(), state, mode, data_size, col_name);
 }
 
@@ -469,8 +449,7 @@ void CTimeYear(benchmark::State* state, MODE mode, const int32_t data_size) {
 int32_t RunByteMemPoolAlloc1000(size_t request_size) {
     std::vector<int8_t*> chucks;
     for (int i = 0; i < 1000; i++) {
-        chucks.push_back(
-            hybridse::vm::JitRuntime::get()->AllocManaged(request_size));
+        chucks.push_back(hybridse::vm::JitRuntime::get()->AllocManaged(request_size));
     }
     hybridse::vm::JitRuntime::get()->ReleaseRunStep();
     return 1;
@@ -499,8 +478,7 @@ void NewFree1000(benchmark::State* state, MODE mode, size_t request_size) {
         }
     }
 }
-void ByteMemPoolAlloc1000(benchmark::State* state, MODE mode,
-                          size_t request_size) {
+void ByteMemPoolAlloc1000(benchmark::State* state, MODE mode, size_t request_size) {
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
@@ -590,8 +568,7 @@ void DateToString(benchmark::State* state, MODE mode) {
         }
     }
 }
-int64_t RunHistoryWindowBuffer(const vm::WindowRange& window_range,
-                               uint64_t data_size,
+int64_t RunHistoryWindowBuffer(const vm::WindowRange& window_range, uint64_t data_size,
                                const bool exclude_current_time) {  // NOLINT
     auto window = std::make_shared<vm::HistoryWindow>(window_range);
     window->set_exclude_current_time(exclude_current_time);
@@ -603,14 +580,12 @@ int64_t RunHistoryWindowBuffer(const vm::WindowRange& window_range,
     }
     return window->GetCount();
 }
-void HistoryWindowBuffer(benchmark::State* state, MODE mode,
-                         int64_t data_size) {
+void HistoryWindowBuffer(benchmark::State* state, MODE mode, int64_t data_size) {
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
                 benchmark::DoNotOptimize(RunHistoryWindowBuffer(
-                    vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0, 0),
-                    data_size, false));
+                    vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0, 0), data_size, false));
             }
             break;
         }
@@ -618,14 +593,12 @@ void HistoryWindowBuffer(benchmark::State* state, MODE mode,
         }
     }
 }
-void HistoryWindowBufferExcludeCurrentTime(benchmark::State* state, MODE mode,
-                                           int64_t data_size) {
+void HistoryWindowBufferExcludeCurrentTime(benchmark::State* state, MODE mode, int64_t data_size) {
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
                 benchmark::DoNotOptimize(RunHistoryWindowBuffer(
-                    vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0, 0),
-                    data_size, true));
+                    vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0, 0), data_size, true));
             }
             break;
         }
@@ -645,14 +618,9 @@ void RequestUnionWindow(benchmark::State* state, MODE mode, int64_t data_size) {
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
-                benchmark::DoNotOptimize(
-                    vm::RequestUnionRunner::RequestUnionWindow(
-                        request,
-                        std::vector<std::shared_ptr<vm::TableHandler>>({table}),
-                        current_key,
-                        vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0,
-                                        0),
-                        true, false));
+                benchmark::DoNotOptimize(vm::RequestUnionRunner::RequestUnionWindow(
+                    request, std::vector<std::shared_ptr<vm::TableHandler>>({table}), current_key,
+                    vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0, 0), true, false));
             }
             break;
         }
@@ -660,8 +628,7 @@ void RequestUnionWindow(benchmark::State* state, MODE mode, int64_t data_size) {
         }
     }
 }
-void RequestUnionWindowExcludeCurrentTime(benchmark::State* state, MODE mode,
-                                          int64_t data_size) {
+void RequestUnionWindowExcludeCurrentTime(benchmark::State* state, MODE mode, int64_t data_size) {
     Row request;
     Row row;
     auto table = std::make_shared<MemTimeTableHandler>();
@@ -672,14 +639,9 @@ void RequestUnionWindowExcludeCurrentTime(benchmark::State* state, MODE mode,
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
-                benchmark::DoNotOptimize(
-                    vm::RequestUnionRunner::RequestUnionWindow(
-                        request,
-                        std::vector<std::shared_ptr<vm::TableHandler>>({table}),
-                        current_key,
-                        vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0,
-                                        0),
-                        true, true));
+                benchmark::DoNotOptimize(vm::RequestUnionRunner::RequestUnionWindow(
+                    request, std::vector<std::shared_ptr<vm::TableHandler>>({table}), current_key,
+                    vm::WindowRange(vm::Window::kFrameRowsRange, -100, 0, 0, 0), true, true));
             }
             break;
         }

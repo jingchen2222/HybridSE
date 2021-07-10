@@ -87,8 +87,7 @@ const std::shared_ptr<Schema> TableImpl::GetSchema() {
     return schema;
 }
 
-TableSetImpl::TableSetImpl(const Tables& tables)
-    : tables_(tables), index_(-1) {}
+TableSetImpl::TableSetImpl(const Tables& tables) : tables_(tables), index_(-1) {}
 TableSetImpl::~TableSetImpl() {}
 
 bool TableSetImpl::Next() {

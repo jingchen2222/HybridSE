@@ -49,14 +49,11 @@ class CommonColumnOptimize : public PhysicalPass {
     explicit CommonColumnOptimize(const std::set<size_t> common_column_indices);
 
     ~CommonColumnOptimize() {}
-    Status Apply(PhysicalPlanContext* ctx, PhysicalOpNode* input,
-                 PhysicalOpNode** out) override;
+    Status Apply(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out) override;
 
     void ExtractCommonNodeSet(std::set<size_t>* output);
 
-    const std::set<size_t>& GetOutputCommonColumnIndices() const {
-        return output_common_column_indices_;
-    }
+    const std::set<size_t>& GetOutputCommonColumnIndices() const { return output_common_column_indices_; }
 
  private:
     void Init();
@@ -85,9 +82,7 @@ class CommonColumnOptimize : public PhysicalPass {
             common_column_indices.clear();
         }
 
-        bool IsInitialized() const {
-            return common_op != nullptr || non_common_op != nullptr;
-        }
+        bool IsInitialized() const { return common_op != nullptr || non_common_op != nullptr; }
     };
 
     /**
@@ -95,43 +90,30 @@ class CommonColumnOptimize : public PhysicalPass {
      * produce non-common part. Null on one side indicates there is no
      * common part or no non-common part outputs.
      */
-    Status GetOpState(PhysicalPlanContext* ctx, PhysicalOpNode* input,
-                      BuildOpState** state);
+    Status GetOpState(PhysicalPlanContext* ctx, PhysicalOpNode* input, BuildOpState** state);
 
     /**
      * Get concat op of common and non-common part.
      */
-    Status GetConcatOp(PhysicalPlanContext* ctx, PhysicalOpNode* input,
-                       PhysicalOpNode** out);
+    Status GetConcatOp(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out);
 
     /**
      * Get concat op of common and non-common part with original column order.
      * The output op take the same schema slice count with original op.
      */
-    Status GetReorderedOp(PhysicalPlanContext* ctx, PhysicalOpNode* input,
-                          PhysicalOpNode** out);
+    Status GetReorderedOp(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out);
 
-    Status ProcessRequest(PhysicalPlanContext*, PhysicalRequestProviderNode*,
-                          BuildOpState*);
-    Status ProcessData(PhysicalPlanContext*, PhysicalDataProviderNode*,
-                       BuildOpState*);
-    Status ProcessSimpleProject(PhysicalPlanContext*,
-                                PhysicalSimpleProjectNode*, BuildOpState*);
-    Status ProcessProject(PhysicalPlanContext*, PhysicalProjectNode*,
-                          BuildOpState*);
-    Status ProcessWindow(PhysicalPlanContext*, PhysicalAggrerationNode*,
-                         BuildOpState*);
-    Status ProcessJoin(PhysicalPlanContext*, PhysicalRequestJoinNode*,
-                       BuildOpState*);
-    Status ProcessConcat(PhysicalPlanContext*, PhysicalRequestJoinNode*,
-                         BuildOpState*);
-    Status ProcessRename(PhysicalPlanContext*, PhysicalRenameNode*,
-                         BuildOpState*);
-    Status ProcessTrivial(PhysicalPlanContext* ctx, PhysicalOpNode* op,
-                          BuildOpState*);
+    Status ProcessRequest(PhysicalPlanContext*, PhysicalRequestProviderNode*, BuildOpState*);
+    Status ProcessData(PhysicalPlanContext*, PhysicalDataProviderNode*, BuildOpState*);
+    Status ProcessSimpleProject(PhysicalPlanContext*, PhysicalSimpleProjectNode*, BuildOpState*);
+    Status ProcessProject(PhysicalPlanContext*, PhysicalProjectNode*, BuildOpState*);
+    Status ProcessWindow(PhysicalPlanContext*, PhysicalAggrerationNode*, BuildOpState*);
+    Status ProcessJoin(PhysicalPlanContext*, PhysicalRequestJoinNode*, BuildOpState*);
+    Status ProcessConcat(PhysicalPlanContext*, PhysicalRequestJoinNode*, BuildOpState*);
+    Status ProcessRename(PhysicalPlanContext*, PhysicalRenameNode*, BuildOpState*);
+    Status ProcessTrivial(PhysicalPlanContext* ctx, PhysicalOpNode* op, BuildOpState*);
     Status ProcessRequestUnion(PhysicalPlanContext*, PhysicalRequestUnionNode*,
-                               const std::vector<PhysicalOpNode*>& path,
-                               PhysicalOpNode** out,
+                               const std::vector<PhysicalOpNode*>& path, PhysicalOpNode** out,
                                BuildOpState** agg_request_state);
 
     /**

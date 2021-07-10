@@ -78,16 +78,13 @@ class Table {
 
     bool Put(const char* row, uint32_t size);
 
-    std::unique_ptr<TableIterator> NewIterator(const std::string& pk,
-                                               const uint64_t ts);
+    std::unique_ptr<TableIterator> NewIterator(const std::string& pk, const uint64_t ts);
 
-    std::unique_ptr<TableIterator> NewIterator(const std::string& pk,
-                                               const std::string& index_name);
+    std::unique_ptr<TableIterator> NewIterator(const std::string& pk, const std::string& index_name);
 
     std::unique_ptr<TableIterator> NewIterator(const std::string& pk);
 
-    std::unique_ptr<TableIterator> NewTraverseIterator(
-        const std::string& index_name);
+    std::unique_ptr<TableIterator> NewTraverseIterator(const std::string& index_name);
     std::unique_ptr<TableIterator> NewTraverseIterator();
 
     inline uint32_t GetId() const { return id_; }
@@ -101,9 +98,7 @@ class Table {
         std::vector<std::pair<::hybridse::type::Type, size_t>> keys;
     };
 
-    const std::map<std::string, IndexSt>& GetIndexMap() const {
-        return index_map_;
-    }
+    const std::map<std::string, IndexSt>& GetIndexMap() const { return index_map_; }
 
     inline const TableDef& GetTableDef() { return table_def_; }
 
@@ -115,8 +110,7 @@ class Table {
                          int64_t* time_ptr);
 
  private:
-    std::unique_ptr<TableIterator> NewIndexIterator(const std::string& pk,
-                                                    const uint32_t index);
+    std::unique_ptr<TableIterator> NewIndexIterator(const std::string& pk, const uint32_t index);
 
  private:
     std::string name_;

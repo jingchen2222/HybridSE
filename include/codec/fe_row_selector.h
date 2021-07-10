@@ -27,13 +27,11 @@ namespace codec {
 
 class RowSelector {
  public:
-    RowSelector(const hybridse::codec::Schema* schema,
-                const std::vector<size_t>& indices);
+    RowSelector(const hybridse::codec::Schema* schema, const std::vector<size_t>& indices);
     RowSelector(const std::vector<const hybridse::codec::Schema*>& schemas,
                 const std::vector<std::pair<size_t, size_t>>& indices);
 
-    bool Select(const int8_t* slice, size_t size, int8_t** out_slice,
-                size_t* out_size);
+    bool Select(const int8_t* slice, size_t size, int8_t** out_slice, size_t* out_size);
     bool Select(const Row& row, int8_t** out_slice, size_t* out_size);
 
  private:

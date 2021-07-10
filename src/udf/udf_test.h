@@ -55,8 +55,7 @@ typedef std::unique_ptr<UdfFunctionBuilderState> BuilderStatePtr;
 template <typename Ret, typename... Args>
 class UdfFunctionBuilderWithFullInfo {
  public:
-    explicit UdfFunctionBuilderWithFullInfo(BuilderStatePtr&& state)
-        : state(std::move(state)) {}
+    explicit UdfFunctionBuilderWithFullInfo(BuilderStatePtr&& state) : state(std::move(state)) {}
 
     auto& library(UdfLibrary* library) {
         state->library = library;
@@ -72,8 +71,7 @@ class UdfFunctionBuilderWithFullInfo {
 template <typename... Args>
 class UdfFunctionBuilderWithArgs {
  public:
-    explicit UdfFunctionBuilderWithArgs(BuilderStatePtr&& state)
-        : state(std::move(state)) {}
+    explicit UdfFunctionBuilderWithArgs(BuilderStatePtr&& state) : state(std::move(state)) {}
 
     auto& library(UdfLibrary* library) {
         state->library = library;
@@ -111,10 +109,7 @@ class UdfFunctionBuilderWithRet {
 
 class UdfFunctionBuilder {
  public:
-    explicit UdfFunctionBuilder(const std::string& name)
-        : state(new UdfFunctionBuilderState()) {
-        state->name = name;
-    }
+    explicit UdfFunctionBuilder(const std::string& name) : state(new UdfFunctionBuilderState()) { state->name = name; }
 
     auto& library(udf::UdfLibrary* library) {
         state->library = library;
@@ -139,8 +134,7 @@ class UdfFunctionBuilder {
 };
 
 template <typename Ret, typename... Args>
-codegen::ModuleTestFunction<Ret, Args...>
-UdfFunctionBuilderWithFullInfo<Ret, Args...>::build() {
+codegen::ModuleTestFunction<Ret, Args...> UdfFunctionBuilderWithFullInfo<Ret, Args...>::build() {
     UdfLibrary* library;
     if (state->library != nullptr) {
         library = state->library;
@@ -149,15 +143,12 @@ UdfFunctionBuilderWithFullInfo<Ret, Args...>::build() {
     }
     return codegen::BuildExprFunction<Ret, Args...>(
         library,
-        [this, library](
-            node::NodeManager* nm,
-            typename std::pair<Args, node::ExprNode*>::second_type... args)
-            -> node::ExprNode* {
+        [this, library](node::NodeManager* nm,
+                        typename std::pair<Args, node::ExprNode*>::second_type... args) -> node::ExprNode* {
             // resolve udf call
             std::vector<node::ExprNode*> arg_vec = {args...};
             node::ExprNode* output_expr = nullptr;
-            auto status =
-                library->Transform(state->name, arg_vec, nm, &output_expr);
+            auto status = library->Transform(state->name, arg_vec, nm, &output_expr);
             if (!status.isOK() || output_expr == nullptr) {
                 LOG(WARNING) << status;
                 return nullptr;
@@ -168,9 +159,7 @@ UdfFunctionBuilderWithFullInfo<Ret, Args...>::build() {
 
 template <typename T>
 struct EqualValChecker {
-    static void check(const T& expect, const T& output) {
-        ASSERT_EQ(expect, output);
-    }
+    static void check(const T& expect, const T& output) { ASSERT_EQ(expect, output); }
 };
 
 template <>
@@ -199,16 +188,14 @@ struct EqualValChecker<double> {
 
 template <typename T>
 codec::ListRef<T> MakeList(const std::initializer_list<T>& vec) {
-    codec::ArrayListV<T>* list =
-        new codec::ArrayListV<T>(new std::vector<T>(vec));
+    codec::ArrayListV<T>* list = new codec::ArrayListV<T>(new std::vector<T>(vec));
     codec::ListRef<T> list_ref;
     list_ref.list = reinterpret_cast<int8_t*>(list);
     return list_ref;
 }
 
 codec::ListRef<bool> MakeBoolList(const std::initializer_list<int>& vec) {
-    codec::BoolArrayListV* list =
-        new codec::BoolArrayListV(new std::vector<int>(vec));
+    codec::BoolArrayListV* list = new codec::BoolArrayListV(new std::vector<int>(vec));
     codec::ListRef<bool> list_ref;
     list_ref.list = reinterpret_cast<int8_t*>(list);
     return list_ref;

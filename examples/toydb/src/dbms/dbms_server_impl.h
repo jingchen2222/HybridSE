@@ -40,27 +40,24 @@ class DBMSServerImpl : public DBMSServer {
     DBMSServerImpl();
     ~DBMSServerImpl();
 
-    void AddDatabase(RpcController* ctr, const AddDatabaseRequest* request,
-                     AddDatabaseResponse* response, Closure* done) override;
+    void AddDatabase(RpcController* ctr, const AddDatabaseRequest* request, AddDatabaseResponse* response,
+                     Closure* done) override;
 
-    void AddTable(RpcController* ctr, const AddTableRequest* request,
-                  AddTableResponse* response, Closure* done);
+    void AddTable(RpcController* ctr, const AddTableRequest* request, AddTableResponse* response, Closure* done);
 
-    void GetSchema(RpcController* controller, const GetSchemaRequest* request,
-                   GetSchemaResponse* response, Closure* done);
+    void GetSchema(RpcController* controller, const GetSchemaRequest* request, GetSchemaResponse* response,
+                   Closure* done);
 
-    void GetDatabases(RpcController* controller,
-                      const GetDatabasesRequest* request,
-                      GetDatabasesResponse* response, Closure* done);
+    void GetDatabases(RpcController* controller, const GetDatabasesRequest* request, GetDatabasesResponse* response,
+                      Closure* done);
 
-    void GetTables(RpcController* controller, const GetTablesRequest* request,
-                   GetTablesResponse* response, Closure* done);
+    void GetTables(RpcController* controller, const GetTablesRequest* request, GetTablesResponse* response,
+                   Closure* done);
 
-    void KeepAlive(RpcController* controller, const KeepAliveRequest* request,
-                   KeepAliveResponse* response, Closure* done);
+    void KeepAlive(RpcController* controller, const KeepAliveRequest* request, KeepAliveResponse* response,
+                   Closure* done);
 
-    void GetTablet(RpcController* ctrl, const GetTabletRequest* request,
-                   GetTabletResponse* response, Closure* done);
+    void GetTablet(RpcController* ctrl, const GetTabletRequest* request, GetTabletResponse* response, Closure* done);
 
  private:
     std::mutex mu_;
@@ -71,9 +68,8 @@ class DBMSServerImpl : public DBMSServer {
     std::set<std::string> tablets_;
     void InitTable(type::Database* db,
                    Tables& table);  // NOLINT (runtime/references)
-    type::Database* GetDatabase(
-        const std::string db_name,
-        common::Status& status);  // NOLINT (runtime/references)
+    type::Database* GetDatabase(const std::string db_name,
+                                common::Status& status);  // NOLINT (runtime/references)
 };
 
 }  // namespace dbms

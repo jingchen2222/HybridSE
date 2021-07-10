@@ -52,8 +52,7 @@ static inline uint32_t hash(const void *key, uint32_t len, uint32_t seed) {
     return h;
 }
 
-__attribute__((unused)) static uint64_t MurmurHash64A(const void *key, int len,
-                                                      unsigned int seed) {
+__attribute__((unused)) static uint64_t MurmurHash64A(const void *key, int len, unsigned int seed) {
     const uint64_t m = 0xc6a4a7935bd1e995;
     const int r = 47;
     uint64_t h = seed ^ (len * m);

@@ -32,8 +32,7 @@ namespace sdk {
 
 class ResultSetImpl : public ResultSet {
  public:
-    ResultSetImpl(std::unique_ptr<tablet::QueryResponse> response,
-                  std::unique_ptr<brpc::Controller> cntl);
+    ResultSetImpl(std::unique_ptr<tablet::QueryResponse> response, std::unique_ptr<brpc::Controller> cntl);
 
     ~ResultSetImpl();
 

@@ -52,20 +52,14 @@ struct MinCateDef {
         using InputV = typename ContainerT::InputV;
 
         void operator()(UdafRegistryHelper& helper) {  // NOLINT
-            std::string suffix = ".opaque_dict_" +
-                                 DataTypeTrait<K>::to_string() + "_" +
-                                 DataTypeTrait<V>::to_string();
-            helper
-                .templates<StringRef, Opaque<ContainerT>, Nullable<V>,
-                           Nullable<K>>()
+            std::string suffix = ".opaque_dict_" + DataTypeTrait<K>::to_string() + "_" + DataTypeTrait<V>::to_string();
+            helper.templates<StringRef, Opaque<ContainerT>, Nullable<V>, Nullable<K>>()
                 .init("min_cate_init" + suffix, ContainerT::Init)
                 .update("min_cate_update" + suffix, Update)
                 .output("min_cate_output" + suffix, Output);
         }
 
-        static ContainerT* Update(ContainerT* ptr, InputV value,
-                                  bool is_value_null, InputK key,
-                                  bool is_key_null) {
+        static ContainerT* Update(ContainerT* ptr, InputV value, bool is_value_null, InputK key, bool is_key_null) {
             if (is_key_null || is_value_null) {
                 return ptr;
             }
@@ -73,8 +67,7 @@ struct MinCateDef {
             auto stored_key = ContainerT::to_stored_key(key);
             auto iter = map.find(stored_key);
             if (iter == map.end()) {
-                map.insert(iter,
-                           {stored_key, ContainerT::to_stored_value(value)});
+                map.insert(iter, {stored_key, ContainerT::to_stored_value(value)});
             } else {
                 auto& single = iter->second;
                 if (single > ContainerT::to_stored_value(value)) {
@@ -85,10 +78,9 @@ struct MinCateDef {
         }
 
         static void Output(ContainerT* ptr, codec::StringRef* output) {
-            ContainerT::OutputString(
-                ptr, false, output, [](const V& min, char* buf, size_t size) {
-                    return v1::format_string(min, buf, size);
-                });
+            ContainerT::OutputString(ptr, false, output, [](const V& min, char* buf, size_t size) {
+                return v1::format_string(min, buf, size);
+            });
             ContainerT::Destroy(ptr);
         }
     };
@@ -112,25 +104,17 @@ struct MinCateWhereDef {
         using CountCateImpl = typename MinCateDef<K>::template Impl<V>;
 
         void operator()(UdafRegistryHelper& helper) {  // NOLINT
-            std::string suffix = ".opaque_dict_" +
-                                 DataTypeTrait<K>::to_string() + "_" +
-                                 DataTypeTrait<V>::to_string();
-            helper
-                .templates<StringRef, Opaque<ContainerT>, Nullable<V>,
-                           Nullable<bool>, Nullable<K>>()
+            std::string suffix = ".opaque_dict_" + DataTypeTrait<K>::to_string() + "_" + DataTypeTrait<V>::to_string();
+            helper.templates<StringRef, Opaque<ContainerT>, Nullable<V>, Nullable<bool>, Nullable<K>>()
                 .init("min_cate_where_init" + suffix, ContainerT::Init)
                 .update("min_cate_where_update" + suffix, Update)
-                .output("min_cate_where_output" + suffix,
-                        CountCateImpl::Output);
+                .output("min_cate_where_output" + suffix, CountCateImpl::Output);
         }
 
-        static ContainerT* Update(ContainerT* ptr, InputV value,
-                                  bool is_value_null, bool cond,
-                                  bool is_cond_null, InputK key,
-                                  bool is_key_null) {
+        static ContainerT* Update(ContainerT* ptr, InputV value, bool is_value_null, bool cond, bool is_cond_null,
+                                  InputK key, bool is_key_null) {
             if (cond && !is_cond_null) {
-                CountCateImpl::Update(ptr, value, is_value_null, key,
-                                      is_key_null);
+                CountCateImpl::Update(ptr, value, is_value_null, key, is_key_null);
             }
             return ptr;
         }
@@ -157,35 +141,23 @@ struct TopKMinCateWhereDef {
         void operator()(UdafRegistryHelper& helper) {  // NOLINT
             std::string suffix;
 
-            suffix = ".i32_bound_opaque_dict_" + DataTypeTrait<K>::to_string() +
-                     "_" + DataTypeTrait<V>::to_string();
-            helper
-                .templates<StringRef, Opaque<ContainerT>, Nullable<V>,
-                           Nullable<bool>, Nullable<K>, int32_t>()
-                .init("top_n_key_min_cate_where_init" + suffix,
-                      ContainerT::Init)
-                .update("top_n_key_min_cate_where_update" + suffix,
-                        UpdateI32Bound)
+            suffix = ".i32_bound_opaque_dict_" + DataTypeTrait<K>::to_string() + "_" + DataTypeTrait<V>::to_string();
+            helper.templates<StringRef, Opaque<ContainerT>, Nullable<V>, Nullable<bool>, Nullable<K>, int32_t>()
+                .init("top_n_key_min_cate_where_init" + suffix, ContainerT::Init)
+                .update("top_n_key_min_cate_where_update" + suffix, UpdateI32Bound)
                 .output("top_n_key_min_cate_where_output" + suffix, Output);
 
-            suffix = ".i64_bound_opaque_dict_" + DataTypeTrait<K>::to_string() +
-                     "_" + DataTypeTrait<V>::to_string();
-            helper
-                .templates<StringRef, Opaque<ContainerT>, Nullable<V>,
-                           Nullable<bool>, Nullable<K>, int64_t>()
-                .init("top_n_key_min_cate_where_init" + suffix,
-                      ContainerT::Init)
+            suffix = ".i64_bound_opaque_dict_" + DataTypeTrait<K>::to_string() + "_" + DataTypeTrait<V>::to_string();
+            helper.templates<StringRef, Opaque<ContainerT>, Nullable<V>, Nullable<bool>, Nullable<K>, int64_t>()
+                .init("top_n_key_min_cate_where_init" + suffix, ContainerT::Init)
                 .update("top_n_key_min_cate_where_update" + suffix, Update)
                 .output("top_n_key_min_cate_where_output" + suffix, Output);
         }
 
-        static ContainerT* Update(ContainerT* ptr, InputV value,
-                                  bool is_value_null, bool cond,
-                                  bool is_cond_null, InputK key,
-                                  bool is_key_null, int64_t bound) {
+        static ContainerT* Update(ContainerT* ptr, InputV value, bool is_value_null, bool cond, bool is_cond_null,
+                                  InputK key, bool is_key_null, int64_t bound) {
             if (cond && !is_cond_null) {
-                AvgCateImpl::Update(ptr, value, is_value_null, key,
-                                    is_key_null);
+                AvgCateImpl::Update(ptr, value, is_value_null, key, is_key_null);
                 auto& map = ptr->map();
                 if (bound >= 0 && map.size() > static_cast<size_t>(bound)) {
                     map.erase(map.begin());
@@ -194,19 +166,15 @@ struct TopKMinCateWhereDef {
             return ptr;
         }
 
-        static ContainerT* UpdateI32Bound(ContainerT* ptr, InputV value,
-                                          bool is_value_null, bool cond,
-                                          bool is_cond_null, InputK key,
-                                          bool is_key_null, int32_t bound) {
-            return Update(ptr, value, is_value_null, cond, is_cond_null, key,
-                          is_key_null, bound);
+        static ContainerT* UpdateI32Bound(ContainerT* ptr, InputV value, bool is_value_null, bool cond,
+                                          bool is_cond_null, InputK key, bool is_key_null, int32_t bound) {
+            return Update(ptr, value, is_value_null, cond, is_cond_null, key, is_key_null, bound);
         }
 
         static void Output(ContainerT* ptr, codec::StringRef* output) {
-            ContainerT::OutputString(
-                ptr, true, output, [](const V& min, char* buf, size_t size) {
-                    return v1::format_string(min, buf, size);
-                });
+            ContainerT::OutputString(ptr, true, output, [](const V& min, char* buf, size_t size) {
+                return v1::format_string(min, buf, size);
+            });
             ContainerT::Destroy(ptr);
         }
     };

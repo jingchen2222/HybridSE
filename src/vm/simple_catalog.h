@@ -32,8 +32,7 @@ namespace vm {
 
 class SimpleCatalogTableHandler : public TableHandler {
  public:
-    explicit SimpleCatalogTableHandler(const std::string &db_name,
-                                       const hybridse::type::TableDef &);
+    explicit SimpleCatalogTableHandler(const std::string &db_name, const hybridse::type::TableDef &);
 
     const Schema *GetSchema() override;
 
@@ -45,23 +44,21 @@ class SimpleCatalogTableHandler : public TableHandler {
 
     const IndexHint &GetIndex() override;
 
-    std::unique_ptr<hybridse::codec::WindowIterator> GetWindowIterator(
-        const std::string &) override;
+    std::unique_ptr<hybridse::codec::WindowIterator> GetWindowIterator(const std::string &) override;
 
     const uint64_t GetCount() override;
 
     hybridse::codec::Row At(uint64_t pos) override;
 
-    std::shared_ptr<PartitionHandler> GetPartition(
-        const std::string &index_name) override;
+    std::shared_ptr<PartitionHandler> GetPartition(const std::string &index_name) override;
 
     std::unique_ptr<RowIterator> GetIterator() override;
 
     RowIterator *GetRawIterator() override;
 
     bool AddRow(const Row row);
-    bool DecodeKeysAndTs(const IndexSt &index, const int8_t *buf, uint32_t size,
-                         std::string &key, int64_t *time_ptr);  // NOLINT
+    bool DecodeKeysAndTs(const IndexSt &index, const int8_t *buf, uint32_t size, std::string &key,
+                         int64_t *time_ptr);  // NOLINT
 
  private:
     inline int32_t GetColumnIndex(const std::string &column) {
@@ -91,18 +88,14 @@ class SimpleCatalog : public Catalog {
 
     void AddDatabase(const hybridse::type::Database &db);
     std::shared_ptr<type::Database> GetDatabase(const std::string &db) override;
-    std::shared_ptr<TableHandler> GetTable(
-        const std::string &db, const std::string &table_name) override;
+    std::shared_ptr<TableHandler> GetTable(const std::string &db, const std::string &table_name) override;
     bool IndexSupport() override;
 
-    bool InsertRows(const std::string &db, const std::string &table,
-                    const std::vector<Row> &row);
+    bool InsertRows(const std::string &db, const std::string &table, const std::vector<Row> &row);
 
  private:
     bool enable_index_;
-    std::map<std::string,
-             std::map<std::string, std::shared_ptr<SimpleCatalogTableHandler>>>
-        table_handlers_;
+    std::map<std::string, std::map<std::string, std::shared_ptr<SimpleCatalogTableHandler>>> table_handlers_;
 
     std::map<std::string, std::shared_ptr<type::Database>> databases_;
 };

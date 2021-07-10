@@ -21,8 +21,7 @@ namespace bm {
 static void BM_HashFunction(benchmark::State& state) {  // NOLINT
     for (auto _ : state) {
         int32_t i = -1;
-        benchmark::DoNotOptimize(
-            ::hybridse::base::MurmurHash64A(&i, 4, 0xe17a1465));
+        benchmark::DoNotOptimize(::hybridse::base::MurmurHash64A(&i, 4, 0xe17a1465));
     }
 }
 

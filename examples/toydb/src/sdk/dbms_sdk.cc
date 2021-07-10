@@ -24,11 +24,11 @@
 #include "base/spin_lock.h"
 #include "brpc/channel.h"
 #include "node/node_manager.h"
+#include "plan/plan_api.h"
+#include "plan/planner.h"
 #include "proto/dbms.pb.h"
 #include "sdk/result_set_impl.h"
 #include "sdk/tablet_sdk.h"
-#include "plan/plan_api.h"
-#include "plan/planner.h"
 
 namespace hybridse {
 namespace sdk {
@@ -41,32 +41,23 @@ class DBMSSdkImpl : public DBMSSdk {
 
     void CreateDatabase(const std::string &catalog, sdk::Status *status);
 
-    std::shared_ptr<TableSet> GetTables(const std::string &catalog,
-                                        sdk::Status *status);
+    std::shared_ptr<TableSet> GetTables(const std::string &catalog, sdk::Status *status);
 
     std::vector<std::string> GetDatabases(sdk::Status *status);
 
-    std::shared_ptr<ResultSet> ExecuteQuery(const std::string &catalog,
-                                            const std::string &sql,
-                                            sdk::Status *status);
+    std::shared_ptr<ResultSet> ExecuteQuery(const std::string &catalog, const std::string &sql, sdk::Status *status);
 
     // support select only
-    std::shared_ptr<ResultSet> ExecuteQuery(
-        const std::string &catalog, const std::string &sql,
-        const std::shared_ptr<RequestRow> &row, sdk::Status *status) {
+    std::shared_ptr<ResultSet> ExecuteQuery(const std::string &catalog, const std::string &sql,
+                                            const std::shared_ptr<RequestRow> &row, sdk::Status *status) {
         return tablet_sdk_->Query(catalog, sql, row->GetRow(), status);
     }
 
-    const Schema &GetInputSchema(const std::string &catalog,
-                                 const std::string &sql, sdk::Status *status);
+    const Schema &GetInputSchema(const std::string &catalog, const std::string &sql, sdk::Status *status);
 
-    std::shared_ptr<ExplainInfo> Explain(const std::string &catalog,
-                                         const std::string &sql,
-                                         sdk::Status *status);
+    std::shared_ptr<ExplainInfo> Explain(const std::string &catalog, const std::string &sql, sdk::Status *status);
 
-    std::shared_ptr<RequestRow> GetRequestRow(const std::string &catalog,
-                                              const std::string &sql,
-                                              sdk::Status *status);
+    std::shared_ptr<RequestRow> GetRequestRow(const std::string &catalog, const std::string &sql, sdk::Status *status);
 
  private:
     bool InitTabletSdk();
@@ -77,12 +68,10 @@ class DBMSSdkImpl : public DBMSSdk {
     std::shared_ptr<TabletSdk> tablet_sdk_;
     base::SpinMutex spin_mutex_;
     // TODO(wangtaize) remove shared_ptr
-    std::map<std::string, std::map<std::string, std::shared_ptr<ExplainInfo>>>
-        input_schema_map_;
+    std::map<std::string, std::map<std::string, std::shared_ptr<ExplainInfo>>> input_schema_map_;
 };
 
-DBMSSdkImpl::DBMSSdkImpl(const std::string &endpoint)
-    : channel_(NULL), endpoint_(endpoint), tablet_sdk_() {}
+DBMSSdkImpl::DBMSSdkImpl(const std::string &endpoint) : channel_(NULL), endpoint_(endpoint), tablet_sdk_() {}
 
 DBMSSdkImpl::~DBMSSdkImpl() { delete channel_; }
 
@@ -96,14 +85,13 @@ bool DBMSSdkImpl::Init() {
     return InitTabletSdk();
 }
 
-std::shared_ptr<ExplainInfo> DBMSSdkImpl::Explain(const std::string &catalog,
-                                                  const std::string &sql,
+std::shared_ptr<ExplainInfo> DBMSSdkImpl::Explain(const std::string &catalog, const std::string &sql,
                                                   sdk::Status *status) {
     return tablet_sdk_->Explain(catalog, sql, status);
 }
 
-std::shared_ptr<RequestRow> DBMSSdkImpl::GetRequestRow(
-    const std::string &catalog, const std::string &sql, sdk::Status *status) {
+std::shared_ptr<RequestRow> DBMSSdkImpl::GetRequestRow(const std::string &catalog, const std::string &sql,
+                                                       sdk::Status *status) {
     if (status == NULL) return std::shared_ptr<RequestRow>();
     const Schema &schema = GetInputSchema(catalog, sql, status);
     if (status->code != common::kOk) {
@@ -112,9 +100,7 @@ std::shared_ptr<RequestRow> DBMSSdkImpl::GetRequestRow(
     return std::shared_ptr<RequestRow>(new RequestRow(&schema));
 }
 
-const Schema &DBMSSdkImpl::GetInputSchema(const std::string &catalog,
-                                          const std::string &sql,
-                                          sdk::Status *status) {
+const Schema &DBMSSdkImpl::GetInputSchema(const std::string &catalog, const std::string &sql, sdk::Status *status) {
     if (status == NULL) return EMPTY;
     {
         std::lock_guard<base::SpinMutex> lock(spin_mutex_);
@@ -128,11 +114,9 @@ const Schema &DBMSSdkImpl::GetInputSchema(const std::string &catalog,
         }
     }
 
-    std::shared_ptr<ExplainInfo> info =
-        tablet_sdk_->Explain(catalog, sql, status);
+    std::shared_ptr<ExplainInfo> info = tablet_sdk_->Explain(catalog, sql, status);
     if (status->code != 0) {
-        LOG(WARNING) << "fail to get sql input schema for error "
-                     << status->msg;
+        LOG(WARNING) << "fail to get sql input schema for error " << status->msg;
         return EMPTY;
     }
     {
@@ -166,8 +150,7 @@ bool DBMSSdkImpl::InitTabletSdk() {
     return false;
 }
 
-std::shared_ptr<TableSet> DBMSSdkImpl::GetTables(const std::string &catalog,
-                                                 sdk::Status *status) {
+std::shared_ptr<TableSet> DBMSSdkImpl::GetTables(const std::string &catalog, sdk::Status *status) {
     if (status == NULL) {
         return std::shared_ptr<TableSetImpl>();
     }
@@ -182,8 +165,7 @@ std::shared_ptr<TableSet> DBMSSdkImpl::GetTables(const std::string &catalog,
         status->msg = "fail to call remote";
         return std::shared_ptr<TableSetImpl>();
     } else {
-        std::shared_ptr<TableSetImpl> table_set(
-            new TableSetImpl(response.tables()));
+        std::shared_ptr<TableSetImpl> table_set(new TableSetImpl(response.tables()));
         status->code = response.status().code();
         status->msg = response.status().msg();
         return table_set;
@@ -213,8 +195,7 @@ std::vector<std::string> DBMSSdkImpl::GetDatabases(sdk::Status *status) {
     return names;
 }
 
-std::shared_ptr<ResultSet> DBMSSdkImpl::ExecuteQuery(const std::string &catalog,
-                                                     const std::string &sql,
+std::shared_ptr<ResultSet> DBMSSdkImpl::ExecuteQuery(const std::string &catalog, const std::string &sql,
                                                      sdk::Status *status) {
     std::shared_ptr<ResultSetImpl> empty;
     node::NodeManager node_manager;
@@ -248,17 +229,15 @@ std::shared_ptr<ResultSet> DBMSSdkImpl::ExecuteQuery(const std::string &catalog,
             return empty;
         }
         case node::kPlanTypeCreate: {
-            node::CreatePlanNode *create =
-                dynamic_cast<node::CreatePlanNode *>(plan);
+            node::CreatePlanNode *create = dynamic_cast<node::CreatePlanNode *>(plan);
             ::hybridse::dbms::DBMSServer_Stub stub(channel_);
             ::hybridse::dbms::AddTableRequest add_table_request;
             ::hybridse::dbms::AddTableResponse response;
             add_table_request.set_db_name(catalog);
-            ::hybridse::type::TableDef *table =
-                add_table_request.mutable_table();
+            ::hybridse::type::TableDef *table = add_table_request.mutable_table();
             table->set_catalog(catalog);
-            sql_status = hybridse::plan::Planner::TransformTableDef(
-                create->GetTableName(), create->GetColumnDescList(), table);
+            sql_status =
+                hybridse::plan::Planner::TransformTableDef(create->GetTableName(), create->GetColumnDescList(), table);
             if (!sql_status.isOK()) {
                 status->code = sql_status.code;
                 status->msg = sql_status.str();
@@ -278,16 +257,14 @@ std::shared_ptr<ResultSet> DBMSSdkImpl::ExecuteQuery(const std::string &catalog,
         }
 
         default: {
-            status->msg = "fail to execute script with unSuppurt type" +
-                          node::NameOfPlanNodeType(plan->GetType());
+            status->msg = "fail to execute script with unSuppurt type" + node::NameOfPlanNodeType(plan->GetType());
             status->code = hybridse::common::kUnSupport;
             LOG(WARNING) << status->msg;
             return empty;
         }
     }
 }
-void DBMSSdkImpl::CreateDatabase(const std::string &catalog,
-                                 sdk::Status *status) {
+void DBMSSdkImpl::CreateDatabase(const std::string &catalog, sdk::Status *status) {
     if (status == NULL) return;
     ::hybridse::dbms::DBMSServer_Stub stub(channel_);
     ::hybridse::dbms::AddDatabaseRequest request;

@@ -23,9 +23,8 @@ namespace dbms {
 DBMSServerImpl::DBMSServerImpl() : tablet_sdk(nullptr), tid_(0), tablets_() {}
 DBMSServerImpl::~DBMSServerImpl() { delete tablet_sdk; }
 
-void DBMSServerImpl::AddTable(RpcController* ctr,
-                              const AddTableRequest* request,
-                              AddTableResponse* response, Closure* done) {
+void DBMSServerImpl::AddTable(RpcController* ctr, const AddTableRequest* request, AddTableResponse* response,
+                              Closure* done) {
     brpc::ClosureGuard done_guard(done);
     if (request->table().name().empty()) {
         ::hybridse::common::Status* status = response->mutable_status();
@@ -73,8 +72,7 @@ void DBMSServerImpl::AddTable(RpcController* ctr,
             LOG(WARNING) << status->msg();
             return;
         }
-        tablet_sdk =
-            new hybridse::tablet::TabletInternalSDK(*(tablets_.begin()));
+        tablet_sdk = new hybridse::tablet::TabletInternalSDK(*(tablets_.begin()));
         if (tablet_sdk == NULL) {
             ::hybridse::common::Status* status = response->mutable_status();
             status->set_code(::hybridse::common::kConnError);
@@ -87,8 +85,7 @@ void DBMSServerImpl::AddTable(RpcController* ctr,
         if (false == tablet_sdk->Init()) {
             ::hybridse::common::Status* status = response->mutable_status();
             status->set_code(::hybridse::common::kConnError);
-            status->set_msg(
-                "Fail to init tablet (maybe you should check tablet_endpoint");
+            status->set_msg("Fail to init tablet (maybe you should check tablet_endpoint");
             LOG(WARNING) << status->msg();
             return;
         }
@@ -128,9 +125,8 @@ void DBMSServerImpl::AddTable(RpcController* ctr,
     tid_ += 1;
     DLOG(INFO) << "create table " << request->table().name() << " done";
 }
-void DBMSServerImpl::GetSchema(RpcController* ctr,
-                               const GetSchemaRequest* request,
-                               GetSchemaResponse* response, Closure* done) {
+void DBMSServerImpl::GetSchema(RpcController* ctr, const GetSchemaRequest* request, GetSchemaResponse* response,
+                               Closure* done) {
     brpc::ClosureGuard done_guard(done);
     if (request->name().empty()) {
         ::hybridse::common::Status* status = response->mutable_status();
@@ -175,9 +171,8 @@ void DBMSServerImpl::GetSchema(RpcController* ctr,
     LOG(WARNING) << "show table failed for table doesn't exist";
     return;
 }
-void DBMSServerImpl::AddDatabase(RpcController* ctr,
-                                 const AddDatabaseRequest* request,
-                                 AddDatabaseResponse* response, Closure* done) {
+void DBMSServerImpl::AddDatabase(RpcController* ctr, const AddDatabaseRequest* request, AddDatabaseResponse* response,
+                                 Closure* done) {
     brpc::ClosureGuard done_guard(done);
     if (request->name().empty()) {
         ::hybridse::common::Status* status = response->mutable_status();
@@ -205,10 +200,8 @@ void DBMSServerImpl::AddDatabase(RpcController* ctr,
     LOG(INFO) << "create database " << request->name() << " done";
 }
 
-void DBMSServerImpl::GetDatabases(RpcController* controller,
-                                  const GetDatabasesRequest* request,
-                                  GetDatabasesResponse* response,
-                                  Closure* done) {
+void DBMSServerImpl::GetDatabases(RpcController* controller, const GetDatabasesRequest* request,
+                                  GetDatabasesResponse* response, Closure* done) {
     brpc::ClosureGuard done_guard(done);
     // TODO(chenjing): case intensive
     ::hybridse::common::Status* status = response->mutable_status();
@@ -221,9 +214,8 @@ void DBMSServerImpl::GetDatabases(RpcController* controller,
     status->set_msg("ok");
 }
 
-void DBMSServerImpl::GetTables(RpcController* controller,
-                               const GetTablesRequest* request,
-                               GetTablesResponse* response, Closure* done) {
+void DBMSServerImpl::GetTables(RpcController* controller, const GetTablesRequest* request, GetTablesResponse* response,
+                               Closure* done) {
     brpc::ClosureGuard done_guard(done);
     type::Database* db = nullptr;
     {
@@ -258,8 +250,7 @@ void DBMSServerImpl::InitTable(type::Database* db, Tables& tables) {
     }
 }
 
-type::Database* DBMSServerImpl::GetDatabase(const std::string db_name,
-                                            common::Status& status) {
+type::Database* DBMSServerImpl::GetDatabase(const std::string db_name, common::Status& status) {
     if (db_name.empty()) {
         status.set_code(::hybridse::common::kNoDatabase);
         status.set_msg("Database name is empty");
@@ -277,9 +268,8 @@ type::Database* DBMSServerImpl::GetDatabase(const std::string db_name,
     return &it->second;
 }
 
-void DBMSServerImpl::KeepAlive(RpcController* ctrl,
-                               const KeepAliveRequest* request,
-                               KeepAliveResponse* response, Closure* done) {
+void DBMSServerImpl::KeepAlive(RpcController* ctrl, const KeepAliveRequest* request, KeepAliveResponse* response,
+                               Closure* done) {
     brpc::ClosureGuard done_guard(done);
     std::lock_guard<std::mutex> lock(mu_);
     tablets_.insert(request->endpoint());
@@ -287,9 +277,8 @@ void DBMSServerImpl::KeepAlive(RpcController* ctrl,
     status->set_code(::hybridse::common::kOk);
 }
 
-void DBMSServerImpl::GetTablet(RpcController* ctrl,
-                               const GetTabletRequest* request,
-                               GetTabletResponse* response, Closure* done) {
+void DBMSServerImpl::GetTablet(RpcController* ctrl, const GetTabletRequest* request, GetTabletResponse* response,
+                               Closure* done) {
     brpc::ClosureGuard done_guard(done);
     std::lock_guard<std::mutex> lock(mu_);
     std::set<std::string>::iterator it = tablets_.begin();

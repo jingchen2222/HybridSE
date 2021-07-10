@@ -30,8 +30,7 @@
 namespace hybridse {
 namespace passes {
 
-class ExprPass
-    : public passes::PassBase<node::ExprNode, node::ExprAnalysisContext> {
+class ExprPass : public passes::PassBase<node::ExprNode, node::ExprAnalysisContext> {
  public:
     ExprPass() = default;
     virtual ~ExprPass() {}
@@ -50,8 +49,7 @@ class ExprPass
 class ExprPassGroup : public ExprPass {
  public:
     void AddPass(const std::shared_ptr<ExprPass>& pass);
-    base::Status Apply(node::ExprAnalysisContext* ctx, node::ExprNode* expr,
-                       node::ExprNode** out) override;
+    base::Status Apply(node::ExprAnalysisContext* ctx, node::ExprNode* expr, node::ExprNode** out) override;
 
  private:
     std::vector<std::shared_ptr<ExprPass>> passes_;
@@ -65,15 +63,12 @@ class ExprReplacer {
     void AddReplacement(const node::ExprIdNode* arg, node::ExprNode* repl);
     void AddReplacement(const node::ExprNode* expr, node::ExprNode* repl);
     void AddReplacement(size_t column_id, node::ExprNode* repl);
-    void AddReplacement(const std::string& relation_name,
-                        const std::string& column_name, node::ExprNode* repl);
+    void AddReplacement(const std::string& relation_name, const std::string& column_name, node::ExprNode* repl);
 
-    hybridse::base::Status Replace(node::ExprNode* root,
-                                   node::ExprNode** output) const;
+    hybridse::base::Status Replace(node::ExprNode* root, node::ExprNode** output) const;
 
  private:
-    hybridse::base::Status DoReplace(node::ExprNode* root,
-                                     std::unordered_set<size_t>* visited,
+    hybridse::base::Status DoReplace(node::ExprNode* root, std::unordered_set<size_t>* visited,
                                      node::ExprNode** output) const;
 
     std::unordered_map<size_t, node::ExprNode*> arg_id_map_;

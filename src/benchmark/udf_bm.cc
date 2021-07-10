@@ -84,78 +84,33 @@ static void BM_AllocFromNewFree1000(benchmark::State& state) {  // NOLINT
 static void BM_HistoryWindowBuffer(benchmark::State& state) {  // NOLINT
     HistoryWindowBuffer(&state, BENCHMARK, state.range(0));
 }
-static void BM_HistoryWindowBufferExcludeCurrentTime(
-    benchmark::State& state) {  // NOLINT
+static void BM_HistoryWindowBufferExcludeCurrentTime(benchmark::State& state) {  // NOLINT
     HistoryWindowBufferExcludeCurrentTime(&state, BENCHMARK, state.range(0));
 }
 static void BM_RequestUnionWindow(benchmark::State& state) {  // NOLINT
     RequestUnionWindow(&state, BENCHMARK, state.range(0));
 }
-static void BM_RequestUnionWindowExcludeCurrentTime(
-    benchmark::State& state) {  // NOLINT
+static void BM_RequestUnionWindowExcludeCurrentTime(benchmark::State& state) {  // NOLINT
     RequestUnionWindowExcludeCurrentTime(&state, BENCHMARK, state.range(0));
 }
 
-BENCHMARK(BM_CopyArrayList)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
-BENCHMARK(BM_CopyMemSegment)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_CopyArrayList)->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_CopyMemSegment)->Args({10})->Args({100})->Args({1000})->Args({10000});
 
-BENCHMARK(BM_CopyMemTable)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_CopyMemTable)->Args({10})->Args({100})->Args({1000})->Args({10000});
 
-BENCHMARK(BM_ArraySumColInt)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
-BENCHMARK(BM_ArraySumColDouble)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
-BENCHMARK(BM_RequestUnionSumColDouble)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_ArraySumColInt)->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_ArraySumColDouble)->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_RequestUnionSumColDouble)->Args({10})->Args({100})->Args({1000})->Args({10000});
 
-BENCHMARK(BM_MemSumColInt)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_MemSumColInt)->Args({10})->Args({100})->Args({1000})->Args({10000});
 
-BENCHMARK(BM_MemSumColDouble)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
-BENCHMARK(BM_Day)->Args({1})->Args({10})->Args({100})->Args({1000})->Args(
-    {10000});
-BENCHMARK(BM_Month)->Args({1})->Args({10})->Args({100})->Args({1000})->Args(
-    {10000});
-BENCHMARK(BM_Year)->Args({1})->Args({10})->Args({100})->Args({1000})->Args(
-    {10000});
-BENCHMARK(BM_AllocFromByteMemPool1000)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
-BENCHMARK(BM_AllocFromNewFree1000)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_MemSumColDouble)->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_Day)->Args({1})->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_Month)->Args({1})->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_Year)->Args({1})->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_AllocFromByteMemPool1000)->Args({10})->Args({100})->Args({1000})->Args({10000});
+BENCHMARK(BM_AllocFromNewFree1000)->Args({10})->Args({100})->Args({1000})->Args({10000});
 
 BENCHMARK(BM_TimestampFormat);
 BENCHMARK(BM_TimestampToString);
@@ -180,17 +135,9 @@ BENCHMARK(BM_HistoryWindowBufferExcludeCurrentTime)
     ->Args({1000000})
     ->Args({10000000});
 
-BENCHMARK(BM_RequestUnionWindow)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_RequestUnionWindow)->Args({10})->Args({100})->Args({1000})->Args({10000});
 
-BENCHMARK(BM_RequestUnionWindowExcludeCurrentTime)
-    ->Args({10})
-    ->Args({100})
-    ->Args({1000})
-    ->Args({10000});
+BENCHMARK(BM_RequestUnionWindowExcludeCurrentTime)->Args({10})->Args({100})->Args({1000})->Args({10000});
 }  // namespace bm
 }  // namespace hybridse
 

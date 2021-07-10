@@ -44,18 +44,11 @@ struct AggColumnInfo {
 
     AggColumnInfo() : col(nullptr) {}
 
-    AggColumnInfo(::hybridse::node::ColumnRefNode* col,
-                  const node::DataType& col_type, size_t schema_idx,
+    AggColumnInfo(::hybridse::node::ColumnRefNode* col, const node::DataType& col_type, size_t schema_idx,
                   size_t col_idx, size_t offset)
-        : col(col),
-          col_type(col_type),
-          schema_idx(schema_idx),
-          col_idx(col_idx),
-          offset(offset) {}
+        : col(col), col_type(col_type), schema_idx(schema_idx), col_idx(col_idx), offset(offset) {}
 
-    const std::string GetColKey() const {
-        return col->GetRelationName() + "." + col->GetColumnName();
-    }
+    const std::string GetColKey() const { return col->GetRelationName() + "." + col->GetColumnName(); }
 
     void AddAgg(const std::string& fname, size_t output_idx) {
         agg_funcs.emplace_back(fname);
@@ -79,27 +72,22 @@ struct AggColumnInfo {
 
 class AggregateIRBuilder {
  public:
-    AggregateIRBuilder(const vm::SchemasContext*, ::llvm::Module* module,
-                       const node::FrameNode* frame_node, uint32_t id);
+    AggregateIRBuilder(const vm::SchemasContext*, ::llvm::Module* module, const node::FrameNode* frame_node,
+                       uint32_t id);
 
     // TODO(someone): remove temporary implementations for row-wise agg
     static bool EnableColumnAggOpt();
 
-    bool CollectAggColumn(const node::ExprNode* expr, size_t output_idx,
-                          ::hybridse::type::Type* col_type);
+    bool CollectAggColumn(const node::ExprNode* expr, size_t output_idx, ::hybridse::type::Type* col_type);
 
     bool IsAggFuncName(const std::string& fname);
 
-    static llvm::Type* GetOutputLlvmType(
-        ::llvm::LLVMContext& llvm_ctx,  // NOLINT
-        const std::string& fname, const node::DataType& node_type);
+    static llvm::Type* GetOutputLlvmType(::llvm::LLVMContext& llvm_ctx,  // NOLINT
+                                         const std::string& fname, const node::DataType& node_type);
 
-    bool BuildMulti(const std::string& base_funcname,
-                    ExprIRBuilder* expr_ir_builder,
-                    VariableIRBuilder* variable_ir_builder,
-                    ::llvm::BasicBlock* cur_block,
-                    const std::string& output_ptr_name,
-                    const vm::Schema& output_schema);
+    bool BuildMulti(const std::string& base_funcname, ExprIRBuilder* expr_ir_builder,
+                    VariableIRBuilder* variable_ir_builder, ::llvm::BasicBlock* cur_block,
+                    const std::string& output_ptr_name, const vm::Schema& output_schema);
 
     bool empty() const { return agg_col_infos_.empty(); }
 
