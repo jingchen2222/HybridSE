@@ -30,42 +30,29 @@ using ::hybridse::common::kCodegenError;
 namespace hybridse {
 namespace codegen {
 
-bool GetLlvmType(::llvm::Module* m, const ::hybridse::node::TypeNode* type,
-                 ::llvm::Type** output);
-bool GetLlvmType(::llvm::BasicBlock* block,
-                 const ::hybridse::node::DataType& type, ::llvm::Type** output);
-bool GetLlvmType(::llvm::BasicBlock* block,
-                 const ::hybridse::node::TypeNode* type, ::llvm::Type** output);
-bool GetLlvmType(::llvm::Module* m, const ::hybridse::node::DataType& type,
-                 ::llvm::Type** output);
-bool GetLlvmListType(::llvm::Module* m, const ::hybridse::node::TypeNode* type,
-                     ::llvm::Type** output);
-bool GetLlvmIteratorType(::llvm::Module* m,
-                         const ::hybridse::node::TypeNode* type,
-                         ::llvm::Type** output);
+bool GetLlvmType(::llvm::Module* m, const ::hybridse::node::TypeNode* type, ::llvm::Type** output);
+bool GetLlvmType(::llvm::BasicBlock* block, const ::hybridse::node::DataType& type, ::llvm::Type** output);
+bool GetLlvmType(::llvm::BasicBlock* block, const ::hybridse::node::TypeNode* type, ::llvm::Type** output);
+bool GetLlvmType(::llvm::Module* m, const ::hybridse::node::DataType& type, ::llvm::Type** output);
+bool GetLlvmListType(::llvm::Module* m, const ::hybridse::node::TypeNode* type, ::llvm::Type** output);
+bool GetLlvmIteratorType(::llvm::Module* m, const ::hybridse::node::TypeNode* type, ::llvm::Type** output);
 bool GetLlvmColumnSize(::hybridse::node::TypeNode* v_type, uint32_t* size);
 
 bool GetBaseType(::llvm::Type* type, ::hybridse::node::DataType* output);
 bool IsStringType(::llvm::Type* type);
 
-bool GetFullType(node::NodeManager* nm, ::llvm::Type* type,
-                 const ::hybridse::node::TypeNode** type_node);
+bool GetFullType(node::NodeManager* nm, ::llvm::Type* type, const ::hybridse::node::TypeNode** type_node);
 
-bool SchemaType2DataType(const ::hybridse::type::Type type,
-                         ::hybridse::node::DataType* output);
-bool SchemaType2DataType(const ::hybridse::type::Type type,
-                         ::hybridse::node::TypeNode* output);
-bool DataType2SchemaType(const ::hybridse::node::TypeNode& type,
-                         ::hybridse::type::Type* output);
+bool SchemaType2DataType(const ::hybridse::type::Type type, ::hybridse::node::DataType* output);
+bool SchemaType2DataType(const ::hybridse::type::Type type, ::hybridse::node::TypeNode* output);
+bool DataType2SchemaType(const ::hybridse::node::TypeNode& type, ::hybridse::type::Type* output);
 
-bool GetConstFeString(const std::string& val, ::llvm::BasicBlock* block,
-                      ::llvm::Value** output);
+bool GetConstFeString(const std::string& val, ::llvm::BasicBlock* block, ::llvm::Value** output);
 
-base::Status GetLlvmFunctionType(
-    ::llvm::Module* m, const std::vector<const node::TypeNode*>& arg_types,
-    const std::vector<int>& arg_nullable, const node::TypeNode* return_type,
-    bool return_nullable, bool variadic, bool* return_by_arg,
-    ::llvm::FunctionType** output);
+base::Status GetLlvmFunctionType(::llvm::Module* m, const std::vector<const node::TypeNode*>& arg_types,
+                                 const std::vector<int>& arg_nullable, const node::TypeNode* return_type,
+                                 bool return_nullable, bool variadic, bool* return_by_arg,
+                                 ::llvm::FunctionType** output);
 
 template <typename T>
 std::string GetLlvmObjectString(T* obj) {
@@ -92,19 +79,15 @@ inline bool GetConstDouble(::llvm::LLVMContext& ctx, double val,  // NOLINT
 }
 
 bool BuildGetPtrOffset(::llvm::IRBuilder<>& builder,  // NOLINT
-                       ::llvm::Value* ptr, ::llvm::Value* offset,
-                       ::llvm::Type* type, ::llvm::Value** outptr);
+                       ::llvm::Value* ptr, ::llvm::Value* offset, ::llvm::Type* type, ::llvm::Value** outptr);
 
 bool BuildLoadOffset(::llvm::IRBuilder<>& builder,  // NOLINT
-                     ::llvm::Value* ptr, ::llvm::Value* offset,
-                     ::llvm::Type* type, ::llvm::Value** output);
+                     ::llvm::Value* ptr, ::llvm::Value* offset, ::llvm::Type* type, ::llvm::Value** output);
 
 bool BuildStoreOffset(::llvm::IRBuilder<>& builder,  // NOLINT
-                      ::llvm::Value* ptr, ::llvm::Value* offset,
-                      ::llvm::Value* value);
+                      ::llvm::Value* ptr, ::llvm::Value* offset, ::llvm::Value* value);
 
-llvm::Value* CreateAllocaAtHead(llvm::IRBuilder<>* builder, llvm::Type* dtype,
-                                const std::string& name,
+llvm::Value* CreateAllocaAtHead(llvm::IRBuilder<>* builder, llvm::Type* dtype, const std::string& name,
                                 llvm::Value* size = nullptr);
 
 }  // namespace codegen

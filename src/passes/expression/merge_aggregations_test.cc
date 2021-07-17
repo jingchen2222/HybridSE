@@ -29,15 +29,10 @@ TEST_F(MergeAggregationsTest, Test) {
     auto schema = udf::MakeLiteralSchema<int32_t, float, double, int64_t>();
     schemas_ctx_.BuildTrivial({&schema});
 
-    std::vector<std::string> non_merge_cases = {"0",
-                                                "col_0",
-                                                "col_1 * col_2",
-                                                "sum(col_0 + sum(col_1))",
-                                                "lead(col_0, 1)",
-                                                "sum(col_0 + lead(col_0, 1))"};
+    std::vector<std::string> non_merge_cases = {
+        "0", "col_0", "col_1 * col_2", "sum(col_0 + sum(col_1))", "lead(col_0, 1)", "sum(col_0 + lead(col_0, 1))"};
 
-    std::vector<std::string> merge_cases = {"sum(col_0 + 1)", "sum(col_1 + 1)",
-                                            "distinct_count(col_2)",
+    std::vector<std::string> merge_cases = {"sum(col_0 + 1)", "sum(col_1 + 1)", "distinct_count(col_2)",
                                             "fz_topn_frequency(col_3, 3)"};
 
     std::string sql = "select \n";
@@ -73,31 +68,23 @@ TEST_F(MergeAggregationsTest, Test) {
     ASSERT_TRUE(status.isOK()) << status;
 
     auto is_opt = [](const node::ExprNode* expr) {
-        return expr->GetExprType() == node::kExprGetField &&
-               expr->GetChild(0)->GetExprType() == node::kExprCall &&
-               dynamic_cast<node::CallExprNode*>(expr->GetChild(0))
-                       ->GetFnDef()
-                       ->GetName()
-                       .rfind("merged_window_agg") == 0;
+        return expr->GetExprType() == node::kExprGetField && expr->GetChild(0)->GetExprType() == node::kExprCall &&
+               dynamic_cast<node::CallExprNode*>(expr->GetChild(0))->GetFnDef()->GetName().rfind("merged_window_agg") ==
+                   0;
     };
 
-    ASSERT_EQ(merge_cases.size() + non_merge_cases.size(),
-              output->GetChildNum());
+    ASSERT_EQ(merge_cases.size() + non_merge_cases.size(), output->GetChildNum());
     for (size_t i = 0; i < non_merge_cases.size(); ++i) {
         auto expr = output->GetChild(i);
-        ASSERT_TRUE(!is_opt(expr))
-            << "Illegal optimized at " << i << ": " << non_merge_cases[i];
+        ASSERT_TRUE(!is_opt(expr)) << "Illegal optimized at " << i << ": " << non_merge_cases[i];
     }
     node::ExprNode* merged = nullptr;
     for (size_t i = 0; i < merge_cases.size(); ++i) {
         size_t offset = non_merge_cases.size();
         auto expr = output->GetChild(offset + i);
-        ASSERT_TRUE(is_opt(expr))
-            << "Not optimized at " << i << ": " << merge_cases[i];
-        auto output_index =
-            dynamic_cast<node::GetFieldExpr*>(expr)->GetColumnID();
-        LOG(INFO) << "Optimize " << merge_cases[i] << " -> [" << output_index
-                  << "]"
+        ASSERT_TRUE(is_opt(expr)) << "Not optimized at " << i << ": " << merge_cases[i];
+        auto output_index = dynamic_cast<node::GetFieldExpr*>(expr)->GetColumnID();
+        LOG(INFO) << "Optimize " << merge_cases[i] << " -> [" << output_index << "]"
                   << "\nBefore optimize: \n"
                   << origin->GetChild(offset + i)->GetTreeString();
         if (i == 0) {

@@ -51,9 +51,7 @@ class BlockGroup {
     void Add(const BlockGroup& sub);
     void Add(llvm::BasicBlock*);
 
-    const std::vector<llvm::BasicBlock*>& blocks() const {
-        return this->blocks_;
-    }
+    const std::vector<llvm::BasicBlock*>& blocks() const { return this->blocks_; }
 
     CodeGenContext* ctx() const { return this->ctx_; }
 
@@ -112,8 +110,7 @@ class FunctionScopeGuard {
 
 class CodeGenContext {
  public:
-    CodeGenContext(::llvm::Module*, const vm::SchemasContext* schemas_context,
-                   node::NodeManager* node_manager);
+    CodeGenContext(::llvm::Module*, const vm::SchemasContext* schemas_context, node::NodeManager* node_manager);
 
     ::llvm::Function* GetCurrentFunction() const;
     void SetCurrentFunction(::llvm::Function*);
@@ -131,23 +128,15 @@ class CodeGenContext {
 
     CodeScope* GetFunctionScope(const std::string& name);
 
-    Status CreateBranch(const NativeValue& cond,
-                        const std::function<Status()>& left,
+    Status CreateBranch(const NativeValue& cond, const std::function<Status()>& left,
                         const std::function<Status()>& right);
-    Status CreateBranch(::llvm::Value* cond,
-                        const std::function<Status()>& left,
-                        const std::function<Status()>& right);
-    Status CreateBranch(const NativeValue& cond,
-                        const std::function<Status()>& left);
-    Status CreateBranch(::llvm::Value* cond,
-                        const std::function<Status()>& left);
-    Status CreateBranchNot(const NativeValue& cond,
-                           const std::function<Status()>& right);
-    Status CreateBranchNot(::llvm::Value* cond,
-                           const std::function<Status()>& right);
+    Status CreateBranch(::llvm::Value* cond, const std::function<Status()>& left, const std::function<Status()>& right);
+    Status CreateBranch(const NativeValue& cond, const std::function<Status()>& left);
+    Status CreateBranch(::llvm::Value* cond, const std::function<Status()>& left);
+    Status CreateBranchNot(const NativeValue& cond, const std::function<Status()>& right);
+    Status CreateBranchNot(::llvm::Value* cond, const std::function<Status()>& right);
 
-    Status CreateWhile(const std::function<Status(::llvm::Value** res)>& cond,
-                       const std::function<Status()>& body);
+    Status CreateWhile(const std::function<Status(::llvm::Value** res)>& cond, const std::function<Status()>& body);
 
     ::llvm::BasicBlock* AppendNewBlock(const std::string& name = "");
 
@@ -155,8 +144,7 @@ class CodeGenContext {
     node::NodeManager* node_manager() const;
 
  private:
-    Status CreateBranchImpl(::llvm::Value* cond,
-                            const std::function<Status()>* left,
+    Status CreateBranchImpl(::llvm::Value* cond, const std::function<Status()>* left,
                             const std::function<Status()>* right);
 
     ::llvm::LLVMContext* llvm_ctx_;

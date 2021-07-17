@@ -28,28 +28,22 @@ namespace codec {
 const uint32_t BitMapSize(uint32_t size) {
     if (FLAGS_enable_spark_unsaferow_format) {
         // For UnsafeRow opt, the nullbit set increases by 8 bytes
-        return ((size >> 6) + !!(size&0x7f)) * 8;
+        return ((size >> 6) + !!(size & 0x7f)) * 8;
     } else {
-        return (size >> 3) + !!(size&0x07);
+        return (size >> 3) + !!(size & 0x07);
     }
 }
 
-const std::unordered_map<::hybridse::type::Type, uint8_t>&
-    DEFAULT_TYPE_SIZE_MAP = {{::hybridse::type::kBool, sizeof(bool)},
-                             {::hybridse::type::kInt16, sizeof(int16_t)},
-                             {::hybridse::type::kInt32, sizeof(int32_t)},
-                             {::hybridse::type::kFloat, sizeof(float)},
-                             {::hybridse::type::kInt64, sizeof(int64_t)},
-                             {::hybridse::type::kTimestamp, sizeof(int64_t)},
-                             {::hybridse::type::kDate, sizeof(int32_t)},
-                             {::hybridse::type::kDouble, sizeof(double)}};
+const std::unordered_map<::hybridse::type::Type, uint8_t>& DEFAULT_TYPE_SIZE_MAP = {
+    {::hybridse::type::kBool, sizeof(bool)},     {::hybridse::type::kInt16, sizeof(int16_t)},
+    {::hybridse::type::kInt32, sizeof(int32_t)}, {::hybridse::type::kFloat, sizeof(float)},
+    {::hybridse::type::kInt64, sizeof(int64_t)}, {::hybridse::type::kTimestamp, sizeof(int64_t)},
+    {::hybridse::type::kDate, sizeof(int32_t)},  {::hybridse::type::kDouble, sizeof(double)}};
 
-const std::unordered_map<::hybridse::type::Type, uint8_t>&
-    SPARK_UNSAFEROW_TYPE_SIZE_MAP = {
-        {::hybridse::type::kBool, 8},  {::hybridse::type::kInt16, 8},
-        {::hybridse::type::kInt32, 8}, {::hybridse::type::kFloat, 8},
-        {::hybridse::type::kInt64, 8}, {::hybridse::type::kTimestamp, 8},
-        {::hybridse::type::kDate, 8},  {::hybridse::type::kDouble, 8}};
+const std::unordered_map<::hybridse::type::Type, uint8_t>& SPARK_UNSAFEROW_TYPE_SIZE_MAP = {
+    {::hybridse::type::kBool, 8},  {::hybridse::type::kInt16, 8}, {::hybridse::type::kInt32, 8},
+    {::hybridse::type::kFloat, 8}, {::hybridse::type::kInt64, 8}, {::hybridse::type::kTimestamp, 8},
+    {::hybridse::type::kDate, 8},  {::hybridse::type::kDouble, 8}};
 
 const std::unordered_map<::hybridse::type::Type, uint8_t>& GetTypeSizeMap() {
     if (FLAGS_enable_spark_unsaferow_format) {
@@ -78,8 +72,7 @@ RowBuilder::RowBuilder(const Schema& schema)
             auto TYPE_SIZE_MAP = GetTypeSizeMap();
             auto iter = TYPE_SIZE_MAP.find(column.type());
             if (iter == TYPE_SIZE_MAP.end()) {
-                LOG(WARNING) << ::hybridse::type::Type_Name(column.type())
-                             << " is not supported";
+                LOG(WARNING) << ::hybridse::type::Type_Name(column.type()) << " is not supported";
             } else {
                 offset_vec_.push_back(str_field_start_offset_);
                 str_field_start_offset_ += iter->second;
@@ -93,8 +86,7 @@ bool RowBuilder::SetBuffer(int64_t buf_handle, uint32_t size) {
 }
 
 bool RowBuilder::SetBuffer(int8_t* buf, uint32_t size) {
-    if (buf == NULL || size == 0 ||
-        size < str_field_start_offset_ + str_field_cnt_) {
+    if (buf == NULL || size == 0 || size < str_field_start_offset_ + str_field_cnt_) {
         return false;
     }
     buf_ = buf;
@@ -134,14 +126,12 @@ uint32_t RowBuilder::CalTotalLength(uint32_t string_length) {
 
 bool RowBuilder::Check(::hybridse::type::Type type) {
     if ((int32_t)cnt_ >= schema_.size()) {
-        LOG(WARNING) << "idx out of index: " << cnt_
-                     << " size=" << schema_.size();
+        LOG(WARNING) << "idx out of index: " << cnt_ << " size=" << schema_.size();
         return false;
     }
     const ::hybridse::type::ColumnDef& column = schema_.Get(cnt_);
     if (column.type() != type) {
-        LOG(WARNING) << "type mismatch required is "
-                     << ::hybridse::type::Type_Name(type) << " but is "
+        LOG(WARNING) << "type mismatch required is " << ::hybridse::type::Type_Name(type) << " but is "
                      << hybridse::type::Type_Name(column.type());
         return false;
     }
@@ -149,16 +139,14 @@ bool RowBuilder::Check(::hybridse::type::Type type) {
         auto TYPE_SIZE_MAP = GetTypeSizeMap();
         auto iter = TYPE_SIZE_MAP.find(column.type());
         if (iter == TYPE_SIZE_MAP.end()) {
-            LOG(WARNING) << ::hybridse::type::Type_Name(column.type())
-                         << " is not supported";
+            LOG(WARNING) << ::hybridse::type::Type_Name(column.type()) << " is not supported";
             return false;
         }
     }
     return true;
 }
 
-void FillNullStringOffset(int8_t* buf, uint32_t start, uint32_t addr_length,
-                          uint32_t str_idx, uint32_t str_offset) {
+void FillNullStringOffset(int8_t* buf, uint32_t start, uint32_t addr_length, uint32_t str_idx, uint32_t str_offset) {
     auto ptr = buf + start + addr_length * str_idx;
     if (addr_length == 1) {
         *(reinterpret_cast<uint8_t*>(ptr)) = (uint8_t)str_offset;
@@ -178,8 +166,7 @@ bool RowBuilder::AppendNULL() {
     *(reinterpret_cast<uint8_t*>(ptr)) |= 1 << (cnt_ & 0x07);
     const ::hybridse::type::ColumnDef& column = schema_.Get(cnt_);
     if (column.type() == ::hybridse::type::kVarchar) {
-        FillNullStringOffset(buf_, str_field_start_offset_, str_addr_length_,
-                             offset_vec_[cnt_], str_offset_);
+        FillNullStringOffset(buf_, str_field_start_offset_, str_addr_length_, offset_vec_[cnt_], str_offset_);
     }
     cnt_++;
     return true;
@@ -257,8 +244,7 @@ bool RowBuilder::AppendDouble(double val) {
 bool RowBuilder::AppendString(const char* val, uint32_t length) {
     if (val == NULL || !Check(::hybridse::type::kVarchar)) return false;
     if (str_offset_ + length > size_) return false;
-    int8_t* ptr =
-        buf_ + str_field_start_offset_ + str_addr_length_ * offset_vec_[cnt_];
+    int8_t* ptr = buf_ + str_field_start_offset_ + str_addr_length_ * offset_vec_[cnt_];
     if (str_addr_length_ == 1) {
         *(reinterpret_cast<uint8_t*>(ptr)) = (uint8_t)str_offset_;
     } else if (str_addr_length_ == 2) {
@@ -286,8 +272,7 @@ RowView::RowView()
       size_(0),
       row_(NULL),
       schema_(),
-      offset_vec_() {
-}
+      offset_vec_() {}
 RowView::RowView(const Schema& schema)
     : str_addr_length_(0),
       is_valid_(true),
@@ -336,8 +321,7 @@ bool RowView::Init() {
             auto TYPE_SIZE_MAP = GetTypeSizeMap();
             auto iter = TYPE_SIZE_MAP.find(column.type());
             if (iter == TYPE_SIZE_MAP.end()) {
-                LOG(WARNING) << ::hybridse::type::Type_Name(column.type())
-                             << " is not supported";
+                LOG(WARNING) << ::hybridse::type::Type_Name(column.type()) << " is not supported";
                 is_valid_ = false;
                 return false;
             } else {
@@ -394,8 +378,7 @@ bool RowView::CheckValid(uint32_t idx, ::hybridse::type::Type type) {
     }
     const ::hybridse::type::ColumnDef& column = schema_.Get(idx);
     if (column.type() != type) {
-        LOG(WARNING) << "type mismatch required is "
-                     << ::hybridse::type::Type_Name(type) << " but is "
+        LOG(WARNING) << "type mismatch required is " << ::hybridse::type::Type_Name(type) << " but is "
                      << hybridse::type::Type_Name(column.type());
         return false;
     }
@@ -449,9 +432,8 @@ std::string RowView::GetStringUnsafe(uint32_t idx) {
     }
     const char* val;
     uint32_t length;
-    v1::GetStrFieldUnsafe(row_, idx, field_offset, next_str_field_offset,
-                          str_field_start_offset_, str_addr_length_, &val,
-                          &length);
+    v1::GetStrFieldUnsafe(row_, idx, field_offset, next_str_field_offset, str_field_start_offset_, str_addr_length_,
+                          &val, &length);
     return std::string(val, length);
 }
 
@@ -579,8 +561,7 @@ int32_t RowView::GetMonthUnsafe(int32_t days) {
     return 1 + (days & 0x0000FF);
 }
 int32_t RowView::GetDayUnsafe(int32_t days) { return days & 0x0000000FF; }
-int32_t RowView::GetDate(uint32_t idx, int32_t* year, int32_t* month,
-                         int32_t* day) {
+int32_t RowView::GetDate(uint32_t idx, int32_t* year, int32_t* month, int32_t* day) {
     if (year == NULL || month == NULL || day == NULL) {
         return -1;
     }
@@ -594,8 +575,7 @@ int32_t RowView::GetDate(uint32_t idx, int32_t* year, int32_t* month,
     codec::Date::Decode(date, year, month, day);
     return 0;
 }
-int32_t RowView::GetInteger(const int8_t* row, uint32_t idx,
-                            ::hybridse::type::Type type, int64_t* val) {
+int32_t RowView::GetInteger(const int8_t* row, uint32_t idx, ::hybridse::type::Type type, int64_t* val) {
     int32_t ret = 0;
     switch (type) {
         case ::hybridse::type::kInt16: {
@@ -619,18 +599,14 @@ int32_t RowView::GetInteger(const int8_t* row, uint32_t idx,
             break;
         }
         default:
-            LOG(WARNING) << "type " << ::hybridse::type::Type_Name(type)
-                         << " is not Integer";
+            LOG(WARNING) << "type " << ::hybridse::type::Type_Name(type) << " is not Integer";
             return -1;
     }
     return ret;
 }
 
-int32_t RowView::GetPrimaryFieldOffset(uint32_t idx) {
-    return offset_vec_.at(idx);
-}
-int32_t RowView::GetValue(const int8_t* row, uint32_t idx,
-                          ::hybridse::type::Type type, void* val) const {
+int32_t RowView::GetPrimaryFieldOffset(uint32_t idx) { return offset_vec_.at(idx); }
+int32_t RowView::GetValue(const int8_t* row, uint32_t idx, ::hybridse::type::Type type, void* val) const {
     if (schema_.size() == 0 || row == NULL) {
         return -1;
     }
@@ -640,8 +616,7 @@ int32_t RowView::GetValue(const int8_t* row, uint32_t idx,
     }
     const ::hybridse::type::ColumnDef& column = schema_.Get(idx);
     if (column.type() != type) {
-        LOG(WARNING) << "type mismatch required is "
-                     << ::hybridse::type::Type_Name(type) << " but is "
+        LOG(WARNING) << "type mismatch required is " << ::hybridse::type::Type_Name(type) << " but is "
                      << hybridse::type::Type_Name(column.type());
         return -1;
     }
@@ -663,26 +638,21 @@ int32_t RowView::GetValue(const int8_t* row, uint32_t idx,
             break;
         }
         case ::hybridse::type::kInt16:
-            *(reinterpret_cast<int16_t*>(val)) =
-                v1::GetInt16FieldUnsafe(row, offset);
+            *(reinterpret_cast<int16_t*>(val)) = v1::GetInt16FieldUnsafe(row, offset);
             break;
         case ::hybridse::type::kDate:
         case ::hybridse::type::kInt32:
-            *(reinterpret_cast<int32_t*>(val)) =
-                v1::GetInt32FieldUnsafe(row, offset);
+            *(reinterpret_cast<int32_t*>(val)) = v1::GetInt32FieldUnsafe(row, offset);
             break;
         case ::hybridse::type::kTimestamp:
         case ::hybridse::type::kInt64:
-            *(reinterpret_cast<int64_t*>(val)) =
-                v1::GetInt64FieldUnsafe(row, offset);
+            *(reinterpret_cast<int64_t*>(val)) = v1::GetInt64FieldUnsafe(row, offset);
             break;
         case ::hybridse::type::kFloat:
-            *(reinterpret_cast<float*>(val)) =
-                v1::GetFloatFieldUnsafe(row, offset);
+            *(reinterpret_cast<float*>(val)) = v1::GetFloatFieldUnsafe(row, offset);
             break;
         case ::hybridse::type::kDouble:
-            *(reinterpret_cast<double*>(val)) =
-                v1::GetDoubleFieldUnsafe(row, offset);
+            *(reinterpret_cast<double*>(val)) = v1::GetDoubleFieldUnsafe(row, offset);
             break;
         default:
             return -1;
@@ -775,18 +745,15 @@ std::string RowView::GetAsString(uint32_t idx) {
                                << "size_ = " << size_
                                << " *(reinterpret_cast<const uint32_t*>(row + "
                                   "VERSION_LENGTH)) = "
-                               << *(reinterpret_cast<const uint32_t*>(
-                                      row_ + VERSION_LENGTH));
+                               << *(reinterpret_cast<const uint32_t*>(row_ + VERSION_LENGTH));
                     return std::string(str, 4096);
                 }
                 return std::string(str, str_size);
             } else {
-                LOG(ERROR) << "fail to get string: ret = " << ret
-                           << "size_ = " << size_
+                LOG(ERROR) << "fail to get string: ret = " << ret << "size_ = " << size_
                            << " *(reinterpret_cast<const uint32_t*>(row + "
                               "VERSION_LENGTH)) = "
-                           << *(reinterpret_cast<const uint32_t*>(
-                                  row_ + VERSION_LENGTH));
+                           << *(reinterpret_cast<const uint32_t*>(row_ + VERSION_LENGTH));
             }
             break;
         }
@@ -818,8 +785,7 @@ std::string RowView::GetAsString(uint32_t idx) {
     return "NA";
 }
 
-int32_t RowView::GetValue(const int8_t* row, uint32_t idx, const char** val,
-                          uint32_t* length) const {
+int32_t RowView::GetValue(const int8_t* row, uint32_t idx, const char** val, uint32_t* length) const {
     if (schema_.size() == 0 || row == NULL || length == NULL) {
         return -1;
     }
@@ -829,8 +795,7 @@ int32_t RowView::GetValue(const int8_t* row, uint32_t idx, const char** val,
     }
     const ::hybridse::type::ColumnDef& column = schema_.Get(idx);
     if (column.type() != ::hybridse::type::kVarchar) {
-        LOG(WARNING) << "type mismatch required is "
-                     << ::hybridse::type::Type_Name(::hybridse::type::kVarchar)
+        LOG(WARNING) << "type mismatch required is " << ::hybridse::type::Type_Name(::hybridse::type::kVarchar)
                      << " but is " << hybridse::type::Type_Name(column.type());
         return -1;
     }
@@ -846,9 +811,8 @@ int32_t RowView::GetValue(const int8_t* row, uint32_t idx, const char** val,
     if (offset_vec_.at(idx) < string_field_cnt_ - 1) {
         next_str_field_offset = field_offset + 1;
     }
-    return v1::GetStrFieldUnsafe(row, idx, field_offset, next_str_field_offset,
-                                 str_field_start_offset_, GetAddrLength(size),
-                                 val, length);
+    return v1::GetStrFieldUnsafe(row, idx, field_offset, next_str_field_offset, str_field_start_offset_,
+                                 GetAddrLength(size), val, length);
 }
 
 int32_t RowView::GetString(uint32_t idx, const char** val, uint32_t* length) {
@@ -872,9 +836,8 @@ int32_t RowView::GetString(uint32_t idx, const char** val, uint32_t* length) {
     if (offset_vec_.at(idx) < string_field_cnt_ - 1) {
         next_str_field_offset = field_offset + 1;
     }
-    return v1::GetStrFieldUnsafe(row_, idx, field_offset, next_str_field_offset,
-                                 str_field_start_offset_, str_addr_length_, val,
-                                 length);
+    return v1::GetStrFieldUnsafe(row_, idx, field_offset, next_str_field_offset, str_field_start_offset_,
+                                 str_addr_length_, val, length);
 }
 
 RowFormat::RowFormat(const hybridse::codec::Schema* schema)
@@ -884,29 +847,24 @@ RowFormat::RowFormat(const hybridse::codec::Schema* schema)
     for (int32_t i = 0; i < schema_->size(); i++) {
         const ::hybridse::type::ColumnDef& column = schema_->Get(i);
         if (column.type() == ::hybridse::type::kVarchar) {
-            infos_.push_back(
-                ColInfo(column.name(), column.type(), i, string_field_cnt));
+            infos_.push_back(ColInfo(column.name(), column.type(), i, string_field_cnt));
             infos_dict_[column.name()] = i;
-            next_str_pos_.insert(
-                std::make_pair(string_field_cnt, string_field_cnt));
+            next_str_pos_.insert(std::make_pair(string_field_cnt, string_field_cnt));
             string_field_cnt += 1;
         } else {
             auto TYPE_SIZE_MAP = codec::GetTypeSizeMap();
             auto it = TYPE_SIZE_MAP.find(column.type());
             if (it == TYPE_SIZE_MAP.end()) {
-                LOG(WARNING) << "fail to find column type "
-                             << ::hybridse::type::Type_Name(column.type());
+                LOG(WARNING) << "fail to find column type " << ::hybridse::type::Type_Name(column.type());
             } else {
-                infos_.push_back(
-                    ColInfo(column.name(), column.type(), i, offset));
+                infos_.push_back(ColInfo(column.name(), column.type(), i, offset));
                 infos_dict_[column.name()] = i;
                 offset += it->second;
             }
         }
     }
     uint32_t next_pos = 0;
-    for (auto iter = next_str_pos_.rbegin(); iter != next_str_pos_.rend();
-         iter++) {
+    for (auto iter = next_str_pos_.rbegin(); iter != next_str_pos_.rend(); iter++) {
         uint32_t tmp = iter->second;
         iter->second = next_pos;
         next_pos = tmp;
@@ -914,9 +872,7 @@ RowFormat::RowFormat(const hybridse::codec::Schema* schema)
     str_field_start_offset_ = offset;
 }
 
-const ColInfo* RowFormat::GetColumnInfo(size_t idx) const {
-    return idx < infos_.size() ? &infos_[idx] : nullptr;
-}
+const ColInfo* RowFormat::GetColumnInfo(size_t idx) const { return idx < infos_.size() ? &infos_[idx] : nullptr; }
 
 bool RowFormat::GetStringColumnInfo(size_t idx, StringColInfo* res) const {
     if (nullptr == res) {
@@ -939,17 +895,14 @@ bool RowFormat::GetStringColumnInfo(size_t idx, StringColInfo* res) const {
         LOG(WARNING) << "fail to get string field next offset";
         return false;
     }
-    DLOG(INFO) << "get string with offset " << offset << " next offset "
-               << next_offset << " str_field_start_offset "
+    DLOG(INFO) << "get string with offset " << offset << " next offset " << next_offset << " str_field_start_offset "
                << str_field_start_offset_ << " for col " << base_col_info.name;
 
     if (FLAGS_enable_spark_unsaferow_format) {
         // Notice that we pass the nullbitmap size as str_field_start_offset
-        *res = StringColInfo(base_col_info.name, ty, col_idx, offset, next_offset,
-                            BitMapSize(schema_->size()));
+        *res = StringColInfo(base_col_info.name, ty, col_idx, offset, next_offset, BitMapSize(schema_->size()));
     } else {
-        *res = StringColInfo(base_col_info.name, ty, col_idx, offset, next_offset,
-                            str_field_start_offset_);
+        *res = StringColInfo(base_col_info.name, ty, col_idx, offset, next_offset, str_field_start_offset_);
     }
     return true;
 }

@@ -41,15 +41,13 @@ class HybridSeJitWrapper {
     virtual bool Init() = 0;
     virtual bool OptModule(::llvm::Module* module) = 0;
 
-    virtual bool AddModule(std::unique_ptr<llvm::Module> module,
-                           std::unique_ptr<llvm::LLVMContext> llvm_ctx) = 0;
+    virtual bool AddModule(std::unique_ptr<llvm::Module> module, std::unique_ptr<llvm::LLVMContext> llvm_ctx) = 0;
 
     virtual bool AddExternalFunction(const std::string& name, void* addr) = 0;
 
     bool AddModuleFromBuffer(const base::RawBuffer&);
 
-    virtual hybridse::vm::RawPtrHandle FindFunction(
-        const std::string& funcname) = 0;
+    virtual hybridse::vm::RawPtrHandle FindFunction(const std::string& funcname) = 0;
 
     static HybridSeJitWrapper* Create(const JitOptions& jit_options);
     static HybridSeJitWrapper* Create();

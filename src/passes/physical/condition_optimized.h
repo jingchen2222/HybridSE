@@ -31,34 +31,23 @@ using hybridse::vm::SchemasContext;
 // for FilterNode, JoinNode
 class ConditionOptimized : public TransformUpPysicalPass {
  public:
-    explicit ConditionOptimized(PhysicalPlanContext* plan_ctx)
-        : TransformUpPysicalPass(plan_ctx) {}
+    explicit ConditionOptimized(PhysicalPlanContext* plan_ctx) : TransformUpPysicalPass(plan_ctx) {}
 
-    static bool TransfromAndConditionList(
-        const node::ExprNode* condition,
-        node::ExprListNode* and_condition_list);
-    static bool ExtractEqualExprPair(
-        node::ExprNode* condition,
-        std::pair<node::ExprNode*, node::ExprNode*>* expr_pair);
-    static bool TransformJoinEqualExprPair(
-        const SchemasContext* left_schemas_ctx,
-        const SchemasContext* right_schemas_ctx,
-        node::ExprListNode* and_conditions,
-        node::ExprListNode* out_condition_list,
-        std::vector<ExprPair>& condition_eq_pair);  // NOLINT
-    static bool TransformConstEqualExprPair(
-        node::ExprListNode* and_conditions,
-        node::ExprListNode* out_condition_list,
-        std::vector<ExprPair>& condition_eq_pair);  // NOLINT
-    static bool MakeConstEqualExprPair(
-        const std::pair<node::ExprNode*, node::ExprNode*> expr_pair,
-        const SchemasContext* right_schemas_ctx, ExprPair* output);
+    static bool TransfromAndConditionList(const node::ExprNode* condition, node::ExprListNode* and_condition_list);
+    static bool ExtractEqualExprPair(node::ExprNode* condition, std::pair<node::ExprNode*, node::ExprNode*>* expr_pair);
+    static bool TransformJoinEqualExprPair(const SchemasContext* left_schemas_ctx,
+                                           const SchemasContext* right_schemas_ctx, node::ExprListNode* and_conditions,
+                                           node::ExprListNode* out_condition_list,
+                                           std::vector<ExprPair>& condition_eq_pair);  // NOLINT
+    static bool TransformConstEqualExprPair(node::ExprListNode* and_conditions, node::ExprListNode* out_condition_list,
+                                            std::vector<ExprPair>& condition_eq_pair);  // NOLINT
+    static bool MakeConstEqualExprPair(const std::pair<node::ExprNode*, node::ExprNode*> expr_pair,
+                                       const SchemasContext* right_schemas_ctx, ExprPair* output);
 
  private:
     bool Transform(PhysicalOpNode* in, PhysicalOpNode** output);
     bool JoinConditionOptimized(PhysicalBinaryNode* in, Join* join);
-    void SkipConstExpression(node::ExprListNode input,
-                             node::ExprListNode* output);
+    void SkipConstExpression(node::ExprListNode input, node::ExprListNode* output);
     bool FilterConditionOptimized(PhysicalOpNode* in, Filter* filter);
 };
 

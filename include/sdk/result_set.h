@@ -184,8 +184,7 @@ class ResultSet {
         return val;
     }
 
-    virtual bool GetDate(uint32_t index, int32_t* year, int32_t* month,
-                         int32_t* day) = 0;
+    virtual bool GetDate(uint32_t index, int32_t* year, int32_t* month, int32_t* day) = 0;
 
     virtual bool GetDate(uint32_t index, int32_t* days) = 0;
 

@@ -22,9 +22,8 @@ namespace passes {
 
 using ::hybridse::common::kCodegenError;
 
-Status LambdafyProjects::Transform(
-    const std::vector<const node::ExprNode*>& exprs,
-    node::LambdaNode** out_lambda, std::vector<int>* require_agg_vec) {
+Status LambdafyProjects::Transform(const std::vector<const node::ExprNode*>& exprs, node::LambdaNode** out_lambda,
+                                   std::vector<int>* require_agg_vec) {
     // arg1: current input row
     auto nm = ctx_->node_manager();
     auto schemas_ctx = ctx_->schemas_context();
@@ -44,14 +43,12 @@ Status LambdafyProjects::Transform(
         CHECK_TRUE(origin_expr != nullptr, kCodegenError);
         if (origin_expr->GetExprType() == node::kExprAll) {
             // expand *
-            for (size_t slice = 0; slice < schemas_ctx->GetSchemaSourceSize();
-                 ++slice) {
+            for (size_t slice = 0; slice < schemas_ctx->GetSchemaSourceSize(); ++slice) {
                 auto schema_source = schemas_ctx->GetSchemaSource(slice);
                 for (size_t k = 0; k < schema_source->size(); ++k) {
                     auto col_name = schema_source->GetSchema()->Get(k).name();
                     size_t col_id = schema_source->GetColumnID(k);
-                    auto get_col =
-                        nm->MakeGetFieldExpr(row_arg, col_name, col_id);
+                    auto get_col = nm->MakeGetFieldExpr(row_arg, col_name, col_id);
                     out_list->AddChild(get_col);
                     require_agg_vec->push_back(false);
                 }
@@ -66,9 +63,8 @@ Status LambdafyProjects::Transform(
             CHECK_TRUE(expr != nullptr, kCodegenError);
             bool has_agg;
             node::ExprNode* transformed = nullptr;
-            CHECK_STATUS(
-                VisitExpr(expr, row_arg, window_arg, &transformed, &has_agg),
-                "Lambdafy ", expr->GetExprString(), " failed");
+            CHECK_STATUS(VisitExpr(expr, row_arg, window_arg, &transformed, &has_agg), "Lambdafy ",
+                         expr->GetExprString(), " failed");
             out_list->AddChild(transformed);
             require_agg_vec->push_back(has_agg);
         }
@@ -78,17 +74,14 @@ Status LambdafyProjects::Transform(
     return Status::OK();
 }
 
-Status LambdafyProjects::VisitExpr(node::ExprNode* expr,
-                                   node::ExprIdNode* row_arg,
-                                   node::ExprIdNode* window_arg,
+Status LambdafyProjects::VisitExpr(node::ExprNode* expr, node::ExprIdNode* row_arg, node::ExprIdNode* window_arg,
                                    node::ExprNode** out, bool* has_agg) {
     // determine whether an agg call
     size_t child_num = expr->GetChildNum();
     if (expr->GetExprType() == node::kExprCall) {
         auto call = dynamic_cast<node::CallExprNode*>(expr);
         auto library = ctx_->library();
-        auto fn =
-            dynamic_cast<const node::ExternalFnDefNode*>(call->GetFnDef());
+        auto fn = dynamic_cast<const node::ExternalFnDefNode*>(call->GetFnDef());
         if (fn != nullptr && !fn->IsResolved()) {
             if (!library->HasFunction(fn->function_name())) {
                 // not a registered udf, maybe user defined script function
@@ -140,13 +133,11 @@ Status LambdafyProjects::VisitExpr(node::ExprNode* expr,
             //         slice(map(window, row => row.x > row.y), 1, 3)
             // (2) at(x, 2)  ->
             //         at(map(window, row => row.x), 2)
-            CHECK_TRUE(child->IsListReturn(ctx_) && !child_is_col,
-                       kCodegenError, "Can not lift child at ", i,
+            CHECK_TRUE(child->IsListReturn(ctx_) && !child_is_col, kCodegenError, "Can not lift child at ", i,
                        " to list for ", expr->GetExprString());
         }
 
-        CHECK_STATUS(VisitExpr(child, row_arg, window_arg,
-                               &transformed_children[i], &child_has_agg));
+        CHECK_STATUS(VisitExpr(child, row_arg, window_arg, &transformed_children[i], &child_has_agg));
         *has_agg |= child_has_agg;
     }
 
@@ -158,9 +149,7 @@ Status LambdafyProjects::VisitExpr(node::ExprNode* expr,
     return Status::OK();
 }
 
-Status LambdafyProjects::VisitLeafExpr(node::ExprNode* expr,
-                                       node::ExprIdNode* row_arg,
-                                       node::ExprNode** out) {
+Status LambdafyProjects::VisitLeafExpr(node::ExprNode* expr, node::ExprIdNode* row_arg, node::ExprNode** out) {
     auto nm = ctx_->node_manager();
     auto schemas_ctx = ctx_->schemas_context();
     switch (expr->GetExprType()) {
@@ -175,40 +164,29 @@ Status LambdafyProjects::VisitLeafExpr(node::ExprNode* expr,
             size_t schema_idx;
             size_t col_idx;
 
-            CHECK_STATUS(schemas_ctx->ResolveColumnRefIndex(
-                column_ref, &schema_idx, &col_idx));
-            size_t column_id =
-                schemas_ctx->GetSchemaSource(schema_idx)->GetColumnID(col_idx);
-            *out = nm->MakeGetFieldExpr(row_arg, column_ref->GetColumnName(),
-                                        column_id);
+            CHECK_STATUS(schemas_ctx->ResolveColumnRefIndex(column_ref, &schema_idx, &col_idx));
+            size_t column_id = schemas_ctx->GetSchemaSource(schema_idx)->GetColumnID(col_idx);
+            *out = nm->MakeGetFieldExpr(row_arg, column_ref->GetColumnName(), column_id);
             break;
         }
         case node::kExprColumnId: {
             // column ref -> row => row.c
-            size_t column_id =
-                dynamic_cast<node::ColumnIdNode*>(expr)->GetColumnID();
+            size_t column_id = dynamic_cast<node::ColumnIdNode*>(expr)->GetColumnID();
             size_t schema_idx;
             size_t col_idx;
 
-            CHECK_STATUS(schemas_ctx->ResolveColumnIndexByID(
-                column_id, &schema_idx, &col_idx));
-            *out = nm->MakeGetFieldExpr(
-                row_arg, "#" + std::to_string(column_id), column_id);
+            CHECK_STATUS(schemas_ctx->ResolveColumnIndexByID(column_id, &schema_idx, &col_idx));
+            *out = nm->MakeGetFieldExpr(row_arg, "#" + std::to_string(column_id), column_id);
             break;
         }
         default:
-            return Status(
-                common::kCodegenError,
-                "Unknown leaf expr type: " + ExprTypeName(expr->GetExprType()));
+            return Status(common::kCodegenError, "Unknown leaf expr type: " + ExprTypeName(expr->GetExprType()));
     }
     return Status::OK();
 }
 
-Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
-                                      node::ExprIdNode* row_arg,
-                                      node::ExprIdNode* window_arg,
-                                      node::ExprNode** out,
-                                      bool* is_window_agg) {
+Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call, node::ExprIdNode* row_arg, node::ExprIdNode* window_arg,
+                                      node::ExprNode** out, bool* is_window_agg) {
     auto nm = ctx_->node_manager();
     auto fn = dynamic_cast<const node::ExternalFnDefNode*>(call->GetFnDef());
     CHECK_TRUE(fn != nullptr, kCodegenError);
@@ -231,13 +209,11 @@ Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
 
         // if child alway produce list results, do not transform
         // it to window iteration form, except for column reference
-        bool child_is_list = child->IsListReturn(ctx_) &&
-                             child->GetExprType() != node::kExprColumnRef;
+        bool child_is_list = child->IsListReturn(ctx_) && child->GetExprType() != node::kExprColumnRef;
 
         // TODO(bxq): udaf require information about const argument positions
         bool child_is_const = child->GetExprType() == node::kExprPrimary;
-        bool child_require_iter =
-            call->RequireListAt(ctx_, i) && !child_is_const;
+        bool child_require_iter = call->RequireListAt(ctx_, i) && !child_is_const;
         bool child_require_window_iter = child_require_iter && !child_is_list;
         args_require_iter.push_back(child_require_iter);
         args_require_window_iter.push_back(child_require_window_iter);
@@ -259,35 +235,29 @@ Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
         }
 
         bool child_has_agg = false;
-        CHECK_STATUS(VisitExpr(child, child_row_arg, window_arg,
-                               &transformed_child[i], &child_has_agg));
+        CHECK_STATUS(VisitExpr(child, child_row_arg, window_arg, &transformed_child[i], &child_has_agg));
 
         // resolve update arg
         node::ExprNode* resolved_arg = nullptr;
         ResolveFnAndAttrs resolver(ctx_);
-        CHECK_STATUS(resolver.VisitExpr(transformed_child[i], &resolved_arg),
-                     "Resolve transformed udaf argument at ", i,
-                     " failed: ", transformed_child[i]->GetTreeString());
+        CHECK_STATUS(resolver.VisitExpr(transformed_child[i], &resolved_arg), "Resolve transformed udaf argument at ",
+                     i, " failed: ", transformed_child[i]->GetTreeString());
         CHECK_TRUE(resolved_arg->GetOutputType() != nullptr, kCodegenError);
 
         // collect original udaf info
         transformed_child[i] = resolved_arg;
-        auto original_arg =
-            nm->MakeExprIdNode("udaf_list_arg_" + std::to_string(i));
+        auto original_arg = nm->MakeExprIdNode("udaf_list_arg_" + std::to_string(i));
         auto resolved_type = resolved_arg->GetOutputType();
         if (child_require_window_iter) {
-            original_arg->SetOutputType(
-                nm->MakeTypeNode(node::kList, resolved_type));
+            original_arg->SetOutputType(nm->MakeTypeNode(node::kList, resolved_type));
             original_arg->SetNullable(false);
         } else {
             if (child_require_iter) {
-                CHECK_TRUE(resolved_type->base() == node::kList, kCodegenError,
-                           "UDAF require list type at position ", i,
-                           " but get ", resolved_type->GetName());
+                CHECK_TRUE(resolved_type->base() == node::kList, kCodegenError, "UDAF require list type at position ",
+                           i, " but get ", resolved_type->GetName());
             }
             if (child_is_const) {
-                original_arg->SetOutputType(
-                    nm->MakeTypeNode(node::kList, resolved_type));
+                original_arg->SetOutputType(nm->MakeTypeNode(node::kList, resolved_type));
                 original_arg->SetNullable(false);
             } else {
                 original_arg->SetOutputType(resolved_type);
@@ -300,21 +270,17 @@ Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
 
     // resolve original udaf
     node::FnDefNode* fn_def = nullptr;
-    CHECK_STATUS(ctx_->library()->ResolveFunction(
-                     fn->function_name(), agg_original_args, nm, &fn_def),
+    CHECK_STATUS(ctx_->library()->ResolveFunction(fn->function_name(), agg_original_args, nm, &fn_def),
                  "Resolve original udaf for ", fn->function_name(), " failed");
     auto origin_udaf = dynamic_cast<node::UdafDefNode*>(fn_def);
-    CHECK_TRUE(origin_udaf != nullptr, kCodegenError, fn->function_name(),
-               " is not an udaf");
+    CHECK_TRUE(origin_udaf != nullptr, kCodegenError, fn->function_name(), " is not an udaf");
 
     // refer to original udaf's functionalities
     auto ori_update_fn = origin_udaf->update_func();
     auto ori_merge_fn = origin_udaf->merge_func();
     auto ori_output_fn = origin_udaf->output_func();
     auto ori_init = origin_udaf->init_expr();
-    CHECK_TRUE(
-        ori_init != nullptr, kCodegenError,
-        "Do not support use first element as init state for lambdafy udaf");
+    CHECK_TRUE(ori_init != nullptr, kCodegenError, "Do not support use first element as init state for lambdafy udaf");
 
     // build new udaf update function
     std::vector<node::ExprNode*> actual_update_args;
@@ -350,8 +316,7 @@ Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
             proxy_update_args.push_back(arg);
             actual_update_args.push_back(arg);
             proxy_udaf_args.push_back(transformed_child[i]);
-            proxy_udaf_arg_types.push_back(
-                transformed_child[i]->GetOutputType());
+            proxy_udaf_arg_types.push_back(transformed_child[i]->GetOutputType());
         } else {
             // non-iter argument
             actual_update_args.push_back(transformed_child[i]);
@@ -359,8 +324,7 @@ Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
     }
 
     // wrap actual update call into proxy update function
-    auto update_body =
-        nm->MakeFuncNode(ori_update_fn, actual_update_args, nullptr);
+    auto update_body = nm->MakeFuncNode(ori_update_fn, actual_update_args, nullptr);
     auto update_func = nm->MakeLambdaNode(proxy_update_args, update_body);
 
     std::string new_udaf_name = "window_agg_$";
@@ -375,8 +339,7 @@ Status LambdafyProjects::VisitAggExpr(node::CallExprNode* call,
     new_udaf_name.append(">");
 
     auto new_udaf =
-        nm->MakeUdafDefNode(new_udaf_name, proxy_udaf_arg_types, ori_init,
-                            update_func, ori_merge_fn, ori_output_fn);
+        nm->MakeUdafDefNode(new_udaf_name, proxy_udaf_arg_types, ori_init, update_func, ori_merge_fn, ori_output_fn);
     *out = nm->MakeFuncNode(new_udaf, proxy_udaf_args, nullptr);
     return Status::OK();
 }
@@ -388,17 +351,13 @@ bool LambdafyProjects::FallBackToLegacyAgg(const node::ExprNode* expr) {
             std::string agg_func_name = "";
             switch (call->GetFnDef()->GetType()) {
                 case node::kExternalFnDef: {
-                    agg_func_name =
-                        dynamic_cast<const node::ExternalFnDefNode*>(
-                            call->GetFnDef())
-                            ->function_name();
+                    agg_func_name = dynamic_cast<const node::ExternalFnDefNode*>(call->GetFnDef())->function_name();
                     break;
                 }
                 default:
                     return false;
             }
-            if (agg_opt_fn_names_.find(agg_func_name) ==
-                agg_opt_fn_names_.end()) {
+            if (agg_opt_fn_names_.find(agg_func_name) == agg_opt_fn_names_.end()) {
                 return false;
             }
             if (call->GetChildNum() != 1) {
@@ -408,18 +367,15 @@ bool LambdafyProjects::FallBackToLegacyAgg(const node::ExprNode* expr) {
             if (input_expr->expr_type_ != node::kExprColumnRef) {
                 return false;
             }
-            auto col = dynamic_cast<node::ColumnRefNode*>(
-                const_cast<node::ExprNode*>(input_expr));
+            auto col = dynamic_cast<node::ColumnRefNode*>(const_cast<node::ExprNode*>(input_expr));
             const std::string& rel_name = col->GetRelationName();
             const std::string& col_name = col->GetColumnName();
             size_t schema_idx;
             size_t col_idx;
             auto schemas_ctx = ctx_->schemas_context();
-            auto status =
-                schemas_ctx->ResolveColumnRefIndex(col, &schema_idx, &col_idx);
+            auto status = schemas_ctx->ResolveColumnRefIndex(col, &schema_idx, &col_idx);
             if (!status.isOK()) {
-                LOG(WARNING)
-                    << "fail to resolve column " << rel_name + "." + col_name;
+                LOG(WARNING) << "fail to resolve column " << rel_name + "." + col_name;
                 return false;
             }
             switch (schemas_ctx->GetSchema(schema_idx)->Get(col_idx).type()) {

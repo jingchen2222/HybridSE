@@ -34,24 +34,15 @@ class DateIRBuilder : public StructTypeIRBuilder {
     void InitStructType();
     bool CreateDefault(::llvm::BasicBlock* block, ::llvm::Value** output);
     bool NewDate(::llvm::BasicBlock* block, ::llvm::Value** output);
-    bool NewDate(::llvm::BasicBlock* block, ::llvm::Value* date,
-                 ::llvm::Value** output);
-    bool CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
-                  ::llvm::Value* dist);
-    base::Status CastFrom(::llvm::BasicBlock* block, const NativeValue& src,
-                          NativeValue* output);
-    base::Status CastFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
-                          ::llvm::Value** output);
-    bool GetDate(::llvm::BasicBlock* block, ::llvm::Value* date,
-                 ::llvm::Value** output);
-    bool SetDate(::llvm::BasicBlock* block, ::llvm::Value* date,
-                 ::llvm::Value* code);
-    bool Day(::llvm::BasicBlock* block, ::llvm::Value* date,
-             ::llvm::Value** output, base::Status& status);  // NOLINT
-    bool Month(::llvm::BasicBlock* block, ::llvm::Value* date,
-               ::llvm::Value** output, base::Status& status);  // NOLINT
-    bool Year(::llvm::BasicBlock* block, ::llvm::Value* date,
-              ::llvm::Value** output, base::Status& status);  // NOLINT
+    bool NewDate(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output);
+    bool CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src, ::llvm::Value* dist);
+    base::Status CastFrom(::llvm::BasicBlock* block, const NativeValue& src, NativeValue* output);
+    base::Status CastFrom(::llvm::BasicBlock* block, ::llvm::Value* src, ::llvm::Value** output);
+    bool GetDate(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output);
+    bool SetDate(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value* code);
+    bool Day(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output, base::Status& status);    // NOLINT
+    bool Month(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output, base::Status& status);  // NOLINT
+    bool Year(::llvm::BasicBlock* block, ::llvm::Value* date, ::llvm::Value** output, base::Status& status);   // NOLINT
 };
 }  // namespace codegen
 }  // namespace hybridse

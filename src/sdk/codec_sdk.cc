@@ -44,8 +44,7 @@ bool RowIOBufView::Init() {
             auto TYPE_SIZE_MAP = codec::GetTypeSizeMap();
             auto iter = TYPE_SIZE_MAP.find(column.type());
             if (iter == TYPE_SIZE_MAP.end()) {
-                LOG(WARNING) << ::hybridse::type::Type_Name(column.type())
-                             << " is not supported";
+                LOG(WARNING) << ::hybridse::type::Type_Name(column.type()) << " is not supported";
                 is_valid_ = false;
                 return false;
             } else {
@@ -66,8 +65,7 @@ bool RowIOBufView::Reset(const butil::IOBuf& buf) {
     }
     size_ = row_.size();
     uint32_t tmp_size = 0;
-    row_.copy_to(reinterpret_cast<void*>(&tmp_size), codec::SIZE_LENGTH,
-                 codec::VERSION_LENGTH);
+    row_.copy_to(reinterpret_cast<void*>(&tmp_size), codec::SIZE_LENGTH, codec::VERSION_LENGTH);
     if (tmp_size != size_) {
         is_valid_ = false;
         return false;
@@ -157,8 +155,7 @@ int32_t RowIOBufView::GetDate(uint32_t idx, int32_t* date) {
     *date = static_cast<int32_t>(v1::GetInt32Field(row_, offset));
     return 0;
 }
-int32_t RowIOBufView::GetDate(uint32_t idx, int32_t* year, int32_t* month,
-                              int32_t* day) {
+int32_t RowIOBufView::GetDate(uint32_t idx, int32_t* year, int32_t* month, int32_t* day) {
     if (year == NULL || month == NULL || day == NULL) {
         return -1;
     }
@@ -183,15 +180,13 @@ int32_t RowIOBufView::GetString(uint32_t idx, butil::IOBuf* buf) {
     if (offset_vec_.at(idx) < string_field_cnt_ - 1) {
         next_str_field_offset = field_offset + 1;
     }
-    return v1::GetStrField(row_, field_offset, next_str_field_offset,
-                           str_field_start_offset_, str_addr_length_, buf);
+    return v1::GetStrField(row_, field_offset, next_str_field_offset, str_field_start_offset_, str_addr_length_, buf);
 }
 
 namespace v1 {
 
-int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset,
-                    uint32_t next_str_field_offset, uint32_t str_start_offset,
-                    uint32_t addr_space, butil::IOBuf* output) {
+int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset, uint32_t next_str_field_offset,
+                    uint32_t str_start_offset, uint32_t addr_space, butil::IOBuf* output) {
     if (output == NULL) return -1;
     uint32_t str_offset = 0;
     uint32_t next_str_offset = 0;
@@ -203,8 +198,7 @@ int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset,
             str_offset = i8_tmp_offset;
             if (next_str_field_offset > 0) {
                 i8_str_pos = str_start_offset + next_str_field_offset;
-                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1,
-                            i8_str_pos);
+                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos);
                 next_str_offset = i8_tmp_offset;
             }
             break;
@@ -212,13 +206,11 @@ int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset,
         case 2: {
             int32_t i16_str_pos = str_start_offset + field_offset * 2;
             uint16_t i16_tmp_offset = 0;
-            row.copy_to(reinterpret_cast<void*>(&i16_tmp_offset), 2,
-                        i16_str_pos);
+            row.copy_to(reinterpret_cast<void*>(&i16_tmp_offset), 2, i16_str_pos);
             str_offset = i16_tmp_offset;
             if (next_str_field_offset > 0) {
                 i16_str_pos = str_start_offset + next_str_field_offset * 2;
-                row.copy_to(reinterpret_cast<void*>(&i16_tmp_offset), 2,
-                            i16_str_pos);
+                row.copy_to(reinterpret_cast<void*>(&i16_tmp_offset), 2, i16_str_pos);
                 next_str_offset = i16_tmp_offset;
             }
             break;
@@ -228,22 +220,17 @@ int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset,
             int32_t i8_str_pos = str_start_offset + field_offset * 3;
             row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos);
             str_offset = i8_tmp_offset;
-            row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1,
-                        i8_str_pos + 1);
+            row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos + 1);
             str_offset = (str_offset << 8) + i8_tmp_offset;
-            row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1,
-                        i8_str_pos + 2);
+            row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos + 2);
             str_offset = (str_offset << 8) + i8_tmp_offset;
             if (next_str_field_offset > 0) {
                 i8_str_pos = str_start_offset + next_str_field_offset * 3;
-                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1,
-                            i8_str_pos);
+                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos);
                 next_str_offset = i8_tmp_offset;
-                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1,
-                            i8_str_pos + 1);
+                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos + 1);
                 next_str_offset = (next_str_offset << 8) + i8_tmp_offset;
-                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1,
-                            i8_str_pos + 2);
+                row.copy_to(reinterpret_cast<void*>(&i8_tmp_offset), 1, i8_str_pos + 2);
                 next_str_offset = (next_str_offset << 8) + i8_tmp_offset;
             }
             break;
@@ -253,8 +240,7 @@ int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset,
             row.copy_to(reinterpret_cast<void*>(&str_offset), 4, i32_str_pos);
             if (next_str_field_offset > 0) {
                 i32_str_pos = str_start_offset + next_str_field_offset * 4;
-                row.copy_to(reinterpret_cast<void*>(&next_str_offset), 4,
-                            i32_str_pos);
+                row.copy_to(reinterpret_cast<void*>(&next_str_offset), 4, i32_str_pos);
             }
             break;
         }
@@ -264,8 +250,7 @@ int32_t GetStrField(const butil::IOBuf& row, uint32_t field_offset,
     }
     if (next_str_field_offset <= 0) {
         uint32_t tmp_size = 0;
-        row.copy_to(reinterpret_cast<void*>(&tmp_size), codec::SIZE_LENGTH,
-                    codec::VERSION_LENGTH);
+        row.copy_to(reinterpret_cast<void*>(&tmp_size), codec::SIZE_LENGTH, codec::VERSION_LENGTH);
         uint32_t size = tmp_size - str_offset;
         row.append_to(output, size, str_offset);
 

@@ -26,12 +26,9 @@ using ::hybridse::common::kCodegenError;
 namespace hybridse {
 namespace udf {
 
-const std::string UdfResolveContext::GetArgSignature() const {
-    return hybridse::udf::GetArgSignature(args_);
-}
+const std::string UdfResolveContext::GetArgSignature() const { return hybridse::udf::GetArgSignature(args_); }
 
-Status ExprUdfRegistry::ResolveFunction(UdfResolveContext* ctx,
-                                        node::FnDefNode** result) {
+Status ExprUdfRegistry::ResolveFunction(UdfResolveContext* ctx, node::FnDefNode** result) {
     // construct fn def node:
     // def fn(arg0, arg1, ...argN):
     //     return gen_impl(arg0, arg1, ...argN)
@@ -54,23 +51,20 @@ Status ExprUdfRegistry::ResolveFunction(UdfResolveContext* ctx,
     }
 
     auto ret_expr = gen_impl_func_->gen(ctx, func_params_to_gen);
-    CHECK_TRUE(ret_expr != nullptr && !ctx->HasError(), kCodegenError,
-               "Fail to resolve expr udf: ", ctx->GetError());
+    CHECK_TRUE(ret_expr != nullptr && !ctx->HasError(), kCodegenError, "Fail to resolve expr udf: ", ctx->GetError());
 
     auto lambda = nm->MakeLambdaNode(func_params, ret_expr);
     *result = lambda;
     return Status::OK();
 }
 
-Status LlvmUdfRegistry::ResolveFunction(UdfResolveContext* ctx,
-                                        node::FnDefNode** result) {
+Status LlvmUdfRegistry::ResolveFunction(UdfResolveContext* ctx, node::FnDefNode** result) {
     std::vector<const node::TypeNode*> arg_types;
     std::vector<const ExprAttrNode*> arg_attrs;
     for (size_t i = 0; i < ctx->arg_size(); ++i) {
         auto arg_type = ctx->arg_type(i);
         bool nullable = ctx->arg_nullable(i);
-        CHECK_TRUE(arg_type != nullptr, kCodegenError, i,
-                   "th argument node type is unknown: ", name());
+        CHECK_TRUE(arg_type != nullptr, kCodegenError, i, "th argument node type is unknown: ", name());
         arg_types.push_back(arg_type);
         arg_attrs.push_back(new ExprAttrNode(arg_type, nullable));
     }
@@ -95,31 +89,26 @@ Status LlvmUdfRegistry::ResolveFunction(UdfResolveContext* ctx,
     }
 
     auto udf_def = dynamic_cast<node::UdfByCodeGenDefNode*>(
-        ctx->node_manager()->MakeUdfByCodeGenDefNode(
-            name(), arg_types, arg_nullable, return_type, return_nullable));
+        ctx->node_manager()->MakeUdfByCodeGenDefNode(name(), arg_types, arg_nullable, return_type, return_nullable));
     udf_def->SetGenImpl(gen_impl_func_);
     *result = udf_def;
     return Status::OK();
 }
 
-Status ExternalFuncRegistry::ResolveFunction(UdfResolveContext* ctx,
-                                             node::FnDefNode** result) {
-    CHECK_TRUE(extern_def_->ret_type() != nullptr, kCodegenError,
-               "No return type specified for ", extern_def_->function_name());
-    DLOG(INFO) << "Resolve udf \"" << name() << "\" -> "
-               << extern_def_->GetFlatString();
+Status ExternalFuncRegistry::ResolveFunction(UdfResolveContext* ctx, node::FnDefNode** result) {
+    CHECK_TRUE(extern_def_->ret_type() != nullptr, kCodegenError, "No return type specified for ",
+               extern_def_->function_name());
+    DLOG(INFO) << "Resolve udf \"" << name() << "\" -> " << extern_def_->GetFlatString();
     *result = extern_def_;
     return Status::OK();
 }
 
-Status SimpleUdfRegistry::ResolveFunction(UdfResolveContext* ctx,
-                                          node::FnDefNode** result) {
+Status SimpleUdfRegistry::ResolveFunction(UdfResolveContext* ctx, node::FnDefNode** result) {
     *result = fn_def_;
     return Status::OK();
 }
 
-Status UdafRegistry::ResolveFunction(UdfResolveContext* ctx,
-                                     node::FnDefNode** result) {
+Status UdafRegistry::ResolveFunction(UdfResolveContext* ctx, node::FnDefNode** result) {
     // gen init
     node::ExprNode* init_expr = nullptr;
     if (udaf_gen_.init_gen != nullptr) {
@@ -139,8 +128,7 @@ Status UdafRegistry::ResolveFunction(UdfResolveContext* ctx,
     for (size_t i = 0; i < ctx->arg_size(); ++i) {
         auto elem_arg = nm->MakeExprIdNode("elem_" + std::to_string(i));
         auto list_type = ctx->arg_type(i);
-        CHECK_TRUE(list_type != nullptr && list_type->base() == node::kList,
-                   kCodegenError);
+        CHECK_TRUE(list_type != nullptr && list_type->base() == node::kList, kCodegenError);
         elem_arg->SetOutputType(list_type->GetGenericType(0));
         elem_arg->SetNullable(list_type->IsGenericNullable(0));
         update_args.push_back(elem_arg);
@@ -148,29 +136,25 @@ Status UdafRegistry::ResolveFunction(UdfResolveContext* ctx,
     }
     UdfResolveContext update_ctx(update_args, nm, ctx->library());
     CHECK_TRUE(udaf_gen_.update_gen != nullptr, kCodegenError);
-    CHECK_STATUS(
-        udaf_gen_.update_gen->ResolveFunction(&update_ctx, &update_func),
-        "Resolve update function of ", name(), " failed");
+    CHECK_STATUS(udaf_gen_.update_gen->ResolveFunction(&update_ctx, &update_func), "Resolve update function of ",
+                 name(), " failed");
 
     // gen merge
     node::FnDefNode* merge_func = nullptr;
     if (udaf_gen_.merge_gen != nullptr) {
         UdfResolveContext merge_ctx({state_arg, state_arg}, nm, ctx->library());
-        CHECK_STATUS(
-            udaf_gen_.merge_gen->ResolveFunction(&merge_ctx, &merge_func),
-            "Resolve merge function of ", name(), " failed");
+        CHECK_STATUS(udaf_gen_.merge_gen->ResolveFunction(&merge_ctx, &merge_func), "Resolve merge function of ",
+                     name(), " failed");
     }
 
     // gen output
     node::FnDefNode* output_func = nullptr;
     if (udaf_gen_.output_gen != nullptr) {
         UdfResolveContext output_ctx({state_arg}, nm, ctx->library());
-        CHECK_STATUS(
-            udaf_gen_.output_gen->ResolveFunction(&output_ctx, &output_func),
-            "Resolve output function of ", name(), " failed");
+        CHECK_STATUS(udaf_gen_.output_gen->ResolveFunction(&output_ctx, &output_func), "Resolve output function of ",
+                     name(), " failed");
     }
-    *result = nm->MakeUdafDefNode(name(), list_types, init_expr, update_func,
-                                  merge_func, output_func);
+    *result = nm->MakeUdafDefNode(name(), list_types, init_expr, update_func, merge_func, output_func);
     return Status::OK();
 }
 

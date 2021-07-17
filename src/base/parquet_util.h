@@ -24,8 +24,7 @@
 namespace hybridse {
 namespace base {
 
-inline bool MapParquetType(const parquet::ColumnDescriptor* column_desc,
-                           type::Type* type) {
+inline bool MapParquetType(const parquet::ColumnDescriptor* column_desc, type::Type* type) {
     if (column_desc == nullptr || type == nullptr) {
         LOG(WARNING) << "input args is nullptr";
         return false;
@@ -75,8 +74,7 @@ inline bool MapParquetType(const parquet::ColumnDescriptor* column_desc,
                     return true;
                 }
                 default: {
-                    LOG(WARNING)
-                        << column_desc->ToString() << " is not supported type";
+                    LOG(WARNING) << column_desc->ToString() << " is not supported type";
                     return false;
                 }
             }
@@ -92,8 +90,7 @@ inline bool MapParquetType(const parquet::ColumnDescriptor* column_desc,
                     return true;
                 }
                 default: {
-                    LOG(WARNING)
-                        << column_desc->ToString() << " is not supported type";
+                    LOG(WARNING) << column_desc->ToString() << " is not supported type";
                     return false;
                 }
             }

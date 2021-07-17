@@ -16,9 +16,7 @@
 
 #include <gflags/gflags.h>
 // batch config
-DEFINE_string(default_db_name, "_hybridse",
-              "config the default batch catalog db name");
+DEFINE_string(default_db_name, "_hybridse", "config the default batch catalog db name");
 
 // Offline Spark config
-DEFINE_bool(enable_spark_unsaferow_format, false,
-            "config if codec uses Spark UnsafeRow format");
+DEFINE_bool(enable_spark_unsaferow_format, false, "config if codec uses Spark UnsafeRow format");

@@ -48,9 +48,8 @@ std::shared_ptr<SimpleCatalog> GetTestCatalog() {
     return catalog;
 }
 
-std::shared_ptr<SqlCompileInfo> Compile(
-    const std::string &sql, const EngineOptions &options,
-    std::shared_ptr<SimpleCatalog> catalog) {
+std::shared_ptr<SqlCompileInfo> Compile(const std::string &sql, const EngineOptions &options,
+                                        std::shared_ptr<SimpleCatalog> catalog) {
     base::Status status;
     BatchRunSession session;
     Engine engine(catalog, options);

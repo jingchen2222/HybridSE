@@ -20,8 +20,7 @@
 namespace hybridse {
 namespace tablet {
 
-TabletInternalSDK::TabletInternalSDK(const std::string& endpoint)
-    : endpoint_(endpoint), channel_(NULL) {}
+TabletInternalSDK::TabletInternalSDK(const std::string& endpoint) : endpoint_(endpoint), channel_(NULL) {}
 
 TabletInternalSDK::~TabletInternalSDK() {
     delete channel_;
@@ -40,8 +39,7 @@ bool TabletInternalSDK::Init() {
     return true;
 }
 
-void TabletInternalSDK::CreateTable(CreateTableRequest* request,
-                                    common::Status& status) {
+void TabletInternalSDK::CreateTable(CreateTableRequest* request, common::Status& status) {
     ::hybridse::tablet::TabletServer_Stub stub(channel_);
     ::hybridse::tablet::CreateTableResponse response;
     brpc::Controller cntl;

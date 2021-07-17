@@ -19,53 +19,42 @@
 namespace hybridse {
 namespace vm {
 
-SimpleCatalog::SimpleCatalog(const bool enable_index)
-    : enable_index_(enable_index) {}
+SimpleCatalog::SimpleCatalog(const bool enable_index) : enable_index_(enable_index) {}
 SimpleCatalog::~SimpleCatalog() {}
 
 void SimpleCatalog::AddDatabase(const hybridse::type::Database &db) {
     auto &dict = table_handlers_[db.name()];
     for (int k = 0; k < db.tables_size(); ++k) {
         auto tbl = db.tables(k);
-        dict[tbl.name()] =
-            std::make_shared<SimpleCatalogTableHandler>(db.name(), tbl);
+        dict[tbl.name()] = std::make_shared<SimpleCatalogTableHandler>(db.name(), tbl);
     }
     databases_[db.name()] = std::make_shared<hybridse::type::Database>(db);
 }
 
-std::shared_ptr<type::Database> SimpleCatalog::GetDatabase(
-    const std::string &db_name) {
-    return databases_[db_name];
-}
+std::shared_ptr<type::Database> SimpleCatalog::GetDatabase(const std::string &db_name) { return databases_[db_name]; }
 
-std::shared_ptr<TableHandler> SimpleCatalog::GetTable(
-    const std::string &db_name, const std::string &table_name) {
+std::shared_ptr<TableHandler> SimpleCatalog::GetTable(const std::string &db_name, const std::string &table_name) {
     auto &dict = table_handlers_[db_name];
     return dict[table_name];
 }
 bool SimpleCatalog::IndexSupport() { return enable_index_; }
 
-bool SimpleCatalog::InsertRows(const std::string &db_name,
-                               const std::string &table_name,
+bool SimpleCatalog::InsertRows(const std::string &db_name, const std::string &table_name,
                                const std::vector<Row> &rows) {
     auto table = GetTable(db_name, table_name);
     if (!table) {
-        LOG(WARNING) << "table:" << table_name
-                     << " isn't exist in db:" << db_name;
+        LOG(WARNING) << "table:" << table_name << " isn't exist in db:" << db_name;
     }
     for (auto &row : rows) {
-        if (!std::dynamic_pointer_cast<SimpleCatalogTableHandler>(table)
-                 ->AddRow(row)) {
+        if (!std::dynamic_pointer_cast<SimpleCatalogTableHandler>(table)->AddRow(row)) {
             return false;
         }
     }
     return true;
 }
-SimpleCatalogTableHandler::SimpleCatalogTableHandler(
-    const std::string &db_name, const hybridse::type::TableDef &table_def)
-    : db_name_(db_name),
-      table_def_(table_def),
-      row_view_(table_def_.columns()) {
+SimpleCatalogTableHandler::SimpleCatalogTableHandler(const std::string &db_name,
+                                                     const hybridse::type::TableDef &table_def)
+    : db_name_(db_name), table_def_(table_def), row_view_(table_def_.columns()) {
     // build col info and index info
     // init types var
     for (int32_t i = 0; i < table_def.columns_size(); i++) {
@@ -83,8 +72,7 @@ SimpleCatalogTableHandler::SimpleCatalogTableHandler(
         if (!index_def.second_key().empty()) {
             int32_t pos = GetColumnIndex(index_def.second_key());
             if (pos < 0) {
-                LOG(WARNING)
-                    << "fail to get second key " << index_def.second_key();
+                LOG(WARNING) << "fail to get second key " << index_def.second_key();
                 return;
             }
             index_st.ts_pos = pos;
@@ -96,39 +84,28 @@ SimpleCatalogTableHandler::SimpleCatalogTableHandler(
             const std::string &key = index_def.first_keys(j);
             auto it = types_dict_.find(key);
             if (it == types_dict_.end()) {
-                LOG(WARNING) << "column " << key << " does not exist in table "
-                             << table_def.name();
+                LOG(WARNING) << "column " << key << " does not exist in table " << table_def.name();
                 return;
             }
             index_st.keys.push_back(it->second);
         }
         index_hint_.insert(std::make_pair(index_st.name, index_st));
-        table_storage.insert(std::make_pair(
-            index_st.name, std::make_shared<MemPartitionHandler>()));
+        table_storage.insert(std::make_pair(index_st.name, std::make_shared<MemPartitionHandler>()));
     }
     full_table_storage_ = std::make_shared<MemTableHandler>();
 }
 
 const Types &SimpleCatalogTableHandler::GetTypes() { return this->types_dict_; }
 
-const IndexHint &SimpleCatalogTableHandler::GetIndex() {
-    return this->index_hint_;
-}
+const IndexHint &SimpleCatalogTableHandler::GetIndex() { return this->index_hint_; }
 
-const Schema *SimpleCatalogTableHandler::GetSchema() {
-    return &this->table_def_.columns();
-}
+const Schema *SimpleCatalogTableHandler::GetSchema() { return &this->table_def_.columns(); }
 
-const std::string &SimpleCatalogTableHandler::GetName() {
-    return this->table_def_.name();
-}
+const std::string &SimpleCatalogTableHandler::GetName() { return this->table_def_.name(); }
 
-const std::string &SimpleCatalogTableHandler::GetDatabase() {
-    return this->db_name_;
-}
+const std::string &SimpleCatalogTableHandler::GetDatabase() { return this->db_name_; }
 
-std::unique_ptr<WindowIterator> SimpleCatalogTableHandler::GetWindowIterator(
-    const std::string &index_name) {
+std::unique_ptr<WindowIterator> SimpleCatalogTableHandler::GetWindowIterator(const std::string &index_name) {
     if (table_storage.find(index_name) == table_storage.end()) {
         return nullptr;
     } else {
@@ -143,8 +120,7 @@ hybridse::codec::Row SimpleCatalogTableHandler::At(uint64_t pos) {
     return hybridse::codec::Row();
 }
 
-std::shared_ptr<PartitionHandler> SimpleCatalogTableHandler::GetPartition(
-    const std::string &index_name) {
+std::shared_ptr<PartitionHandler> SimpleCatalogTableHandler::GetPartition(const std::string &index_name) {
     if (table_storage.find(index_name) == table_storage.end()) {
         return nullptr;
     } else {
@@ -152,18 +128,12 @@ std::shared_ptr<PartitionHandler> SimpleCatalogTableHandler::GetPartition(
     }
 }
 
-std::unique_ptr<RowIterator> SimpleCatalogTableHandler::GetIterator() {
-    return full_table_storage_->GetIterator();
-}
+std::unique_ptr<RowIterator> SimpleCatalogTableHandler::GetIterator() { return full_table_storage_->GetIterator(); }
 
-RowIterator *SimpleCatalogTableHandler::GetRawIterator() {
-    return full_table_storage_->GetRawIterator();
-}
+RowIterator *SimpleCatalogTableHandler::GetRawIterator() { return full_table_storage_->GetRawIterator(); }
 
-bool SimpleCatalogTableHandler::DecodeKeysAndTs(const IndexSt &index,
-                                                const int8_t *buf,
-                                                uint32_t size, std::string &key,
-                                                int64_t *time_ptr) {
+bool SimpleCatalogTableHandler::DecodeKeysAndTs(const IndexSt &index, const int8_t *buf, uint32_t size,
+                                                std::string &key, int64_t *time_ptr) {
     for (const auto &col : index.keys) {
         if (!key.empty()) {
             key.append("|");
@@ -186,13 +156,11 @@ bool SimpleCatalogTableHandler::DecodeKeysAndTs(const IndexSt &index,
         }
     }
 
-    if (hybridse::vm::INVALID_POS == index.ts_pos ||
-        row_view_.IsNULL(buf, index.ts_pos)) {
+    if (hybridse::vm::INVALID_POS == index.ts_pos || row_view_.IsNULL(buf, index.ts_pos)) {
         *time_ptr = 0;
         return true;
     }
-    row_view_.GetInteger(buf, index.ts_pos,
-                         table_def_.columns(index.ts_pos).type(), time_ptr);
+    row_view_.GetInteger(buf, index.ts_pos, table_def_.columns(index.ts_pos).type(), time_ptr);
     return true;
 }
 bool SimpleCatalogTableHandler::AddRow(const Row row) {

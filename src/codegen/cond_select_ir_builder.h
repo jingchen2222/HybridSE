@@ -24,9 +24,8 @@ class CondSelectIRBuilder {
  public:
     CondSelectIRBuilder();
     ~CondSelectIRBuilder();
-    base::Status Select(::llvm::BasicBlock* block, const NativeValue& cond,
-                        const NativeValue& left, const NativeValue& right,
-                        NativeValue* output);
+    base::Status Select(::llvm::BasicBlock* block, const NativeValue& cond, const NativeValue& left,
+                        const NativeValue& right, NativeValue* output);
 };
 }  // namespace codegen
 }  // namespace hybridse

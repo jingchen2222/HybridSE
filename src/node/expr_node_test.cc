@@ -40,20 +40,16 @@ class ExprNodeTest : public ::testing::Test {
 };
 
 template <typename F, size_t... I>
-ExprNode* DoBuildExpr(const F& build_expr, NodeManager* node_manager,
-                      const std::vector<ExprNode*>& args,
+ExprNode* DoBuildExpr(const F& build_expr, NodeManager* node_manager, const std::vector<ExprNode*>& args,
                       const std::index_sequence<I...>&) {
     return build_expr(node_manager, args[I]...);
 }
 
 template <typename Ret, typename... T>
 void CheckInfer(
-    const std::function<ExprNode*(
-        NodeManager*, typename std::pair<T, ExprNode*>::second_type...)>&
-        build_expr) {
+    const std::function<ExprNode*(NodeManager*, typename std::pair<T, ExprNode*>::second_type...)>& build_expr) {
     NodeManager nm;
-    std::vector<node::TypeNode*> arg_types = {
-        udf::DataTypeTrait<T>::to_type_node(&nm)...};
+    std::vector<node::TypeNode*> arg_types = {udf::DataTypeTrait<T>::to_type_node(&nm)...};
     std::vector<int> arg_nullable = {udf::IsNullableTrait<T>::value...};
     std::vector<ExprNode*> args;
     for (size_t i = 0; i < sizeof...(T); ++i) {
@@ -63,8 +59,7 @@ void CheckInfer(
         args.push_back(expr_id);
     }
 
-    ExprNode* expr =
-        DoBuildExpr(build_expr, &nm, args, std::index_sequence_for<T...>());
+    ExprNode* expr = DoBuildExpr(build_expr, &nm, args, std::index_sequence_for<T...>());
 
     auto library = udf::DefaultUdfLibrary::get();
     ExprAnalysisContext ctx(&nm, library, nullptr);
@@ -93,18 +88,14 @@ void CheckInfer(
     LOG(INFO) << ss.str();
 
     ASSERT_EQ(udf::IsNullableTrait<Ret>::value, expr->nullable());
-    ASSERT_TRUE(TypeEquals(udf::DataTypeTrait<Ret>::to_type_node(&nm),
-                           expr->GetOutputType()));
+    ASSERT_TRUE(TypeEquals(udf::DataTypeTrait<Ret>::to_type_node(&nm), expr->GetOutputType()));
 }
 
 template <typename... T>
 void CheckInferError(
-    const std::function<ExprNode*(
-        NodeManager*, typename std::pair<T, ExprNode*>::second_type...)>&
-        build_expr) {
+    const std::function<ExprNode*(NodeManager*, typename std::pair<T, ExprNode*>::second_type...)>& build_expr) {
     NodeManager nm;
-    std::vector<node::TypeNode*> arg_types = {
-        udf::DataTypeTrait<T>::to_type_node(&nm)...};
+    std::vector<node::TypeNode*> arg_types = {udf::DataTypeTrait<T>::to_type_node(&nm)...};
     std::vector<int> arg_nullable = {udf::IsNullableTrait<T>::value...};
     std::vector<ExprNode*> args;
     for (size_t i = 0; i < sizeof...(T); ++i) {
@@ -114,8 +105,7 @@ void CheckInferError(
         args.push_back(expr_id);
     }
 
-    ExprNode* expr =
-        DoBuildExpr(build_expr, &nm, args, std::index_sequence_for<T...>());
+    ExprNode* expr = DoBuildExpr(build_expr, &nm, args, std::index_sequence_for<T...>());
 
     auto library = udf::DefaultUdfLibrary::get();
     ExprAnalysisContext ctx(&nm, library, nullptr);
@@ -125,8 +115,7 @@ void CheckInferError(
 }
 
 TEST_F(ExprNodeTest, CondExprNodeTest) {
-    auto do_build = [](NodeManager* nm, ExprNode* cond, ExprNode* left,
-                       ExprNode* right) {
+    auto do_build = [](NodeManager* nm, ExprNode* cond, ExprNode* left, ExprNode* right) {
         return nm->MakeCondExpr(cond, left, right);
     };
 
@@ -274,9 +263,7 @@ void TestInferBinaryLogical(FnOperator op) {
     CheckInfer<bool, int32_t, int32_t>(do_build);
     CheckInfer<bool, float, bool>(do_build);
 }
-TEST_F(ExprNodeTest, AddTypeInferTest_1) {
-    CheckBinaryOpInfer<bool, bool, bool>(kFnOpAdd);
-}
+TEST_F(ExprNodeTest, AddTypeInferTest_1) { CheckBinaryOpInfer<bool, bool, bool>(kFnOpAdd); }
 TEST_F(ExprNodeTest, AddTypeInferTest_2) {
     CheckBinaryOpInfer<int16_t, int16_t, bool>(kFnOpAdd);
     CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpAdd);
@@ -297,12 +284,8 @@ TEST_F(ExprNodeTest, AddTypeInferTest_6) {
     CheckBinaryOpInfer<double, double, bool>(kFnOpAdd);
     CheckBinaryOpInfer<double, bool, double>(kFnOpAdd);
 }
-TEST_F(ExprNodeTest, AddTypeInferTest_7) {
-    CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpAdd);
-}
-TEST_F(ExprNodeTest, AddTypeInferTest_8) {
-    CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpAdd);
-}
+TEST_F(ExprNodeTest, AddTypeInferTest_7) { CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpAdd); }
+TEST_F(ExprNodeTest, AddTypeInferTest_8) { CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpAdd); }
 TEST_F(ExprNodeTest, AddTypeInferTest_9) {
     CheckBinaryOpInfer<int32_t, int16_t, int32_t>(kFnOpAdd);
     CheckBinaryOpInfer<int32_t, int32_t, int16_t>(kFnOpAdd);
@@ -319,9 +302,7 @@ TEST_F(ExprNodeTest, AddTypeInferTest_12) {
     CheckBinaryOpInfer<double, int16_t, double>(kFnOpAdd);
     CheckBinaryOpInfer<double, double, int16_t>(kFnOpAdd);
 }
-TEST_F(ExprNodeTest, AddTypeInferTest_13) {
-    CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpAdd);
-}
+TEST_F(ExprNodeTest, AddTypeInferTest_13) { CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpAdd); }
 TEST_F(ExprNodeTest, AddTypeInferTest_14) {
     CheckBinaryOpInfer<int64_t, int32_t, int64_t>(kFnOpAdd);
     CheckBinaryOpInfer<int64_t, int64_t, int32_t>(kFnOpAdd);
@@ -334,9 +315,7 @@ TEST_F(ExprNodeTest, AddTypeInferTest_16) {
     CheckBinaryOpInfer<double, int32_t, double>(kFnOpAdd);
     CheckBinaryOpInfer<double, double, int32_t>(kFnOpAdd);
 }
-TEST_F(ExprNodeTest, AddTypeInferTest_17) {
-    CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpAdd);
-}
+TEST_F(ExprNodeTest, AddTypeInferTest_17) { CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpAdd); }
 TEST_F(ExprNodeTest, AddTypeInferTest_18) {
     CheckBinaryOpInfer<float, int64_t, float>(kFnOpAdd);
     CheckBinaryOpInfer<float, float, int64_t>(kFnOpAdd);
@@ -345,16 +324,12 @@ TEST_F(ExprNodeTest, AddTypeInferTest_19) {
     CheckBinaryOpInfer<double, int64_t, double>(kFnOpAdd);
     CheckBinaryOpInfer<double, double, int64_t>(kFnOpAdd);
 }
-TEST_F(ExprNodeTest, AddTypeInferTest_20) {
-    CheckBinaryOpInfer<float, float, float>(kFnOpAdd);
-}
+TEST_F(ExprNodeTest, AddTypeInferTest_20) { CheckBinaryOpInfer<float, float, float>(kFnOpAdd); }
 TEST_F(ExprNodeTest, AddTypeInferTest_21) {
     CheckBinaryOpInfer<double, float, double>(kFnOpAdd);
     CheckBinaryOpInfer<double, double, float>(kFnOpAdd);
 }
-TEST_F(ExprNodeTest, AddTypeInferTest_22) {
-    CheckBinaryOpInfer<double, double, double>(kFnOpAdd);
-}
+TEST_F(ExprNodeTest, AddTypeInferTest_22) { CheckBinaryOpInfer<double, double, double>(kFnOpAdd); }
 TEST_F(ExprNodeTest, AddTypeInferTest_23) {
     CheckBinaryOpInfer<codec::Timestamp, codec::Timestamp, bool>(kFnOpAdd);
     CheckBinaryOpInfer<codec::Timestamp, bool, codec::Timestamp>(kFnOpAdd);
@@ -372,9 +347,7 @@ TEST_F(ExprNodeTest, AddTypeInferTest_26) {
     CheckBinaryOpInfer<codec::Timestamp, int64_t, codec::Timestamp>(kFnOpAdd);
 }
 
-TEST_F(ExprNodeTest, SubTypeInferTest_1) {
-    CheckBinaryOpInfer<bool, bool, bool>(kFnOpMinus);
-}
+TEST_F(ExprNodeTest, SubTypeInferTest_1) { CheckBinaryOpInfer<bool, bool, bool>(kFnOpMinus); }
 TEST_F(ExprNodeTest, SubTypeInferTest_2) {
     CheckBinaryOpInfer<int16_t, int16_t, bool>(kFnOpMinus);
     CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMinus);
@@ -395,12 +368,8 @@ TEST_F(ExprNodeTest, SubTypeInferTest_6) {
     CheckBinaryOpInfer<double, double, bool>(kFnOpMinus);
     CheckBinaryOpInfer<double, bool, double>(kFnOpMinus);
 }
-TEST_F(ExprNodeTest, SubTypeInferTest_7) {
-    CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMinus);
-}
-TEST_F(ExprNodeTest, SubTypeInferTest_8) {
-    CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpMinus);
-}
+TEST_F(ExprNodeTest, SubTypeInferTest_7) { CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMinus); }
+TEST_F(ExprNodeTest, SubTypeInferTest_8) { CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpMinus); }
 TEST_F(ExprNodeTest, SubTypeInferTest_9) {
     CheckBinaryOpInfer<int32_t, int16_t, int32_t>(kFnOpMinus);
     CheckBinaryOpInfer<int32_t, int32_t, int16_t>(kFnOpMinus);
@@ -417,9 +386,7 @@ TEST_F(ExprNodeTest, SubTypeInferTest_12) {
     CheckBinaryOpInfer<double, int16_t, double>(kFnOpMinus);
     CheckBinaryOpInfer<double, double, int16_t>(kFnOpMinus);
 }
-TEST_F(ExprNodeTest, SubTypeInferTest_13) {
-    CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpMinus);
-}
+TEST_F(ExprNodeTest, SubTypeInferTest_13) { CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpMinus); }
 TEST_F(ExprNodeTest, SubTypeInferTest_14) {
     CheckBinaryOpInfer<int64_t, int32_t, int64_t>(kFnOpMinus);
     CheckBinaryOpInfer<int64_t, int64_t, int32_t>(kFnOpMinus);
@@ -432,9 +399,7 @@ TEST_F(ExprNodeTest, SubTypeInferTest_16) {
     CheckBinaryOpInfer<double, int32_t, double>(kFnOpMinus);
     CheckBinaryOpInfer<double, double, int32_t>(kFnOpMinus);
 }
-TEST_F(ExprNodeTest, SubTypeInferTest_17) {
-    CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpMinus);
-}
+TEST_F(ExprNodeTest, SubTypeInferTest_17) { CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpMinus); }
 TEST_F(ExprNodeTest, SubTypeInferTest_18) {
     CheckBinaryOpInfer<float, int64_t, float>(kFnOpMinus);
     CheckBinaryOpInfer<float, float, int64_t>(kFnOpMinus);
@@ -443,16 +408,12 @@ TEST_F(ExprNodeTest, SubTypeInferTest_19) {
     CheckBinaryOpInfer<double, int64_t, double>(kFnOpMinus);
     CheckBinaryOpInfer<double, double, int64_t>(kFnOpMinus);
 }
-TEST_F(ExprNodeTest, SubTypeInferTest_20) {
-    CheckBinaryOpInfer<float, float, float>(kFnOpMinus);
-}
+TEST_F(ExprNodeTest, SubTypeInferTest_20) { CheckBinaryOpInfer<float, float, float>(kFnOpMinus); }
 TEST_F(ExprNodeTest, SubTypeInferTest_21) {
     CheckBinaryOpInfer<double, float, double>(kFnOpMinus);
     CheckBinaryOpInfer<double, double, float>(kFnOpMinus);
 }
-TEST_F(ExprNodeTest, SubTypeInferTest_22) {
-    CheckBinaryOpInfer<double, double, double>(kFnOpMinus);
-}
+TEST_F(ExprNodeTest, SubTypeInferTest_22) { CheckBinaryOpInfer<double, double, double>(kFnOpMinus); }
 TEST_F(ExprNodeTest, SubTypeInferTest_23) {
     CheckBinaryOpInfer<codec::Timestamp, codec::Timestamp, bool>(kFnOpMinus);
     CheckBinaryOpInferError<bool, codec::Timestamp>(kFnOpMinus);
@@ -469,9 +430,7 @@ TEST_F(ExprNodeTest, SubTypeInferTest_26) {
     CheckBinaryOpInfer<codec::Timestamp, codec::Timestamp, int64_t>(kFnOpMinus);
     CheckBinaryOpInferError<int64_t, codec::Timestamp>(kFnOpMinus);
 }
-TEST_F(ExprNodeTest, MultiTypeInferTest_1) {
-    CheckBinaryOpInfer<bool, bool, bool>(kFnOpMulti);
-}
+TEST_F(ExprNodeTest, MultiTypeInferTest_1) { CheckBinaryOpInfer<bool, bool, bool>(kFnOpMulti); }
 TEST_F(ExprNodeTest, MultiTypeInferTest_2) {
     CheckBinaryOpInfer<int16_t, int16_t, bool>(kFnOpMulti);
     CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMulti);
@@ -492,12 +451,8 @@ TEST_F(ExprNodeTest, MultiTypeInferTest_6) {
     CheckBinaryOpInfer<double, double, bool>(kFnOpMulti);
     CheckBinaryOpInfer<double, bool, double>(kFnOpMulti);
 }
-TEST_F(ExprNodeTest, MultiTypeInferTest_7) {
-    CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMulti);
-}
-TEST_F(ExprNodeTest, MultiTypeInferTest_8) {
-    CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpMulti);
-}
+TEST_F(ExprNodeTest, MultiTypeInferTest_7) { CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMulti); }
+TEST_F(ExprNodeTest, MultiTypeInferTest_8) { CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpMulti); }
 TEST_F(ExprNodeTest, MultiTypeInferTest_9) {
     CheckBinaryOpInfer<int32_t, int16_t, int32_t>(kFnOpMulti);
     CheckBinaryOpInfer<int32_t, int32_t, int16_t>(kFnOpMulti);
@@ -514,9 +469,7 @@ TEST_F(ExprNodeTest, MultiTypeInferTest_12) {
     CheckBinaryOpInfer<double, int16_t, double>(kFnOpMulti);
     CheckBinaryOpInfer<double, double, int16_t>(kFnOpMulti);
 }
-TEST_F(ExprNodeTest, MultiTypeInferTest_13) {
-    CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpMulti);
-}
+TEST_F(ExprNodeTest, MultiTypeInferTest_13) { CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpMulti); }
 TEST_F(ExprNodeTest, MultiTypeInferTest_14) {
     CheckBinaryOpInfer<int64_t, int32_t, int64_t>(kFnOpMulti);
     CheckBinaryOpInfer<int64_t, int64_t, int32_t>(kFnOpMulti);
@@ -529,9 +482,7 @@ TEST_F(ExprNodeTest, MultiTypeInferTest_16) {
     CheckBinaryOpInfer<double, int32_t, double>(kFnOpMulti);
     CheckBinaryOpInfer<double, double, int32_t>(kFnOpMulti);
 }
-TEST_F(ExprNodeTest, MultiTypeInferTest_17) {
-    CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpMulti);
-}
+TEST_F(ExprNodeTest, MultiTypeInferTest_17) { CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpMulti); }
 TEST_F(ExprNodeTest, MultiTypeInferTest_18) {
     CheckBinaryOpInfer<float, int64_t, float>(kFnOpMulti);
     CheckBinaryOpInfer<float, float, int64_t>(kFnOpMulti);
@@ -540,16 +491,12 @@ TEST_F(ExprNodeTest, MultiTypeInferTest_19) {
     CheckBinaryOpInfer<double, int64_t, double>(kFnOpMulti);
     CheckBinaryOpInfer<double, double, int64_t>(kFnOpMulti);
 }
-TEST_F(ExprNodeTest, MultiTypeInferTest_20) {
-    CheckBinaryOpInfer<float, float, float>(kFnOpMulti);
-}
+TEST_F(ExprNodeTest, MultiTypeInferTest_20) { CheckBinaryOpInfer<float, float, float>(kFnOpMulti); }
 TEST_F(ExprNodeTest, MultiTypeInferTest_21) {
     CheckBinaryOpInfer<double, float, double>(kFnOpMulti);
     CheckBinaryOpInfer<double, double, float>(kFnOpMulti);
 }
-TEST_F(ExprNodeTest, MultiTypeInferTest_22) {
-    CheckBinaryOpInfer<double, double, double>(kFnOpMulti);
-}
+TEST_F(ExprNodeTest, MultiTypeInferTest_22) { CheckBinaryOpInfer<double, double, double>(kFnOpMulti); }
 TEST_F(ExprNodeTest, MultiTypeInferTest_23) {
     CheckBinaryOpInferError<codec::Timestamp, bool>(kFnOpMulti);
     CheckBinaryOpInferError<bool, codec::Timestamp>(kFnOpMulti);
@@ -567,9 +514,7 @@ TEST_F(ExprNodeTest, MultiTypeInferTest_26) {
     CheckBinaryOpInferError<int64_t, codec::Timestamp>(kFnOpMulti);
 }
 
-TEST_F(ExprNodeTest, FDivTypeInferTest_1) {
-    CheckBinaryOpInfer<double, bool, bool>(kFnOpFDiv);
-}
+TEST_F(ExprNodeTest, FDivTypeInferTest_1) { CheckBinaryOpInfer<double, bool, bool>(kFnOpFDiv); }
 TEST_F(ExprNodeTest, FDivTypeInferTest_2) {
     CheckBinaryOpInfer<double, int16_t, bool>(kFnOpFDiv);
     CheckBinaryOpInfer<double, bool, int16_t>(kFnOpFDiv);
@@ -590,12 +535,8 @@ TEST_F(ExprNodeTest, FDivTypeInferTest_6) {
     CheckBinaryOpInfer<double, double, bool>(kFnOpFDiv);
     CheckBinaryOpInfer<double, bool, double>(kFnOpFDiv);
 }
-TEST_F(ExprNodeTest, FDivTypeInferTest_7) {
-    CheckBinaryOpInfer<double, bool, int16_t>(kFnOpFDiv);
-}
-TEST_F(ExprNodeTest, FDivTypeInferTest_8) {
-    CheckBinaryOpInfer<double, int16_t, int16_t>(kFnOpFDiv);
-}
+TEST_F(ExprNodeTest, FDivTypeInferTest_7) { CheckBinaryOpInfer<double, bool, int16_t>(kFnOpFDiv); }
+TEST_F(ExprNodeTest, FDivTypeInferTest_8) { CheckBinaryOpInfer<double, int16_t, int16_t>(kFnOpFDiv); }
 TEST_F(ExprNodeTest, FDivTypeInferTest_9) {
     CheckBinaryOpInfer<double, int16_t, int32_t>(kFnOpFDiv);
     CheckBinaryOpInfer<double, int32_t, int16_t>(kFnOpFDiv);
@@ -612,9 +553,7 @@ TEST_F(ExprNodeTest, FDivTypeInferTest_12) {
     CheckBinaryOpInfer<double, int16_t, double>(kFnOpFDiv);
     CheckBinaryOpInfer<double, double, int16_t>(kFnOpFDiv);
 }
-TEST_F(ExprNodeTest, FDivTypeInferTest_13) {
-    CheckBinaryOpInfer<double, int32_t, int32_t>(kFnOpFDiv);
-}
+TEST_F(ExprNodeTest, FDivTypeInferTest_13) { CheckBinaryOpInfer<double, int32_t, int32_t>(kFnOpFDiv); }
 TEST_F(ExprNodeTest, FDivTypeInferTest_14) {
     CheckBinaryOpInfer<double, int32_t, int64_t>(kFnOpFDiv);
     CheckBinaryOpInfer<double, int64_t, int32_t>(kFnOpFDiv);
@@ -627,9 +566,7 @@ TEST_F(ExprNodeTest, FDivTypeInferTest_16) {
     CheckBinaryOpInfer<double, int32_t, double>(kFnOpFDiv);
     CheckBinaryOpInfer<double, double, int32_t>(kFnOpFDiv);
 }
-TEST_F(ExprNodeTest, FDivTypeInferTest_17) {
-    CheckBinaryOpInfer<double, int64_t, int64_t>(kFnOpFDiv);
-}
+TEST_F(ExprNodeTest, FDivTypeInferTest_17) { CheckBinaryOpInfer<double, int64_t, int64_t>(kFnOpFDiv); }
 TEST_F(ExprNodeTest, FDivTypeInferTest_18) {
     CheckBinaryOpInfer<double, int64_t, float>(kFnOpFDiv);
     CheckBinaryOpInfer<double, float, int64_t>(kFnOpFDiv);
@@ -638,16 +575,12 @@ TEST_F(ExprNodeTest, FDivTypeInferTest_19) {
     CheckBinaryOpInfer<double, int64_t, double>(kFnOpFDiv);
     CheckBinaryOpInfer<double, double, int64_t>(kFnOpFDiv);
 }
-TEST_F(ExprNodeTest, FDivTypeInferTest_20) {
-    CheckBinaryOpInfer<double, float, float>(kFnOpFDiv);
-}
+TEST_F(ExprNodeTest, FDivTypeInferTest_20) { CheckBinaryOpInfer<double, float, float>(kFnOpFDiv); }
 TEST_F(ExprNodeTest, FDivTypeInferTest_21) {
     CheckBinaryOpInfer<double, float, double>(kFnOpFDiv);
     CheckBinaryOpInfer<double, double, float>(kFnOpFDiv);
 }
-TEST_F(ExprNodeTest, FDivTypeInferTest_22) {
-    CheckBinaryOpInfer<double, double, double>(kFnOpFDiv);
-}
+TEST_F(ExprNodeTest, FDivTypeInferTest_22) { CheckBinaryOpInfer<double, double, double>(kFnOpFDiv); }
 TEST_F(ExprNodeTest, FDivTypeInferTest_23) {
     CheckBinaryOpInfer<double, codec::Timestamp, bool>(kFnOpFDiv);
     CheckBinaryOpInferError<bool, codec::Timestamp>(kFnOpFDiv);
@@ -673,9 +606,7 @@ TEST_F(ExprNodeTest, FDivTypeInferTest_28) {
     CheckBinaryOpInferError<double, codec::Timestamp>(kFnOpFDiv);
 }
 
-TEST_F(ExprNodeTest, DIVTypeInferTest_1) {
-    CheckBinaryOpInfer<bool, bool, bool>(kFnOpDiv);
-}
+TEST_F(ExprNodeTest, DIVTypeInferTest_1) { CheckBinaryOpInfer<bool, bool, bool>(kFnOpDiv); }
 TEST_F(ExprNodeTest, DIVTypeInferTest_2) {
     CheckBinaryOpInfer<int16_t, int16_t, bool>(kFnOpDiv);
     CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpDiv);
@@ -696,12 +627,8 @@ TEST_F(ExprNodeTest, DIVTypeInferTest_6) {
     CheckBinaryOpInferError<double, bool>(kFnOpDiv);
     CheckBinaryOpInferError<bool, double>(kFnOpDiv);
 }
-TEST_F(ExprNodeTest, DIVTypeInferTest_7) {
-    CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpDiv);
-}
-TEST_F(ExprNodeTest, DIVTypeInferTest_8) {
-    CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpDiv);
-}
+TEST_F(ExprNodeTest, DIVTypeInferTest_7) { CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpDiv); }
+TEST_F(ExprNodeTest, DIVTypeInferTest_8) { CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpDiv); }
 TEST_F(ExprNodeTest, DIVTypeInferTest_9) {
     CheckBinaryOpInfer<int32_t, int16_t, int32_t>(kFnOpDiv);
     CheckBinaryOpInfer<int32_t, int32_t, int16_t>(kFnOpDiv);
@@ -718,9 +645,7 @@ TEST_F(ExprNodeTest, DIVTypeInferTest_12) {
     CheckBinaryOpInferError<int16_t, double>(kFnOpDiv);
     CheckBinaryOpInferError<double, int16_t>(kFnOpDiv);
 }
-TEST_F(ExprNodeTest, DIVTypeInferTest_13) {
-    CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpDiv);
-}
+TEST_F(ExprNodeTest, DIVTypeInferTest_13) { CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpDiv); }
 TEST_F(ExprNodeTest, DIVTypeInferTest_14) {
     CheckBinaryOpInfer<int64_t, int32_t, int64_t>(kFnOpDiv);
     CheckBinaryOpInfer<int64_t, int64_t, int32_t>(kFnOpDiv);
@@ -733,9 +658,7 @@ TEST_F(ExprNodeTest, DIVTypeInferTest_16) {
     CheckBinaryOpInferError<int32_t, double>(kFnOpDiv);
     CheckBinaryOpInferError<double, int32_t>(kFnOpDiv);
 }
-TEST_F(ExprNodeTest, DIVTypeInferTest_17) {
-    CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpDiv);
-}
+TEST_F(ExprNodeTest, DIVTypeInferTest_17) { CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpDiv); }
 TEST_F(ExprNodeTest, DIVTypeInferTest_18) {
     CheckBinaryOpInferError<int64_t, float>(kFnOpDiv);
     CheckBinaryOpInferError<float, int64_t>(kFnOpDiv);
@@ -744,16 +667,12 @@ TEST_F(ExprNodeTest, DIVTypeInferTest_19) {
     CheckBinaryOpInferError<int64_t, double>(kFnOpDiv);
     CheckBinaryOpInferError<double, int64_t>(kFnOpDiv);
 }
-TEST_F(ExprNodeTest, DIVTypeInferTest_20) {
-    CheckBinaryOpInferError<float, float>(kFnOpDiv);
-}
+TEST_F(ExprNodeTest, DIVTypeInferTest_20) { CheckBinaryOpInferError<float, float>(kFnOpDiv); }
 TEST_F(ExprNodeTest, DIVTypeInferTest_21) {
     CheckBinaryOpInferError<float, double>(kFnOpDiv);
     CheckBinaryOpInferError<double, float>(kFnOpDiv);
 }
-TEST_F(ExprNodeTest, DIVTypeInferTest_22) {
-    CheckBinaryOpInferError<double, double>(kFnOpDiv);
-}
+TEST_F(ExprNodeTest, DIVTypeInferTest_22) { CheckBinaryOpInferError<double, double>(kFnOpDiv); }
 TEST_F(ExprNodeTest, DIVTypeInferTest_23) {
     CheckBinaryOpInferError<codec::Timestamp, bool>(kFnOpDiv);
     CheckBinaryOpInferError<bool, codec::Timestamp>(kFnOpDiv);
@@ -771,9 +690,7 @@ TEST_F(ExprNodeTest, DIVTypeInferTest_26) {
     CheckBinaryOpInferError<int64_t, codec::Timestamp>(kFnOpDiv);
 }
 
-TEST_F(ExprNodeTest, ModTypeInferTest_1) {
-    CheckBinaryOpInfer<bool, bool, bool>(kFnOpMod);
-}
+TEST_F(ExprNodeTest, ModTypeInferTest_1) { CheckBinaryOpInfer<bool, bool, bool>(kFnOpMod); }
 TEST_F(ExprNodeTest, ModTypeInferTest_2) {
     CheckBinaryOpInfer<int16_t, int16_t, bool>(kFnOpMod);
     CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMod);
@@ -794,12 +711,8 @@ TEST_F(ExprNodeTest, ModTypeInferTest_6) {
     CheckBinaryOpInfer<double, double, bool>(kFnOpMod);
     CheckBinaryOpInfer<double, bool, double>(kFnOpMod);
 }
-TEST_F(ExprNodeTest, ModTypeInferTest_7) {
-    CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMod);
-}
-TEST_F(ExprNodeTest, ModTypeInferTest_8) {
-    CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpMod);
-}
+TEST_F(ExprNodeTest, ModTypeInferTest_7) { CheckBinaryOpInfer<int16_t, bool, int16_t>(kFnOpMod); }
+TEST_F(ExprNodeTest, ModTypeInferTest_8) { CheckBinaryOpInfer<int16_t, int16_t, int16_t>(kFnOpMod); }
 TEST_F(ExprNodeTest, ModTypeInferTest_9) {
     CheckBinaryOpInfer<int32_t, int16_t, int32_t>(kFnOpMod);
     CheckBinaryOpInfer<int32_t, int32_t, int16_t>(kFnOpMod);
@@ -816,9 +729,7 @@ TEST_F(ExprNodeTest, ModTypeInferTest_12) {
     CheckBinaryOpInfer<double, int16_t, double>(kFnOpMod);
     CheckBinaryOpInfer<double, double, int16_t>(kFnOpMod);
 }
-TEST_F(ExprNodeTest, ModTypeInferTest_13) {
-    CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpMod);
-}
+TEST_F(ExprNodeTest, ModTypeInferTest_13) { CheckBinaryOpInfer<int32_t, int32_t, int32_t>(kFnOpMod); }
 TEST_F(ExprNodeTest, ModTypeInferTest_14) {
     CheckBinaryOpInfer<int64_t, int32_t, int64_t>(kFnOpMod);
     CheckBinaryOpInfer<int64_t, int64_t, int32_t>(kFnOpMod);
@@ -831,9 +742,7 @@ TEST_F(ExprNodeTest, ModTypeInferTest_16) {
     CheckBinaryOpInfer<double, int32_t, double>(kFnOpMod);
     CheckBinaryOpInfer<double, double, int32_t>(kFnOpMod);
 }
-TEST_F(ExprNodeTest, ModTypeInferTest_17) {
-    CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpMod);
-}
+TEST_F(ExprNodeTest, ModTypeInferTest_17) { CheckBinaryOpInfer<int64_t, int64_t, int64_t>(kFnOpMod); }
 TEST_F(ExprNodeTest, ModTypeInferTest_18) {
     CheckBinaryOpInfer<float, int64_t, float>(kFnOpMod);
     CheckBinaryOpInfer<float, float, int64_t>(kFnOpMod);
@@ -842,16 +751,12 @@ TEST_F(ExprNodeTest, ModTypeInferTest_19) {
     CheckBinaryOpInfer<double, int64_t, double>(kFnOpMod);
     CheckBinaryOpInfer<double, double, int64_t>(kFnOpMod);
 }
-TEST_F(ExprNodeTest, ModTypeInferTest_20) {
-    CheckBinaryOpInfer<float, float, float>(kFnOpMod);
-}
+TEST_F(ExprNodeTest, ModTypeInferTest_20) { CheckBinaryOpInfer<float, float, float>(kFnOpMod); }
 TEST_F(ExprNodeTest, ModTypeInferTest_21) {
     CheckBinaryOpInfer<double, float, double>(kFnOpMod);
     CheckBinaryOpInfer<double, double, float>(kFnOpMod);
 }
-TEST_F(ExprNodeTest, ModTypeInferTest_22) {
-    CheckBinaryOpInfer<double, double, double>(kFnOpMod);
-}
+TEST_F(ExprNodeTest, ModTypeInferTest_22) { CheckBinaryOpInfer<double, double, double>(kFnOpMod); }
 TEST_F(ExprNodeTest, ModTypeInferTest_23) {
     CheckBinaryOpInferError<codec::Timestamp, bool>(kFnOpMod);
     CheckBinaryOpInferError<bool, codec::Timestamp>(kFnOpMod);
@@ -891,9 +796,7 @@ TEST_F(ExprNodeTest, InferBinaryLogicalTypeTest) {
 }
 
 TEST_F(ExprNodeTest, InferNotTypeTest) {
-    auto do_build = [](NodeManager* nm, ExprNode* expr) {
-        return nm->MakeUnaryExprNode(expr, kFnOpNot);
-    };
+    auto do_build = [](NodeManager* nm, ExprNode* expr) { return nm->MakeUnaryExprNode(expr, kFnOpNot); };
     CheckInfer<bool, bool>(do_build);
     CheckInfer<bool, int16_t>(do_build);
     CheckInfer<bool, int32_t>(do_build);
@@ -903,9 +806,7 @@ TEST_F(ExprNodeTest, InferNotTypeTest) {
 }
 
 TEST_F(ExprNodeTest, InferUnaryMinusTypeTest) {
-    auto do_build = [](NodeManager* nm, ExprNode* expr) {
-        return nm->MakeUnaryExprNode(expr, kFnOpMinus);
-    };
+    auto do_build = [](NodeManager* nm, ExprNode* expr) { return nm->MakeUnaryExprNode(expr, kFnOpMinus); };
     CheckInfer<int16_t, int16_t>(do_build);
     CheckInfer<int32_t, int32_t>(do_build);
     CheckInfer<int64_t, int64_t>(do_build);

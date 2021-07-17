@@ -30,14 +30,11 @@ Status ResolveUdfDef::Visit(node::FnNodeFnDef* fn_def) {
         std::string arg_name = pnode->GetName();
         int64_t exist_arg_id = CurrentScope()->GetVar(arg_name);
         // function def should take no duplicate arg names
-        CHECK_TRUE(exist_arg_id < 0, kCodegenError, "Duplicate argument name ",
-                   arg_name);
+        CHECK_TRUE(exist_arg_id < 0, kCodegenError, "Duplicate argument name ", arg_name);
 
         auto expr_id = pnode->GetExprId();
-        CHECK_TRUE(expr_id->IsResolved(), kCodegenError, "Expr id of argument ",
-                   arg_name, " is not mark resolved");
-        CHECK_TRUE(expr_id->GetOutputType() != nullptr, kCodegenError,
-                   "Argument ", arg_name, "'s type is null");
+        CHECK_TRUE(expr_id->IsResolved(), kCodegenError, "Expr id of argument ", arg_name, " is not mark resolved");
+        CHECK_TRUE(expr_id->GetOutputType() != nullptr, kCodegenError, "Argument ", arg_name, "'s type is null");
         CHECK_STATUS(CurrentScope()->AddVar(arg_name, expr_id->GetId()));
     }
     return Visit(fn_def->block_);
@@ -68,8 +65,7 @@ Status ResolveUdfDef::Visit(node::FnNodeList* block) {
                 break;
             }
         }
-        CHECK_STATUS(status, "Error at (", node->GetLineNum(), ":",
-                     node->GetLocation(), "): ", status.str());
+        CHECK_STATUS(status, "Error at (", node->GetLineNum(), ":", node->GetLocation(), "): ", status.str());
     }
     return status;
 }
@@ -88,13 +84,9 @@ Status ResolveUdfDef::Visit(node::FnAssignNode* assign) {
     return Status::OK();
 }
 
-Status ResolveUdfDef::Visit(node::FnIfNode* node) {
-    return Visit(node->expression_);
-}
+Status ResolveUdfDef::Visit(node::FnIfNode* node) { return Visit(node->expression_); }
 
-Status ResolveUdfDef::Visit(node::FnElifNode* node) {
-    return Visit(node->expression_);
-}
+Status ResolveUdfDef::Visit(node::FnElifNode* node) { return Visit(node->expression_); }
 
 Status ResolveUdfDef::Visit(node::FnElseNode* node) { return Status::OK(); }
 
@@ -136,9 +128,7 @@ Status ResolveUdfDef::Visit(node::FnForInBlock* block) {
     return Visit(block->block_);
 }
 
-Status ResolveUdfDef::Visit(node::FnReturnStmt* node) {
-    return Visit(node->return_expr_);
-}
+Status ResolveUdfDef::Visit(node::FnReturnStmt* node) { return Visit(node->return_expr_); }
 
 Status ResolveUdfDef::Visit(node::ExprNode* expr) {
     for (size_t i = 0; i < expr->GetChildNum(); ++i) {
@@ -150,8 +140,7 @@ Status ResolveUdfDef::Visit(node::ExprNode* expr) {
             if (!expr_id->IsResolved()) {
                 auto var_name = expr_id->GetName();
                 int64_t id = this->GetVar(var_name);
-                CHECK_TRUE(id >= 0, kCodegenError, "Fail to find var ",
-                           var_name, " in current scope");
+                CHECK_TRUE(id >= 0, kCodegenError, "Fail to find var ", var_name, " in current scope");
                 expr_id->SetId(id);
             }
         }
@@ -164,8 +153,7 @@ Status ResolveUdfDef::Visit(node::ExprNode* expr) {
 FnScopeInfo* ResolveUdfDef::CurrentScope() { return &scope_stack_.back(); }
 
 int64_t ResolveUdfDef::GetVar(const std::string& var) {
-    for (auto iter = scope_stack_.rbegin(); iter != scope_stack_.rend();
-         ++iter) {
+    for (auto iter = scope_stack_.rbegin(); iter != scope_stack_.rend(); ++iter) {
         int64_t res = iter->GetVar(var);
         if (res >= 0) {
             return res;

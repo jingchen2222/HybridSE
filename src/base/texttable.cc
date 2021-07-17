@@ -25,8 +25,7 @@ std::ostream& operator<<(std::ostream& stream, const TextTable& table) {
     table.setup();
     stream << table.ruler() << "\n";
     unsigned line = 0;
-    for (auto row_iterator = table.rows().begin();
-         row_iterator != table.rows().end(); ++row_iterator) {
+    for (auto row_iterator = table.rows().begin(); row_iterator != table.rows().end(); ++row_iterator) {
         TextTable::Row const& row = *row_iterator;
         stream << table.vertical();
         for (unsigned i = 0; i < row.size(); ++i) {
@@ -45,8 +44,7 @@ std::ostream& operator<<(std::ostream& stream, const TextTable& table) {
 
 void base::TextTable::setup_widths() const {
     widths.assign(columns(), 0);
-    for (auto rowIterator = rows_.begin(); rowIterator != rows_.end();
-         ++rowIterator) {
+    for (auto rowIterator = rows_.begin(); rowIterator != rows_.end(); ++rowIterator) {
         Row const& row = *rowIterator;
         for (unsigned i = 0; i < row.size(); ++i) {
             widths[i] = widths[i] > row[i].size() ? widths[i] : row[i].size();

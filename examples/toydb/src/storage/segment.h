@@ -52,9 +52,7 @@ struct TimeComparator {
 };
 
 struct SliceComparator {
-    int operator()(const Slice& a, const Slice& b) const {
-        return a.compare(b);
-    }
+    int operator()(const Slice& a, const Slice& b) const { return a.compare(b); }
 };
 
 static constexpr SliceComparator scmp;

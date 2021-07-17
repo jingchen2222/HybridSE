@@ -65,7 +65,8 @@ public class SqlEngine implements AutoCloseable {
     /**
      * Create default engine option.
      * 
-     * <p>- Enable store ir results into SQL context
+     * <p>
+     * - Enable store ir results into SQL context
      * - Only compile SQL
      * - Disable performance sensitive mode.
      *
@@ -124,7 +125,7 @@ public class SqlEngine implements AutoCloseable {
     }
 
     @Override
-     public synchronized void close() throws Exception {
+    public synchronized void close() throws Exception {
         engine.delete();
         engine = null;
 

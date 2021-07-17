@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+#include "bm/client_bm_case.h"
 #include <memory>
 #include <string>
 #include <vector>
-#include "bm/client_bm_case.h"
 #include "brpc/server.h"
 #include "case/case_data_mock.h"
 #include "dbms/dbms_server_impl.h"
@@ -55,8 +55,7 @@ static std::shared_ptr<hybridse::sdk::DBMSSdk> feql_dbms_sdk_init() {
 
 static bool FeSqlServerInit(brpc::Server &tablet_server,  // NOLINT
                             brpc::Server &dbms_server,    // NOLINT
-                            ::hybridse::tablet::TabletServerImpl *tablet,
-                            ::hybridse::dbms::DBMSServerImpl *dbms) {
+                            ::hybridse::tablet::TabletServerImpl *tablet, ::hybridse::dbms::DBMSServerImpl *dbms) {
     FLAGS_enable_keep_alive = false;
     DLOG(INFO) << ("Start ToyDB tablet server...");
     if (!tablet->Init()) {
@@ -64,8 +63,7 @@ static bool FeSqlServerInit(brpc::Server &tablet_server,  // NOLINT
     }
 
     brpc::ServerOptions options;
-    if (0 !=
-        tablet_server.AddService(tablet, brpc::SERVER_DOESNT_OWN_SERVICE)) {
+    if (0 != tablet_server.AddService(tablet, brpc::SERVER_DOESNT_OWN_SERVICE)) {
         LOG(WARNING) << "Fail to add tablet service";
         return false;
     }
@@ -78,8 +76,7 @@ static bool FeSqlServerInit(brpc::Server &tablet_server,  // NOLINT
         exit(1);
     }
     {
-        std::string tablet_endpoint =
-            "127.0.0.1:" + std::to_string(tablet_port);
+        std::string tablet_endpoint = "127.0.0.1:" + std::to_string(tablet_port);
         MockClosure closure;
         dbms::KeepAliveRequest request;
         request.set_endpoint(tablet_endpoint);
@@ -90,36 +87,32 @@ static bool FeSqlServerInit(brpc::Server &tablet_server,  // NOLINT
     return true;
 }
 
-static bool InitDB(std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk,
-                   std::string db_name) {
+static bool InitDB(std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk, std::string db_name) {
     LOG(INFO) << "Creating database " << db_name;
     // create database
     hybridse::sdk::Status status;
     dbms_sdk->CreateDatabase(db_name, &status);
     if (0 != status.code) {
-        LOG(WARNING) << "create database faled " << db_name << " with error "
-                     << status.msg;
+        LOG(WARNING) << "create database faled " << db_name << " with error " << status.msg;
         return false;
     }
     return true;
 }
 
-static bool InitTBL(std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk,
-                    const std::string &db_name, const std::string &schema_sql) {
+static bool InitTBL(std::shared_ptr<::hybridse::sdk::DBMSSdk> dbms_sdk, const std::string &db_name,
+                    const std::string &schema_sql) {
     DLOG(INFO) << ("Creating table 'tbl' in database 'test'...\n");
     // create table db1
     hybridse::sdk::Status status;
     dbms_sdk->ExecuteQuery(db_name, schema_sql, &status);
     if (0 != status.code) {
-        LOG(WARNING)
-            << ("Could not create 'tbl' table in the 'test' database!\n");
+        LOG(WARNING) << ("Could not create 'tbl' table in the 'test' database!\n");
         return false;
     }
     return true;
 }
 
-static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
-                              bool is_batch_mode, std::string select_sql,
+static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, std::string select_sql,
                               int64_t group_size, int64_t window_max_size) {
     int64_t record_size = group_size * window_max_size;
     bool failure_flag = false;
@@ -136,16 +129,14 @@ static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
         "       index(key=(col_str64), ts=col_i64, ttl=60d)"
         "    );";
 
-    const char *schema_insert_sql =
-        "insert into tbl values(1,1,1,1,1,\"key1\", \"string1\");";
+    const char *schema_insert_sql = "insert into tbl values(1,1,1,1,1,\"key1\", \"string1\");";
 
     brpc::Server tablet_server;
     brpc::Server dbms_server;
     ::hybridse::tablet::TabletServerImpl table_server_impl;
     ::hybridse::dbms::DBMSServerImpl dbms_server_impl;
 
-    if (!FeSqlServerInit(tablet_server, dbms_server, &table_server_impl,
-                         &dbms_server_impl)) {
+    if (!FeSqlServerInit(tablet_server, dbms_server, &table_server_impl, &dbms_server_impl)) {
         LOG(WARNING) << "Fail to init server";
         if (TEST == mode) {
             FAIL();
@@ -162,8 +153,7 @@ static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
     }
 
     std::shared_ptr<::hybridse::sdk::TabletSdk> sdk =
-        ::hybridse::sdk::CreateTabletSdk(host + ":" +
-                                         std::to_string(tablet_port));
+        ::hybridse::sdk::CreateTabletSdk(host + ":" + std::to_string(tablet_port));
     if (!sdk) {
         LOG(WARNING) << "Fail to create to tablet sdk";
         failure_flag = true;
@@ -189,8 +179,7 @@ static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
                 fail += 1;
             }
         }
-        LOG(INFO) << "Insert Total cnt: " << record_size
-                  << ", fail cnt: " << fail;
+        LOG(INFO) << "Insert Total cnt: " << record_size << ", fail cnt: " << fail;
     }
 
     switch (mode) {
@@ -205,14 +194,12 @@ static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
                     sdk::Status query_status;
                     const std::string db = "test";
                     const std::string sql = select_sql;
-                    benchmark::DoNotOptimize(
-                        sdk->Query(db, sql, &query_status));
+                    benchmark::DoNotOptimize(sdk->Query(db, sql, &query_status));
                     if (0 != query_status.code) {
                         fail++;
                     }
                 }
-                LOG(INFO) << "Total cnt: " << total_cnt
-                          << ", fail cnt: " << fail;
+                LOG(INFO) << "Total cnt: " << total_cnt << ", fail cnt: " << fail;
             }
             break;
         }
@@ -220,8 +207,7 @@ static void SIMPLE_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
             sdk::Status query_status;
             const std::string db = "test";
             const std::string sql = select_sql;
-            std::shared_ptr<::hybridse::sdk::ResultSet> rs =
-                sdk->Query(db, sql, &query_status);
+            std::shared_ptr<::hybridse::sdk::ResultSet> rs = sdk->Query(db, sql, &query_status);
             ASSERT_TRUE(0 != rs);  // NOLINT
             ASSERT_EQ(0, query_status.code);
             ASSERT_EQ(record_size, rs->Size());
@@ -232,8 +218,7 @@ failure:
         ASSERT_FALSE(failure_flag);
     }
 }
-static void WINDOW_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
-                              bool is_batch_mode, std::string select_sql,
+static void WINDOW_CASE_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, std::string select_sql,
                               int64_t group_size, int64_t max_window_size) {
     int64_t record_size = group_size * max_window_size;
     bool failure_flag = false;
@@ -255,8 +240,7 @@ static void WINDOW_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
     ::hybridse::tablet::TabletServerImpl table_server_impl;
     ::hybridse::dbms::DBMSServerImpl dbms_server_impl;
 
-    if (!FeSqlServerInit(tablet_server, dbms_server, &table_server_impl,
-                         &dbms_server_impl)) {
+    if (!FeSqlServerInit(tablet_server, dbms_server, &table_server_impl, &dbms_server_impl)) {
         LOG(WARNING) << "Fail to init server";
         if (TEST == mode) {
             FAIL();
@@ -273,8 +257,7 @@ static void WINDOW_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
     }
 
     std::shared_ptr<::hybridse::sdk::TabletSdk> sdk =
-        ::hybridse::sdk::CreateTabletSdk(host + ":" +
-                                         std::to_string(tablet_port));
+        ::hybridse::sdk::CreateTabletSdk(host + ":" + std::to_string(tablet_port));
     if (!sdk) {
         LOG(WARNING) << "Fail to create to tablet sdk";
         failure_flag = true;
@@ -309,15 +292,13 @@ static void WINDOW_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
         }
         Repeater<std::string> col_str64(groups);
         Repeater<std::string> col_str255(
-            {"aaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbb", "ccccccccccccccccccc",
-             "ddddddddddddddddd"});
+            {"aaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbb", "ccccccccccccccccccc", "ddddddddddddddddd"});
         int32_t fail = 0;
         DLOG(INFO) << "Running insert ...\n" << select_sql;
         for (int i = 0; i < record_size; ++i) {
             std::ostringstream oss;
-            oss << "insert into tbl values (" << col_i32.GetValue() << ", "
-                << col_i16.GetValue() << ", " << col_i64.GetValue() << ", "
-                << col_f.GetValue() << ", " << col_d.GetValue() << ", "
+            oss << "insert into tbl values (" << col_i32.GetValue() << ", " << col_i16.GetValue() << ", "
+                << col_i64.GetValue() << ", " << col_f.GetValue() << ", " << col_d.GetValue() << ", "
                 << "\"" << col_str64.GetValue() << "\", "
                 << "\"" << col_str255.GetValue() << "\""
                 << ");";
@@ -356,8 +337,7 @@ static void WINDOW_CASE_QUERY(benchmark::State *state_ptr, MODE mode,
             sdk::Status query_status;
             const std::string db = "test";
             const std::string sql = select_sql;
-            std::shared_ptr<::hybridse::sdk::ResultSet> rs =
-                sdk->Query(db, sql, &query_status);
+            std::shared_ptr<::hybridse::sdk::ResultSet> rs = sdk->Query(db, sql, &query_status);
             ASSERT_TRUE(0 != rs);  // NOLINT
             ASSERT_EQ(0, query_status.code);
             ASSERT_EQ(record_size, rs->Size());
@@ -369,8 +349,7 @@ failure:
         ASSERT_FALSE(failure_flag);
     }
 }
-void SIMPLE_CASE1_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void SIMPLE_CASE1_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t window_max_size) {  // NOLINT
     int64_t record_size = group_size * window_max_size;
     std::string select_sql =
@@ -379,17 +358,14 @@ void SIMPLE_CASE1_QUERY(benchmark::State *state_ptr, MODE mode,
         std::to_string(record_size) + ";";
     if (BENCHMARK == mode) {
         std::string query_type = "select 5 cols";
-        std::string label = query_type + "/group " +
-                            std::to_string(group_size) + "/max window size " +
-                            std::to_string(window_max_size);
+        std::string label =
+            query_type + "/group " + std::to_string(group_size) + "/max window size " + std::to_string(window_max_size);
         state_ptr->SetLabel(label);
     }
-    SIMPLE_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size,
-                      window_max_size);
+    SIMPLE_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size, window_max_size);
 }
 
-void WINDOW_CASE0_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE0_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t window_max_size) {
     int64_t record_size = group_size * window_max_size;
     std::string select_sql =
@@ -404,16 +380,13 @@ void WINDOW_CASE0_QUERY(benchmark::State *state_ptr, MODE mode,
         std::to_string(record_size) + ";";
     if (BENCHMARK == mode) {
         std::string query_type = "sum_col_i32";
-        std::string label = query_type + "/group " +
-                            std::to_string(group_size) + "/max window size " +
-                            std::to_string(window_max_size);
+        std::string label =
+            query_type + "/group " + std::to_string(group_size) + "/max window size " + std::to_string(window_max_size);
         state_ptr->SetLabel(label);
     }
-    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size,
-                      window_max_size);
+    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size, window_max_size);
 }
-void GROUPBY_CASE0_QUERY(benchmark::State *state_ptr, MODE mode,
-                         bool is_batch_mode, int64_t group_size,
+void GROUPBY_CASE0_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                          int64_t window_max_size) {
     std::string select_sql =
         "SELECT "
@@ -422,17 +395,14 @@ void GROUPBY_CASE0_QUERY(benchmark::State *state_ptr, MODE mode,
 
     if (BENCHMARK == mode) {
         std::string query_type = "sum 1 cols";
-        std::string label = query_type + "/group " +
-                            std::to_string(group_size) + "/max window size " +
-                            std::to_string(window_max_size);
+        std::string label =
+            query_type + "/group " + std::to_string(group_size) + "/max window size " + std::to_string(window_max_size);
         state_ptr->SetLabel(label);
     }
-    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size,
-                      window_max_size);
+    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size, window_max_size);
 }
 
-void WINDOW_CASE1_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE1_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t window_max_size) {
     int64_t record_size = group_size * window_max_size;
     std::string select_sql =
@@ -448,17 +418,14 @@ void WINDOW_CASE1_QUERY(benchmark::State *state_ptr, MODE mode,
         std::to_string(record_size) + ";";
     if (BENCHMARK == mode) {
         std::string query_type = "sum 2 cols";
-        std::string label = query_type + "/group " +
-                            std::to_string(group_size) + "/max window size " +
-                            std::to_string(window_max_size);
+        std::string label =
+            query_type + "/group " + std::to_string(group_size) + "/max window size " + std::to_string(window_max_size);
         state_ptr->SetLabel(label);
     }
-    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size,
-                      window_max_size);
+    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size, window_max_size);
 }
 
-void WINDOW_CASE2_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE2_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t window_max_size) {
     int64_t record_size = group_size * window_max_size;
     std::string select_sql =
@@ -476,18 +443,15 @@ void WINDOW_CASE2_QUERY(benchmark::State *state_ptr, MODE mode,
         std::to_string(record_size) + ";";
     if (BENCHMARK == mode) {
         std::string query_type = "sum 4 cols";
-        std::string label =
-            query_type + "/group " + std::to_string(state_ptr->range(0)) +
-            "/max window size " + std::to_string(state_ptr->range(1));
+        std::string label = query_type + "/group " + std::to_string(state_ptr->range(0)) + "/max window size " +
+                            std::to_string(state_ptr->range(1));
         state_ptr->SetLabel(label);
     }
 
-    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size,
-                      window_max_size);
+    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size, window_max_size);
 }
 
-void WINDOW_CASE3_QUERY(benchmark::State *state_ptr, MODE mode,
-                        bool is_batch_mode, int64_t group_size,
+void WINDOW_CASE3_QUERY(benchmark::State *state_ptr, MODE mode, bool is_batch_mode, int64_t group_size,
                         int64_t window_max_size) {
     int64_t record_size = group_size * window_max_size;
     std::string select_sql =
@@ -502,13 +466,11 @@ void WINDOW_CASE3_QUERY(benchmark::State *state_ptr, MODE mode,
         std::to_string(record_size) + ";";
     if (BENCHMARK == mode) {
         std::string query_type = "max_col_i32";
-        std::string label = query_type + "/group " +
-                            std::to_string(group_size) + "/max window size " +
-                            std::to_string(window_max_size);
+        std::string label =
+            query_type + "/group " + std::to_string(group_size) + "/max window size " + std::to_string(window_max_size);
         state_ptr->SetLabel(label);
     }
-    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size,
-                      window_max_size);
+    WINDOW_CASE_QUERY(state_ptr, mode, is_batch_mode, select_sql, group_size, window_max_size);
 }
 
 }  // namespace bm

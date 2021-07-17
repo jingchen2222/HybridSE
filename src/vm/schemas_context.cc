@@ -27,27 +27,18 @@ using hybridse::common::kColumnNotFound;
 
 size_t SchemaSource::GetColumnID(size_t idx) const { return column_ids_[idx]; }
 
-const std::string& SchemaSource::GetColumnName(size_t idx) const {
-    return schema_->Get(idx).name();
-}
+const std::string& SchemaSource::GetColumnName(size_t idx) const { return schema_->Get(idx).name(); }
 
-const hybridse::type::Type SchemaSource::GetColumnType(size_t idx) const {
-    return schema_->Get(idx).type();
-}
+const hybridse::type::Type SchemaSource::GetColumnType(size_t idx) const { return schema_->Get(idx).type(); }
 
-bool SchemaSource::IsSourceColumn(size_t idx) const {
-    return GetSourceChildIdx(idx) >= 0;
-}
+bool SchemaSource::IsSourceColumn(size_t idx) const { return GetSourceChildIdx(idx) >= 0; }
 
 bool SchemaSource::IsStrictSourceColumn(size_t idx) const {
     size_t column_id = source_child_column_ids_[idx];
-    return GetSourceChildIdx(idx) >= 0 && column_id > 0 &&
-           column_id == GetColumnID(idx);
+    return GetSourceChildIdx(idx) >= 0 && column_id > 0 && column_id == GetColumnID(idx);
 }
 
-int SchemaSource::GetSourceChildIdx(size_t idx) const {
-    return source_child_idxs_[idx];
-}
+int SchemaSource::GetSourceChildIdx(size_t idx) const { return source_child_idxs_[idx]; }
 
 int SchemaSource::GetSourceColumnID(size_t idx) const {
     return source_child_idxs_[idx] >= 0 ? source_child_column_ids_[idx] : 0;
@@ -75,14 +66,11 @@ void SchemaSource::SetSchema(const codec::Schema* schema) {
     source_child_column_ids_ = std::vector<size_t>(schema->size(), 0);
 }
 
-void SchemaSource::SetSourceName(const std::string& name) {
-    source_name_ = name;
-}
+void SchemaSource::SetSourceName(const std::string& name) { source_name_ = name; }
 
 const std::string& SchemaSource::GetSourceName() const { return source_name_; }
 
-void SchemaSource::SetSource(size_t idx, size_t child_idx,
-                             size_t child_column_id) {
+void SchemaSource::SetSource(size_t idx, size_t child_idx, size_t child_column_id) {
     if (!CheckSourceSetIndex(idx)) {
         return;
     }
@@ -113,9 +101,7 @@ void SchemaSource::Clear() {
     source_child_column_ids_.clear();
 }
 
-size_t SchemaSource::size() const {
-    return schema_ == nullptr ? 0 : schema_->size();
-}
+size_t SchemaSource::size() const { return schema_ == nullptr ? 0 : schema_->size(); }
 
 std::string SchemaSource::ToString() const {
     std::stringstream ss;
@@ -141,9 +127,7 @@ void SchemasContext::Clear() {
     owned_concat_output_schema_.Clear();
 }
 
-void SchemasContext::SetName(const std::string& name) {
-    root_relation_name_ = name;
-}
+void SchemasContext::SetName(const std::string& name) { root_relation_name_ = name; }
 
 SchemaSource* SchemasContext::AddSource() {
     schema_sources_.push_back(new SchemaSource());
@@ -165,9 +149,7 @@ void SchemasContext::Merge(size_t child_idx, const SchemasContext* child) {
     }
 }
 
-void SchemasContext::MergeWithNewID(size_t child_idx,
-                                    const SchemasContext* child,
-                                    PhysicalPlanContext* plan_ctx) {
+void SchemasContext::MergeWithNewID(size_t child_idx, const SchemasContext* child, PhysicalPlanContext* plan_ctx) {
     for (size_t i = 0; i < child->GetSchemaSourceSize(); ++i) {
         auto source = child->GetSchemaSource(i);
         auto new_source = this->AddSource();
@@ -184,23 +166,17 @@ void SchemasContext::MergeWithNewID(size_t child_idx,
 
 SchemasContext::~SchemasContext() { Clear(); }
 
-size_t SchemasContext::GetColumnNum() const {
-    return GetOutputSchema()->size();
-}
+size_t SchemasContext::GetColumnNum() const { return GetOutputSchema()->size(); }
 
-Status SchemasContext::ResolveColumnIndexByName(
-    const std::string& relation_name, const std::string& column_name,
-    size_t* schema_idx, size_t* col_idx) const {
-    CHECK_TRUE(this->CheckBuild(), kColumnNotFound,
-               "Schemas context is not fully build");
+Status SchemasContext::ResolveColumnIndexByName(const std::string& relation_name, const std::string& column_name,
+                                                size_t* schema_idx, size_t* col_idx) const {
+    CHECK_TRUE(this->CheckBuild(), kColumnNotFound, "Schemas context is not fully build");
     if (relation_name.empty()) {
         // if relation name not specified, resolve in current context only
         auto iter = column_name_map_.find(column_name);
-        CHECK_TRUE(iter != column_name_map_.end(), kColumnNotFound,
-                   "Fail to find column `", column_name, "`");
+        CHECK_TRUE(iter != column_name_map_.end(), kColumnNotFound, "Fail to find column `", column_name, "`");
         if (iter->second.size() > 1) {
-            CHECK_TRUE(!IsColumnAmbiguous(column_name), kColumnNotFound,
-                       "Ambiguous column name ", column_name);
+            CHECK_TRUE(!IsColumnAmbiguous(column_name), kColumnNotFound, "Ambiguous column name ", column_name);
         }
         auto pair = iter->second[0];
         *schema_idx = pair.first;
@@ -209,31 +185,26 @@ Status SchemasContext::ResolveColumnIndexByName(
     } else if (root_ == nullptr) {
         // fallback logic if this is not a schema context bind to plan node
         auto iter = column_name_map_.find(column_name);
-        CHECK_TRUE(iter != column_name_map_.end(), kColumnNotFound,
-                   "Fail to find column `", column_name, "`");
+        CHECK_TRUE(iter != column_name_map_.end(), kColumnNotFound, "Fail to find column `", column_name, "`");
         bool found = false;
         size_t cur_column_id;
         size_t cur_col_idx;
         size_t cur_schema_idx;
         for (auto& pair : iter->second) {
             auto source = GetSchemaSource(pair.first);
-            if (!source->GetSourceName().empty() &&
-                source->GetSourceName() == relation_name) {
+            if (!source->GetSourceName().empty() && source->GetSourceName() == relation_name) {
                 if (!found) {
                     found = true;
                     cur_column_id = source->GetColumnID(pair.second);
                     cur_col_idx = pair.second;
                     cur_schema_idx = pair.first;
                 } else {
-                    CHECK_TRUE(
-                        cur_column_id == source->GetColumnID(pair.second),
-                        kColumnNotFound, "Ambiguous column name ",
-                        relation_name, ".", column_name);
+                    CHECK_TRUE(cur_column_id == source->GetColumnID(pair.second), kColumnNotFound,
+                               "Ambiguous column name ", relation_name, ".", column_name);
                 }
             }
         }
-        CHECK_TRUE(found, kColumnNotFound, "Fail to find column ",
-                   relation_name, ".", column_name);
+        CHECK_TRUE(found, kColumnNotFound, "Fail to find column ", relation_name, ".", column_name);
         *schema_idx = cur_schema_idx;
         *col_idx = cur_col_idx;
         return Status::OK();
@@ -244,78 +215,60 @@ Status SchemasContext::ResolveColumnIndexByName(
         size_t child_column_id;
         size_t source_column_id;
         const PhysicalOpNode* source_node = nullptr;
-        CHECK_STATUS(
-            ResolveColumnID(relation_name, column_name, &column_id, &child_idx,
-                            &child_column_id, &source_column_id, &source_node),
-            "Fail to resolve column ", relation_name, ".", column_name);
+        CHECK_STATUS(ResolveColumnID(relation_name, column_name, &column_id, &child_idx, &child_column_id,
+                                     &source_column_id, &source_node),
+                     "Fail to resolve column ", relation_name, ".", column_name);
 
         // compute index under current context
         return ResolveColumnIndexByID(column_id, schema_idx, col_idx);
     }
 }
 
-Status SchemasContext::ResolveColumnIndexByID(size_t column_id,
-                                              size_t* schema_idx,
-                                              size_t* index) const {
-    CHECK_TRUE(this->CheckBuild(), kColumnNotFound,
-               "Schemas context is not fully build");
+Status SchemasContext::ResolveColumnIndexByID(size_t column_id, size_t* schema_idx, size_t* index) const {
+    CHECK_TRUE(this->CheckBuild(), kColumnNotFound, "Schemas context is not fully build");
     auto iter = column_id_map_.find(column_id);
-    CHECK_TRUE(iter != column_id_map_.end(), kColumnNotFound,
-               "Fail to find column id #", column_id,
+    CHECK_TRUE(iter != column_id_map_.end(), kColumnNotFound, "Fail to find column id #", column_id,
                " in current schema context");
     *schema_idx = iter->second.first;
     *index = iter->second.second;
     return Status::OK();
 }
 
-Status SchemasContext::ResolveColumnNameByID(size_t column_id,
-                                             std::string* name) const {
-    CHECK_TRUE(this->CheckBuild(), kColumnNotFound,
-               "Schemas context is not fully build");
+Status SchemasContext::ResolveColumnNameByID(size_t column_id, std::string* name) const {
+    CHECK_TRUE(this->CheckBuild(), kColumnNotFound, "Schemas context is not fully build");
     auto iter = column_id_map_.find(column_id);
-    CHECK_TRUE(iter != column_id_map_.end(), kColumnNotFound,
-               "Fail to find column id #", column_id,
+    CHECK_TRUE(iter != column_id_map_.end(), kColumnNotFound, "Fail to find column id #", column_id,
                " in current schema context");
     auto sc = GetSchema(iter->second.first);
-    CHECK_TRUE(sc != nullptr, kColumnNotFound, iter->second.first,
-               "th schema not found");
+    CHECK_TRUE(sc != nullptr, kColumnNotFound, iter->second.first, "th schema not found");
     *name = sc->Get(iter->second.second).name();
     return Status::OK();
 }
 
-Status SchemasContext::ResolveColumnRefIndex(
-    const node::ColumnRefNode* column_ref, size_t* schema_idx,
-    size_t* col_idx) const {
-    CHECK_TRUE(this->CheckBuild(), kColumnNotFound,
-               "Schemas context is not fully build");
+Status SchemasContext::ResolveColumnRefIndex(const node::ColumnRefNode* column_ref, size_t* schema_idx,
+                                             size_t* col_idx) const {
+    CHECK_TRUE(this->CheckBuild(), kColumnNotFound, "Schemas context is not fully build");
     CHECK_TRUE(column_ref != nullptr, kColumnNotFound);
-    return ResolveColumnIndexByName(column_ref->GetRelationName(),
-                                    column_ref->GetColumnName(), schema_idx,
-                                    col_idx);
+    return ResolveColumnIndexByName(column_ref->GetRelationName(), column_ref->GetColumnName(), schema_idx, col_idx);
 }
 
-Status SchemasContext::ResolveColumnID(const std::string& relation_name,
-                                       const std::string& column_name,
+Status SchemasContext::ResolveColumnID(const std::string& relation_name, const std::string& column_name,
                                        size_t* column_id) const {
-    CHECK_TRUE(this->CheckBuild(), kColumnNotFound,
-               "Schemas context is not fully build");
+    CHECK_TRUE(this->CheckBuild(), kColumnNotFound, "Schemas context is not fully build");
     size_t schema_idx;
     size_t col_idx;
-    CHECK_STATUS(ResolveColumnIndexByName(relation_name, column_name,
-                                          &schema_idx, &col_idx));
+    CHECK_STATUS(ResolveColumnIndexByName(relation_name, column_name, &schema_idx, &col_idx));
     *column_id = GetSchemaSource(schema_idx)->GetColumnID(col_idx);
     return Status::OK();
 }
 
-static Status DoSearchExprDependentColumns(
-    const node::ExprNode* expr, const SchemasContext* ctx,
-    std::vector<const node::ExprNode*>* columns) {
+static Status DoSearchExprDependentColumns(const node::ExprNode* expr, const SchemasContext* ctx,
+                                           std::vector<const node::ExprNode*>* columns) {
     if (expr == nullptr) {
         return Status::OK();
     }
     for (size_t i = 0; i < expr->GetChildNum(); ++i) {
-        CHECK_STATUS(
-            DoSearchExprDependentColumns(expr->GetChild(i), ctx, columns));
+        CHECK_STATUS(DoSearchExprDependentColumns(expr->GetChild(i), ctx, columns));
     }
     switch (expr->expr_type_) {
         case node::kExprColumnRef: {
@@ -329,12 +282,9 @@ static Status DoSearchExprDependentColumns(
         case node::kExprBetween: {
             std::vector<node::ExprNode*> expr_list;
             auto between_expr = dynamic_cast<const node::BetweenExpr*>(expr);
-            CHECK_STATUS(DoSearchExprDependentColumns(between_expr->left_, ctx,
-                                                      columns));
-            CHECK_STATUS(DoSearchExprDependentColumns(between_expr->right_, ctx,
-                                                      columns));
-            CHECK_STATUS(DoSearchExprDependentColumns(between_expr->expr_, ctx,
-                                                      columns));
+            CHECK_STATUS(DoSearchExprDependentColumns(between_expr->left_, ctx, columns));
+            CHECK_STATUS(DoSearchExprDependentColumns(between_expr->right_, ctx, columns));
+            CHECK_STATUS(DoSearchExprDependentColumns(between_expr->expr_, ctx, columns));
             break;
         }
         case node::kExprCall: {
@@ -342,13 +292,11 @@ static Status DoSearchExprDependentColumns(
             if (nullptr != call_expr->GetOver()) {
                 auto orders = call_expr->GetOver()->GetOrders();
                 if (nullptr != orders) {
-                    CHECK_STATUS(
-                        DoSearchExprDependentColumns(orders, ctx, columns));
+                    CHECK_STATUS(DoSearchExprDependentColumns(orders, ctx, columns));
                 }
                 auto partitions = call_expr->GetOver()->GetPartitions();
                 if (nullptr != partitions) {
-                    CHECK_STATUS(
-                        DoSearchExprDependentColumns(partitions, ctx, columns));
+                    CHECK_STATUS(DoSearchExprDependentColumns(partitions, ctx, columns));
                 }
             }
             break;
@@ -359,8 +307,7 @@ static Status DoSearchExprDependentColumns(
     return Status::OK();
 }
 
-Status SchemasContext::ResolveExprDependentColumns(
-    const node::ExprNode* expr, std::set<size_t>* column_ids) const {
+Status SchemasContext::ResolveExprDependentColumns(const node::ExprNode* expr, std::set<size_t>* column_ids) const {
     std::vector<const node::ExprNode*> columns;
     CHECK_STATUS(DoSearchExprDependentColumns(expr, this, &columns));
 
@@ -368,23 +315,18 @@ Status SchemasContext::ResolveExprDependentColumns(
     for (auto col_expr : columns) {
         switch (col_expr->GetExprType()) {
             case node::kExprColumnRef: {
-                auto column_ref =
-                    dynamic_cast<const node::ColumnRefNode*>(col_expr);
+                auto column_ref = dynamic_cast<const node::ColumnRefNode*>(col_expr);
                 size_t schema_idx;
                 size_t col_idx;
-                CHECK_STATUS(
-                    ResolveColumnRefIndex(column_ref, &schema_idx, &col_idx));
-                column_ids->insert(
-                    GetSchemaSource(schema_idx)->GetColumnID(col_idx));
+                CHECK_STATUS(ResolveColumnRefIndex(column_ref, &schema_idx, &col_idx));
+                column_ids->insert(GetSchemaSource(schema_idx)->GetColumnID(col_idx));
                 break;
             }
             case node::kExprColumnId: {
-                auto column_id =
-                    dynamic_cast<const node::ColumnIdNode*>(col_expr);
+                auto column_id = dynamic_cast<const node::ColumnIdNode*>(col_expr);
                 size_t schema_idx;
                 size_t col_idx;
-                CHECK_STATUS(ResolveColumnIndexByID(column_id->GetColumnID(),
-                                                    &schema_idx, &col_idx));
+                CHECK_STATUS(ResolveColumnIndexByID(column_id->GetColumnID(), &schema_idx, &col_idx));
                 column_ids->insert(column_id->GetColumnID());
                 break;
             }
@@ -395,9 +337,8 @@ Status SchemasContext::ResolveExprDependentColumns(
     return Status::OK();
 }
 
-Status SchemasContext::ResolveExprDependentColumns(
-    const node::ExprNode* expr,
-    std::vector<const node::ExprNode*>* columns) const {
+Status SchemasContext::ResolveExprDependentColumns(const node::ExprNode* expr,
+                                                   std::vector<const node::ExprNode*>* columns) const {
     std::vector<const node::ExprNode*> search_columns;
     CHECK_STATUS(DoSearchExprDependentColumns(expr, this, &search_columns));
 
@@ -407,8 +348,7 @@ Status SchemasContext::ResolveExprDependentColumns(
     for (auto col_expr : search_columns) {
         switch (col_expr->GetExprType()) {
             case node::kExprColumnRef: {
-                auto column_ref =
-                    dynamic_cast<const node::ColumnRefNode*>(col_expr);
+                auto column_ref = dynamic_cast<const node::ColumnRefNode*>(col_expr);
                 auto name = column_ref->GetExprString();
                 auto iter = column_name_set.find(name);
                 if (iter == column_name_set.end()) {
@@ -418,8 +358,7 @@ Status SchemasContext::ResolveExprDependentColumns(
                 break;
             }
             case node::kExprColumnId: {
-                auto column_id =
-                    dynamic_cast<const node::ColumnIdNode*>(col_expr);
+                auto column_id = dynamic_cast<const node::ColumnIdNode*>(col_expr);
                 auto iter = column_id_set.find(column_id->GetColumnID());
                 if (iter == column_id_set.end()) {
                     columns->push_back(column_id);
@@ -441,8 +380,7 @@ bool SchemasContext::IsColumnAmbiguous(const std::string& column_name) const {
     }
     std::set<size_t> column_id_set;
     for (auto& pair : iter->second) {
-        column_id_set.insert(
-            schema_sources_[pair.first]->GetColumnID(pair.second));
+        column_id_set.insert(schema_sources_[pair.first]->GetColumnID(pair.second));
     }
     return column_id_set.size() != 1;
 }
@@ -451,24 +389,19 @@ const codec::RowFormat* SchemasContext::GetRowFormat(size_t idx) const {
     return idx < row_formats_.size() ? &row_formats_[idx] : nullptr;
 }
 
-const std::string& SchemasContext::GetName() const {
-    return root_relation_name_;
-}
+const std::string& SchemasContext::GetName() const { return root_relation_name_; }
 
 const PhysicalOpNode* SchemasContext::GetRoot() const { return root_; }
 
 const codec::Schema* SchemasContext::GetSchema(size_t idx) const {
-    return idx < schema_sources_.size() ? schema_sources_[idx]->GetSchema()
-                                        : nullptr;
+    return idx < schema_sources_.size() ? schema_sources_[idx]->GetSchema() : nullptr;
 }
 
 const SchemaSource* SchemasContext::GetSchemaSource(size_t idx) const {
     return idx < schema_sources_.size() ? schema_sources_[idx] : nullptr;
 }
 
-size_t SchemasContext::GetSchemaSourceSize() const {
-    return schema_sources_.size();
-}
+size_t SchemasContext::GetSchemaSourceSize() const { return schema_sources_.size(); }
 
 const codec::Schema* SchemasContext::GetOutputSchema() const {
     if (schema_sources_.size() == 1) {
@@ -478,9 +411,7 @@ const codec::Schema* SchemasContext::GetOutputSchema() const {
     }
 }
 
-bool SchemasContext::CheckBuild() const {
-    return row_formats_.size() == schema_sources_.size();
-}
+bool SchemasContext::CheckBuild() const { return row_formats_.size() == schema_sources_.size(); }
 
 void SchemasContext::Build() {
     // initialize detailed formats
@@ -500,8 +431,7 @@ void SchemasContext::Build() {
         const SchemaSource* source = schema_sources_[i];
         auto schema = source->GetSchema();
         for (auto j = 0; j < schema->size(); ++j) {
-            column_name_map_[schema->Get(j).name()].push_back(
-                std::make_pair(i, j));
+            column_name_map_[schema->Get(j).name()].push_back(std::make_pair(i, j));
             size_t column_id = source->GetColumnID(j);
 
             // column id can be duplicate and
@@ -510,8 +440,7 @@ void SchemasContext::Build() {
 
             // fill source mapping if it exists
             if (source->IsSourceColumn(j)) {
-                child_source_map_[source->GetSourceChildIdx(j)]
-                                 [source->GetSourceColumnID(j)] = column_id;
+                child_source_map_[source->GetSourceChildIdx(j)][source->GetSourceColumnID(j)] = column_id;
             }
         }
     }
@@ -525,19 +454,17 @@ void SchemasContext::Build() {
     }
 }
 
-Status SchemasContext::ResolveColumnID(
-    const std::string& relation_name, const std::string& column_name,
-    size_t* column_id, int* child_path_idx, size_t* child_column_id,
-    size_t* source_column_id, const PhysicalOpNode** source_node) const {
+Status SchemasContext::ResolveColumnID(const std::string& relation_name, const std::string& column_name,
+                                       size_t* column_id, int* child_path_idx, size_t* child_column_id,
+                                       size_t* source_column_id, const PhysicalOpNode** source_node) const {
     // current context match relation name
     if (relation_name.empty() || relation_name == root_relation_name_) {
         auto iter = column_name_map_.find(column_name);
         if (iter != column_name_map_.end()) {
             // exit if find ambiguous match
             if (iter->second.size() > 1) {
-                CHECK_TRUE(!IsColumnAmbiguous(column_name), kColumnNotFound,
-                           "Ambiguous column name ", relation_name, ".",
-                           column_name);
+                CHECK_TRUE(!IsColumnAmbiguous(column_name), kColumnNotFound, "Ambiguous column name ", relation_name,
+                           ".", column_name);
             }
 
             // find non-ambiguous match column
@@ -558,14 +485,10 @@ Status SchemasContext::ResolveColumnID(
                 auto child_ctx = cur_node->schemas_ctx();
                 size_t child_schema_idx;
                 size_t child_col_idx;
-                CHECK_STATUS(
-                    child_ctx->ResolveColumnIndexByID(
-                        child_col_id, &child_schema_idx, &child_col_idx),
-                    "Illegal column id #", child_col_id,
-                    " in schema context of\n", cur_node->GetTreeString());
+                CHECK_STATUS(child_ctx->ResolveColumnIndexByID(child_col_id, &child_schema_idx, &child_col_idx),
+                             "Illegal column id #", child_col_id, " in schema context of\n", cur_node->GetTreeString());
 
-                const SchemaSource* child_source =
-                    child_ctx->GetSchemaSource(child_schema_idx);
+                const SchemaSource* child_source = child_ctx->GetSchemaSource(child_schema_idx);
                 cur_column_id = child_source->GetColumnID(child_col_idx);
                 child_col_id = child_source->GetSourceColumnID(child_col_idx);
                 path_idx = child_source->GetSourceChildIdx(child_col_idx);
@@ -579,8 +502,7 @@ Status SchemasContext::ResolveColumnID(
 
     // find recursively if node information is specified
     if (root_ == nullptr) {
-        return Status(kColumnNotFound,
-                      "Not found: " + relation_name + "." + column_name);
+        return Status(kColumnNotFound, "Not found: " + relation_name + "." + column_name);
     }
     bool found = false;
     const auto& children = root_->GetProducers();
@@ -594,10 +516,9 @@ Status SchemasContext::ResolveColumnID(
         size_t sub_source_column_id;
         const PhysicalOpNode* sub_source_node = nullptr;
 
-        Status status = child_ctx->ResolveColumnID(
-            relation_name, column_name, &cur_child_column_id,
-            &sub_child_path_idx, &sub_child_column_id, &sub_source_column_id,
-            &sub_source_node);
+        Status status =
+            child_ctx->ResolveColumnID(relation_name, column_name, &cur_child_column_id, &sub_child_path_idx,
+                                       &sub_child_column_id, &sub_source_column_id, &sub_source_node);
         if (!status.isOK()) {
             continue;
         }
@@ -623,9 +544,8 @@ Status SchemasContext::ResolveColumnID(
 
         // check if candidate is ambiguous
         if (found) {
-            CHECK_TRUE(*column_id == cand_column_id, kColumnNotFound,
-                       "Ambiguous column ", relation_name, ".", column_name,
-                       ": #", *column_id, " and #", cand_column_id);
+            CHECK_TRUE(*column_id == cand_column_id, kColumnNotFound, "Ambiguous column ", relation_name, ".",
+                       column_name, ": #", *column_id, " and #", cand_column_id);
         } else {
             found = true;
             *column_id = cand_column_id;
@@ -638,13 +558,11 @@ Status SchemasContext::ResolveColumnID(
     if (found) {
         return Status::OK();
     } else {
-        return Status(kColumnNotFound,
-                      "Not found: " + relation_name + "." + column_name);
+        return Status(kColumnNotFound, "Not found: " + relation_name + "." + column_name);
     }
 }
 
-void SchemasContext::BuildTrivial(
-    const std::vector<const codec::Schema*>& schemas) {
+void SchemasContext::BuildTrivial(const std::vector<const codec::Schema*>& schemas) {
     size_t column_id = 1;
     for (auto schema : schemas) {
         auto source = this->AddSource();
@@ -657,8 +575,7 @@ void SchemasContext::BuildTrivial(
     this->Build();
 }
 
-void SchemasContext::BuildTrivial(
-    const std::vector<const type::TableDef*>& tables) {
+void SchemasContext::BuildTrivial(const std::vector<const type::TableDef*>& tables) {
     size_t column_id = 1;
     for (auto table : tables) {
         auto schema = &table->columns();

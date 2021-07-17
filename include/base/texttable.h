@@ -27,8 +27,7 @@ namespace base {
 class TextTable {
  public:
     typedef std::vector<std::string> Row;
-    explicit TextTable(char horizontal = '-', char vertical = '|',
-                       char corner = '+')
+    explicit TextTable(char horizontal = '-', char vertical = '|', char corner = '+')
         : horizontal_(horizontal), vertical_(vertical), corner_(corner) {}
 
     char vertical() const { return vertical_; }
@@ -51,8 +50,7 @@ class TextTable {
 
     std::string ruler() const;
     int width(unsigned i) const { return widths[i]; }
-    friend std::ostream& operator<<(std::ostream& stream,
-                                    const TextTable& table);
+    friend std::ostream& operator<<(std::ostream& stream, const TextTable& table);
 
  private:
     char horizontal_;

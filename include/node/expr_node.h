@@ -44,8 +44,7 @@ using hybridse::base::Status;
  */
 class ExprAttrNode {
  public:
-    ExprAttrNode(const node::TypeNode* dtype, bool nullable)
-        : type_(dtype), nullable_(nullable) {}
+    ExprAttrNode(const node::TypeNode* dtype, bool nullable) : type_(dtype), nullable_(nullable) {}
 
     const node::TypeNode* type() const { return type_; }
     bool nullable() const { return nullable_; }
@@ -68,9 +67,7 @@ class ExprAnalysisContext {
 
     const udf::UdfLibrary* library() const { return library_; }
 
-    const vm::SchemasContext* schemas_context() const {
-        return schemas_context_;
-    }
+    const vm::SchemasContext* schemas_context() const { return schemas_context_; }
 
     Status InferAsUdf(node::ExprNode* expr, const std::string& name);
 

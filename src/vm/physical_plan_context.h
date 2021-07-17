@@ -33,29 +33,18 @@ using hybridse::base::Status;
 
 class PhysicalPlanContext {
  public:
-    PhysicalPlanContext(node::NodeManager* nm, const udf::UdfLibrary* library,
-                        const std::string& db,
-                        const std::shared_ptr<Catalog>& catalog,
-                        bool enable_expr_opt)
-        : nm_(nm),
-          library_(library),
-          db_(db),
-          catalog_(catalog),
-          enable_expr_opt_(enable_expr_opt) {}
+    PhysicalPlanContext(node::NodeManager* nm, const udf::UdfLibrary* library, const std::string& db,
+                        const std::shared_ptr<Catalog>& catalog, bool enable_expr_opt)
+        : nm_(nm), library_(library), db_(db), catalog_(catalog), enable_expr_opt_(enable_expr_opt) {}
     ~PhysicalPlanContext() {}
 
     /**
      * Get unique column id by named column from table.
      */
-    Status GetSourceID(const std::string& table_name,
-                       const std::string& column_name, size_t* column_id);
-    Status GetRequestSourceID(const std::string& table_name,
-                              const std::string& column_name,
-                              size_t* column_id);
+    Status GetSourceID(const std::string& table_name, const std::string& column_name, size_t* column_id);
+    Status GetRequestSourceID(const std::string& table_name, const std::string& column_name, size_t* column_id);
 
-    const auto& GetRequestColumnIDMapping() const {
-        return request_column_id_to_source_id_;
-    }
+    const auto& GetRequestColumnIDMapping() const { return request_column_id_to_source_id_; }
 
     /**
      * Get new unique column id computed by expression.
@@ -65,11 +54,9 @@ class PhysicalPlanContext {
     /**
      * Generate function def for expression list.
      */
-    Status InitFnDef(const ColumnProjects& projects,
-                     const SchemasContext* schemas_ctx, bool is_row_project,
+    Status InitFnDef(const ColumnProjects& projects, const SchemasContext* schemas_ctx, bool is_row_project,
                      FnComponent* fn_component);
-    Status InitFnDef(const node::ExprListNode* projects,
-                     const SchemasContext* schemas_ctx, bool is_row_project,
+    Status InitFnDef(const node::ExprListNode* projects, const SchemasContext* schemas_ctx, bool is_row_project,
                      FnComponent* fn_component);
 
     template <typename Op, typename... Args>
@@ -86,9 +73,7 @@ class PhysicalPlanContext {
     }
 
     template <typename Op>
-    Status WithNewChildren(Op* input,
-                           const std::vector<PhysicalOpNode*>& children,
-                           Op** out) {
+    Status WithNewChildren(Op* input, const std::vector<PhysicalOpNode*>& children, Op** out) {
         PhysicalOpNode* new_op = nullptr;
         CHECK_STATUS(input->WithNewChildren(nm_, children, &new_op));
         auto status = new_op->InitSchema(this);

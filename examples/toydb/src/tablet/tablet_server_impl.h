@@ -41,43 +41,35 @@ class TabletServerImpl : public TabletServer {
 
     bool Init();
 
-    void CreateTable(RpcController* ctrl, const CreateTableRequest* request,
-                     CreateTableResponse* response, Closure* done);
+    void CreateTable(RpcController* ctrl, const CreateTableRequest* request, CreateTableResponse* response,
+                     Closure* done);
 
-    void Query(RpcController* ctrl, const QueryRequest* request,
-               QueryResponse* response, Closure* done);
+    void Query(RpcController* ctrl, const QueryRequest* request, QueryResponse* response, Closure* done);
 
-    void Insert(RpcController* ctrl, const InsertRequest* request,
-                InsertResponse* response, Closure* done);
+    void Insert(RpcController* ctrl, const InsertRequest* request, InsertResponse* response, Closure* done);
 
-    void Explain(RpcController* ctrl, const ExplainRequest* request,
-                 ExplainResponse* response, Closure* done);
+    void Explain(RpcController* ctrl, const ExplainRequest* request, ExplainResponse* response, Closure* done);
 
-    void GetTableSchema(RpcController* ctrl,
-                        const GetTablesSchemaRequest* request,
-                        GetTableSchemaReponse* response, Closure* done);
+    void GetTableSchema(RpcController* ctrl, const GetTablesSchemaRequest* request, GetTableSchemaReponse* response,
+                        Closure* done);
 
  private:
     void KeepAlive();
-    inline std::shared_ptr<TabletTableHandler> GetTableLocked(
-        const std::string& db, const std::string& name) {
+    inline std::shared_ptr<TabletTableHandler> GetTableLocked(const std::string& db, const std::string& name) {
         std::lock_guard<base::SpinMutex> lock(slock_);
         return GetTableUnLocked(db, name);
     }
 
-    inline std::shared_ptr<TabletTableHandler> GetTableUnLocked(
-        const std::string& db, const std::string& name) {
-        return std::static_pointer_cast<TabletTableHandler>(
-            catalog_->GetTable(db, name));
+    inline std::shared_ptr<TabletTableHandler> GetTableUnLocked(const std::string& db, const std::string& name) {
+        return std::static_pointer_cast<TabletTableHandler>(catalog_->GetTable(db, name));
     }
 
     inline bool AddTableUnLocked(std::shared_ptr<storage::Table> table) {
         const type::TableDef& table_def = table->GetTableDef();
-        auto local_tablet = std::shared_ptr<vm::Tablet>(new vm::LocalTablet(
-            engine_.get(), std::shared_ptr<hybridse::vm::CompileInfoCache>()));
+        auto local_tablet = std::shared_ptr<vm::Tablet>(
+            new vm::LocalTablet(engine_.get(), std::shared_ptr<hybridse::vm::CompileInfoCache>()));
         std::shared_ptr<TabletTableHandler> handler(new TabletTableHandler(
-            table_def.columns(), table_def.name(), table_def.catalog(),
-            table_def.indexes(), table, local_tablet));
+            table_def.columns(), table_def.name(), table_def.catalog(), table_def.indexes(), table, local_tablet));
         bool ok = handler->Init();
         if (!ok) {
             return false;

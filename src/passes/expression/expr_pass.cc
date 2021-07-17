@@ -30,8 +30,7 @@ void ExprPassGroup::AddPass(const std::shared_ptr<ExprPass>& pass) {
     passes_.push_back(pass);
 }
 
-Status ExprPassGroup::Apply(node::ExprAnalysisContext* ctx,
-                            node::ExprNode* expr, node::ExprNode** out) {
+Status ExprPassGroup::Apply(node::ExprAnalysisContext* ctx, node::ExprNode* expr, node::ExprNode** out) {
     node::ExprNode* cur = expr;
     for (auto pass : passes_) {
         node::ExprNode* new_expr = nullptr;
@@ -46,8 +45,7 @@ Status ExprPassGroup::Apply(node::ExprAnalysisContext* ctx,
     return Status::OK();
 }
 
-void ExprReplacer::AddReplacement(const node::ExprIdNode* arg,
-                                  node::ExprNode* repl) {
+void ExprReplacer::AddReplacement(const node::ExprIdNode* arg, node::ExprNode* repl) {
     if (arg->IsResolved()) {
         arg_id_map_[arg->GetId()] = repl;
     } else {
@@ -55,8 +53,7 @@ void ExprReplacer::AddReplacement(const node::ExprIdNode* arg,
     }
 }
 
-void ExprReplacer::AddReplacement(const node::ExprNode* expr,
-                                  node::ExprNode* repl) {
+void ExprReplacer::AddReplacement(const node::ExprNode* expr, node::ExprNode* repl) {
     if (expr->GetExprType() == node::kExprId) {
         auto arg = dynamic_cast<const node::ExprIdNode*>(expr);
         if (arg->IsResolved()) {
@@ -68,30 +65,24 @@ void ExprReplacer::AddReplacement(const node::ExprNode* expr,
         AddReplacement(column_id->GetColumnID(), repl);
     } else if (expr->GetExprType() == node::kExprColumnRef) {
         auto column_ref = dynamic_cast<const node::ColumnRefNode*>(expr);
-        AddReplacement(column_ref->GetRelationName(),
-                       column_ref->GetColumnName(), repl);
+        AddReplacement(column_ref->GetRelationName(), column_ref->GetColumnName(), repl);
     }
     node_id_map_[expr->node_id()] = repl;
 }
 
-void ExprReplacer::AddReplacement(size_t column_id, node::ExprNode* repl) {
-    column_id_map_[column_id] = repl;
-}
+void ExprReplacer::AddReplacement(size_t column_id, node::ExprNode* repl) { column_id_map_[column_id] = repl; }
 
-void ExprReplacer::AddReplacement(const std::string& relation_name,
-                                  const std::string& column_name,
+void ExprReplacer::AddReplacement(const std::string& relation_name, const std::string& column_name,
                                   node::ExprNode* repl) {
     column_name_map_[relation_name + "." + column_name] = repl;
 }
 
-Status ExprReplacer::Replace(node::ExprNode* root,
-                             node::ExprNode** output) const {
+Status ExprReplacer::Replace(node::ExprNode* root, node::ExprNode** output) const {
     std::unordered_set<size_t> visited;
     return DoReplace(root, &visited, output);
 }
 
-Status ExprReplacer::DoReplace(node::ExprNode* root,
-                               std::unordered_set<size_t>* visited,
+Status ExprReplacer::DoReplace(node::ExprNode* root, std::unordered_set<size_t>* visited,
                                node::ExprNode** output) const {
     CHECK_TRUE(root != nullptr, kCodegenError, "Input expression is null");
     if (visited->find(root->node_id()) != visited->end()) {

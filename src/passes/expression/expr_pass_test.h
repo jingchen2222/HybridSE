@@ -31,8 +31,7 @@
 namespace hybridse {
 namespace passes {
 
-void InitFunctionLet(const std::string& sql, node::ExprAnalysisContext* ctx,
-                     node::LambdaNode** result) {
+void InitFunctionLet(const std::string& sql, node::ExprAnalysisContext* ctx, node::LambdaNode** result) {
     Status status;
     node::PlanNodeList trees;
     ASSERT_TRUE(plan::PlanAPI::CreatePlanTreeFromScript(sql, trees, ctx->node_manager(), status)) << status;
@@ -41,12 +40,10 @@ void InitFunctionLet(const std::string& sql, node::ExprAnalysisContext* ctx,
     auto query_plan = dynamic_cast<node::QueryPlanNode*>(trees[0]);
     ASSERT_TRUE(query_plan != nullptr);
 
-    auto project_plan =
-        dynamic_cast<node::ProjectPlanNode*>(query_plan->GetChildren()[0]);
+    auto project_plan = dynamic_cast<node::ProjectPlanNode*>(query_plan->GetChildren()[0]);
     ASSERT_TRUE(project_plan != nullptr);
 
-    auto project_list_node = dynamic_cast<node::ProjectListNode*>(
-        project_plan->project_list_vec_[0]);
+    auto project_list_node = dynamic_cast<node::ProjectListNode*>(project_plan->project_list_vec_[0]);
     ASSERT_TRUE(project_list_node != nullptr);
     std::vector<const node::ExprNode*> exprs;
     for (auto pp : project_list_node->GetProjects()) {
@@ -62,17 +59,14 @@ void InitFunctionLet(const std::string& sql, node::ExprAnalysisContext* ctx,
 
     node::LambdaNode* resolved = nullptr;
     passes::ResolveFnAndAttrs resolver(ctx);
-    status = resolver.VisitLambda(
-        lambda, {lambda->GetArgType(0), lambda->GetArgType(1)}, &resolved);
+    status = resolver.VisitLambda(lambda, {lambda->GetArgType(0), lambda->GetArgType(1)}, &resolved);
     ASSERT_TRUE(status.isOK()) << status.str();
     *result = resolved;
 }
 
 class ExprPassTestBase : public ::testing::Test {
  public:
-    ExprPassTestBase()
-        : lib_(udf::DefaultUdfLibrary::get()),
-          ctx_(&nm_, lib_, &schemas_ctx_) {}
+    ExprPassTestBase() : lib_(udf::DefaultUdfLibrary::get()), ctx_(&nm_, lib_, &schemas_ctx_) {}
     virtual ~ExprPassTestBase() {}
     node::ExprAnalysisContext* pass_ctx() { return &ctx_; }
     node::NodeManager* node_manager() { return &nm_; }
@@ -82,8 +76,7 @@ class ExprPassTestBase : public ::testing::Test {
         hybridse::passes::InitFunctionLet(sql, &ctx_, result);
     }
 
-    Status ApplyPass(ExprPass* pass, node::LambdaNode* function_let,
-                     node::ExprNode** output) {
+    Status ApplyPass(ExprPass* pass, node::LambdaNode* function_let, node::ExprNode** output) {
         pass->SetRow(function_let->GetArg(0));
         pass->SetWindow(function_let->GetArg(1));
         return pass->Apply(pass_ctx(), function_let->body(), output);

@@ -29,9 +29,8 @@ using hybridse::vm::PhysicalRequestJoinNode;
 using hybridse::vm::PhysicalSimpleProjectNode;
 using hybridse::vm::SchemasContext;
 
-bool ClusterOptimized::SimplifyJoinLeftInput(
-    PhysicalOpNode* join_op, const Join& join,
-    const SchemasContext* joined_schema_ctx, PhysicalOpNode** output) {
+bool ClusterOptimized::SimplifyJoinLeftInput(PhysicalOpNode* join_op, const Join& join,
+                                             const SchemasContext* joined_schema_ctx, PhysicalOpNode** output) {
     auto left = join_op->GetProducer(0);
     std::vector<const hybridse::node::ExprNode*> columns;
     std::vector<std::string> column_names;
@@ -46,8 +45,7 @@ bool ClusterOptimized::SimplifyJoinLeftInput(
     // find columns belong to left side
     std::vector<size_t> left_indices;
     for (size_t i = 0; i < columns.size(); ++i) {
-        if (CheckExprDependOnChildOnly(columns[i], left->schemas_ctx())
-                .isOK()) {
+        if (CheckExprDependOnChildOnly(columns[i], left->schemas_ctx()).isOK()) {
             left_indices.push_back(i);
         }
     }
@@ -58,15 +56,11 @@ bool ClusterOptimized::SimplifyJoinLeftInput(
         column_names.push_back(column_expr->GetExprString());
         if (column_expr->GetExprType() == node::kExprColumnRef) {
             size_t column_id;
-            auto column_ref =
-                dynamic_cast<const node::ColumnRefNode*>(column_expr);
-            Status status = joined_schema_ctx->ResolveColumnID(
-                column_ref->GetRelationName(), column_ref->GetColumnName(),
-                &column_id);
+            auto column_ref = dynamic_cast<const node::ColumnRefNode*>(column_expr);
+            Status status = joined_schema_ctx->ResolveColumnID(column_ref->GetRelationName(),
+                                                               column_ref->GetColumnName(), &column_id);
             if (!status.isOK()) {
-                LOG(WARNING)
-                    << "Resolve join column " << column_ref->GetExprString()
-                    << " failed: " << status;
+                LOG(WARNING) << "Resolve join column " << column_ref->GetExprString() << " failed: " << status;
                 return false;
             }
             columns[i] = node_manager_->MakeColumnIdNode(column_id);
@@ -90,8 +84,7 @@ bool ClusterOptimized::SimplifyJoinLeftInput(
             bool flag = true;
             for (size_t idx : left_indices) {
                 auto column_expr = columns[idx];
-                if (!CheckExprDependOnChildOnly(column_expr, schemas_ctx)
-                         .isOK()) {
+                if (!CheckExprDependOnChildOnly(column_expr, schemas_ctx).isOK()) {
                     flag = false;
                     break;
                 }
@@ -108,12 +101,9 @@ bool ClusterOptimized::SimplifyJoinLeftInput(
     }
     // try to simplify depend node
     PhysicalSimpleProjectNode* root_simplify_project_op = nullptr;
-    auto status = plan_ctx_->CreateOp<PhysicalSimpleProjectNode>(
-        &root_simplify_project_op, root, simplified_projects);
+    auto status = plan_ctx_->CreateOp<PhysicalSimpleProjectNode>(&root_simplify_project_op, root, simplified_projects);
     if (!status.isOK()) {
-        LOG(WARNING)
-            << "Simplify root left input failed: apply left node simplify: "
-            << status;
+        LOG(WARNING) << "Simplify root left input failed: apply left node simplify: " << status;
         return false;
     }
     DLOG(INFO) << "apply root node simplify!";
@@ -134,39 +124,32 @@ bool ClusterOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
                 case node::kJoinTypeLast: {
                     auto left = join_op->producers()[0];
                     auto right = join_op->producers()[1];
-                    if (vm::PhysicalSchemaType::kSchemaTypeRow ==
-                        right->GetOutputType()) {
-                        DLOG(INFO)
-                            << "request join optimized skip: row and row join";
+                    if (vm::PhysicalSchemaType::kSchemaTypeRow == right->GetOutputType()) {
+                        DLOG(INFO) << "request join optimized skip: row and row join";
                         return false;
                     }
                     auto simplify_left = left;
-                    if (!SimplifyJoinLeftInput(join_op, join_op->join(),
-                                               join_op->joined_schemas_ctx(),
+                    if (!SimplifyJoinLeftInput(join_op, join_op->join(), join_op->joined_schemas_ctx(),
                                                &simplify_left)) {
                         DLOG(WARNING) << "Simplify join left input failed";
                     }
                     Status status;
                     PhysicalRequestJoinNode* request_join_right_only = nullptr;
-                    status = plan_ctx_->CreateOp<PhysicalRequestJoinNode>(
-                        &request_join_right_only, simplify_left, right,
-                        join_op->join(), true);
+                    status = plan_ctx_->CreateOp<PhysicalRequestJoinNode>(&request_join_right_only, simplify_left,
+                                                                          right, join_op->join(), true);
                     if (!status.isOK()) {
                         return false;
                     }
-                    status = ReplaceComponentExpr(
-                        join_op->join(), join_op->joined_schemas_ctx(),
-                        request_join_right_only->joined_schemas_ctx(),
-                        plan_ctx_->node_manager(),
-                        &request_join_right_only->join_);
+                    status = ReplaceComponentExpr(join_op->join(), join_op->joined_schemas_ctx(),
+                                                  request_join_right_only->joined_schemas_ctx(),
+                                                  plan_ctx_->node_manager(), &request_join_right_only->join_);
                     if (!status.isOK()) {
                         return false;
                     }
 
                     PhysicalRequestJoinNode* concat_op = nullptr;
-                    status = plan_ctx_->CreateOp<PhysicalRequestJoinNode>(
-                        &concat_op, left, request_join_right_only,
-                        hybridse::node::kJoinTypeConcat);
+                    status = plan_ctx_->CreateOp<PhysicalRequestJoinNode>(&concat_op, left, request_join_right_only,
+                                                                          hybridse::node::kJoinTypeConcat);
                     if (!status.isOK()) {
                         return false;
                     }
@@ -187,31 +170,27 @@ bool ClusterOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
                     auto left = join_op->producers()[0];
                     auto right = join_op->producers()[1];
                     auto simplify_left = left;
-                    if (!SimplifyJoinLeftInput(join_op, join_op->join(),
-                                               join_op->joined_schemas_ctx(),
+                    if (!SimplifyJoinLeftInput(join_op, join_op->join(), join_op->joined_schemas_ctx(),
                                                &simplify_left)) {
                         DLOG(WARNING) << "Simplify join left input failed";
                     }
                     Status status;
                     PhysicalJoinNode* join_right_only = nullptr;
-                    status = plan_ctx_->CreateOp<PhysicalJoinNode>(
-                        &join_right_only, simplify_left, right, join_op->join(),
-                        true);
+                    status = plan_ctx_->CreateOp<PhysicalJoinNode>(&join_right_only, simplify_left, right,
+                                                                   join_op->join(), true);
                     if (!status.isOK()) {
                         return false;
                     }
-                    status = ReplaceComponentExpr(
-                        join_op->join(), join_op->joined_schemas_ctx(),
-                        join_right_only->joined_schemas_ctx(),
-                        plan_ctx_->node_manager(), &join_right_only->join_);
+                    status = ReplaceComponentExpr(join_op->join(), join_op->joined_schemas_ctx(),
+                                                  join_right_only->joined_schemas_ctx(), plan_ctx_->node_manager(),
+                                                  &join_right_only->join_);
                     if (!status.isOK()) {
                         return false;
                     }
 
                     vm::PhysicalJoinNode* concat_op = nullptr;
-                    status = plan_ctx_->CreateOp<vm::PhysicalJoinNode>(
-                        &concat_op, left, join_right_only,
-                        hybridse::node::kJoinTypeConcat);
+                    status = plan_ctx_->CreateOp<vm::PhysicalJoinNode>(&concat_op, left, join_right_only,
+                                                                       hybridse::node::kJoinTypeConcat);
                     if (!status.isOK()) {
                         return false;
                     }

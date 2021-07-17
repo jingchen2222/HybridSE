@@ -51,8 +51,7 @@ TEST_F(RequestRowTest, normal_test) {
     ASSERT_TRUE(rr.Build());
 
     codec::RowView rv(schema);
-    bool ok = rv.Reset(reinterpret_cast<const int8_t*>(rr.GetRow().c_str()),
-                       rr.GetRow().size());
+    bool ok = rv.Reset(reinterpret_cast<const int8_t*>(rr.GetRow().c_str()), rr.GetRow().size());
     ASSERT_TRUE(ok);
     int32_t i32 = 0;
     rv.GetInt32(0, &i32);

@@ -78,8 +78,7 @@ class Graph {
  private:
     int num_;
     std::unordered_map<V, int, H, E> map;
-    typedef boost::adjacency_list<boost::listS, boost::vecS, boost::directedS>
-        BGraph;
+    typedef boost::adjacency_list<boost::listS, boost::vecS, boost::directedS> BGraph;
     BGraph graph_;
 };
 

@@ -28,12 +28,9 @@ bool Router::IsWindowNode(const PhysicalOpNode* physical_node) {
     if (physical_node->GetOpType() == kPhysicalOpRequestUnion) {
         if (physical_node->GetProducerCnt() > 0) {
             auto node = physical_node->GetProducer(0);
-            if (node != nullptr &&
-                node->GetOpType() == kPhysicalOpDataProvider) {
-                auto provider_node =
-                    dynamic_cast<PhysicalDataProviderNode*>(node);
-                if (provider_node != nullptr &&
-                    provider_node->provider_type_ == kProviderTypeRequest) {
+            if (node != nullptr && node->GetOpType() == kPhysicalOpDataProvider) {
+                auto provider_node = dynamic_cast<PhysicalDataProviderNode*>(node);
+                if (provider_node != nullptr && provider_node->provider_type_ == kProviderTypeRequest) {
                     return true;
                 }
             }
@@ -48,15 +45,13 @@ int Router::Parse(const PhysicalOpNode* physical_plan) {
         return -1;
     }
     if (IsWindowNode(physical_plan)) {
-        auto request_union_node =
-            dynamic_cast<const PhysicalRequestUnionNode*>(physical_plan);
+        auto request_union_node = dynamic_cast<const PhysicalRequestUnionNode*>(physical_plan);
         if (request_union_node) {
             // auto keys = request_union_node->window().partition().keys();
             auto keys = request_union_node->window().index_key().keys();
             if (keys != nullptr && keys->GetChildNum() > 0) {
                 auto exp_node = keys->GetChild(0);
-                auto columnNode =
-                    dynamic_cast<hybridse::node::ColumnRefNode*>(exp_node);
+                auto columnNode = dynamic_cast<hybridse::node::ColumnRefNode*>(exp_node);
                 if (columnNode != nullptr) {
                     router_col_ = columnNode->GetColumnName();
                     return 0;

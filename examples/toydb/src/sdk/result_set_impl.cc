@@ -26,8 +26,7 @@
 namespace hybridse {
 namespace sdk {
 
-ResultSetImpl::ResultSetImpl(std::unique_ptr<tablet::QueryResponse> response,
-                             std::unique_ptr<brpc::Controller> cntl)
+ResultSetImpl::ResultSetImpl(std::unique_ptr<tablet::QueryResponse> response, std::unique_ptr<brpc::Controller> cntl)
     : response_(std::move(response)),
       index_(-1),
       byte_size_(0),
@@ -43,14 +42,12 @@ bool ResultSetImpl::Init() {
     if (!response_) return false;
     byte_size_ = response_->byte_size();
     if (byte_size_ <= 0) return true;
-    bool ok =
-        codec::SchemaCodec::Decode(response_->schema(), &internal_schema_);
+    bool ok = codec::SchemaCodec::Decode(response_->schema(), &internal_schema_);
     if (!ok) {
         LOG(WARNING) << "fail to decode response schema ";
         return false;
     }
-    std::unique_ptr<sdk::RowIOBufView> row_view(
-        new sdk::RowIOBufView(internal_schema_));
+    std::unique_ptr<sdk::RowIOBufView> row_view(new sdk::RowIOBufView(internal_schema_));
     row_view_ = std::move(row_view);
     schema_.SetSchema(internal_schema_);
     return true;
@@ -65,14 +62,11 @@ bool ResultSetImpl::Reset() {
 }
 bool ResultSetImpl::Next() {
     index_++;
-    if (index_ < static_cast<int32_t>(response_->count()) &&
-        static_cast<int32_t>(position_) < byte_size_) {
+    if (index_ < static_cast<int32_t>(response_->count()) && static_cast<int32_t>(position_) < byte_size_) {
         // get row size
         uint32_t row_size = 0;
-        cntl_->response_attachment().copy_to(reinterpret_cast<void*>(&row_size),
-                                             4, position_ + 2);
-        DLOG(INFO) << "row size " << row_size << " position " << position_
-                   << " byte size " << byte_size_;
+        cntl_->response_attachment().copy_to(reinterpret_cast<void*>(&row_size), 4, position_ + 2);
+        DLOG(INFO) << "row size " << row_size << " position " << position_ << " byte size " << byte_size_;
         butil::IOBuf tmp;
         cntl_->response_attachment().append_to(&tmp, row_size, position_);
         position_ += row_size;
@@ -160,8 +154,7 @@ bool ResultSetImpl::GetDate(uint32_t index, int32_t* days) {
     int32_t ret = row_view_->GetDate(index, days);
     return ret == 0;
 }
-bool ResultSetImpl::GetDate(uint32_t index, int32_t* year, int32_t* month,
-                            int32_t* day) {
+bool ResultSetImpl::GetDate(uint32_t index, int32_t* year, int32_t* month, int32_t* day) {
     if (day == NULL) {
         LOG(WARNING) << "input ptr is null pointer";
         return false;

@@ -39,10 +39,8 @@ class SpinMutex {
 
     bool try_lock() {
         auto currently_locked = locked_.load(std::memory_order_relaxed);
-        return !currently_locked &&
-               locked_.compare_exchange_weak(currently_locked, true,
-                                             std::memory_order_acquire,
-                                             std::memory_order_relaxed);
+        return !currently_locked && locked_.compare_exchange_weak(currently_locked, true, std::memory_order_acquire,
+                                                                  std::memory_order_relaxed);
     }
 
     void lock() {

@@ -30,25 +30,17 @@ class StructTypeIRBuilder : public TypeIRBuilder {
  public:
     explicit StructTypeIRBuilder(::llvm::Module*);
     ~StructTypeIRBuilder();
-    static StructTypeIRBuilder* CreateStructTypeIRBuilder(::llvm::Module*,
-                                                          ::llvm::Type*);
-    static bool StructCopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
-                               ::llvm::Value* dist);
+    static StructTypeIRBuilder* CreateStructTypeIRBuilder(::llvm::Module*, ::llvm::Type*);
+    static bool StructCopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src, ::llvm::Value* dist);
     virtual void InitStructType() = 0;
     ::llvm::Type* GetType();
     bool Create(::llvm::BasicBlock* block, ::llvm::Value** output);
-    virtual bool CreateDefault(::llvm::BasicBlock* block,
-                               ::llvm::Value** output) = 0;
-    bool Get(::llvm::BasicBlock* block, ::llvm::Value* struct_value,
-             unsigned int idx, ::llvm::Value** output);
-    bool Set(::llvm::BasicBlock* block, ::llvm::Value* struct_value,
-             unsigned int idx, ::llvm::Value* value);
+    virtual bool CreateDefault(::llvm::BasicBlock* block, ::llvm::Value** output) = 0;
+    bool Get(::llvm::BasicBlock* block, ::llvm::Value* struct_value, unsigned int idx, ::llvm::Value** output);
+    bool Set(::llvm::BasicBlock* block, ::llvm::Value* struct_value, unsigned int idx, ::llvm::Value* value);
 
-    virtual bool CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
-                          ::llvm::Value* dist) = 0;
-    virtual base::Status CastFrom(::llvm::BasicBlock* block,
-                                  const NativeValue& src,
-                                  NativeValue* output) = 0;
+    virtual bool CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src, ::llvm::Value* dist) = 0;
+    virtual base::Status CastFrom(::llvm::BasicBlock* block, const NativeValue& src, NativeValue* output) = 0;
 
  protected:
     ::llvm::Module* m_;

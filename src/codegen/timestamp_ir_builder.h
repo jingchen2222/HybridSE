@@ -33,27 +33,18 @@ class TimestampIRBuilder : public StructTypeIRBuilder {
     void InitStructType();
     bool CreateDefault(::llvm::BasicBlock* block, ::llvm::Value** output);
     bool NewTimestamp(::llvm::BasicBlock* block, ::llvm::Value** output);
-    bool NewTimestamp(::llvm::BasicBlock* block, ::llvm::Value* ts,
-                      ::llvm::Value** output);
-    bool CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src,
-                  ::llvm::Value* dist);
-    base::Status CastFrom(::llvm::BasicBlock* block, const NativeValue& src,
-                          NativeValue* output);
-    bool GetTs(::llvm::BasicBlock* block, ::llvm::Value* timestamp,
-               ::llvm::Value** output);
-    bool SetTs(::llvm::BasicBlock* block, ::llvm::Value* timestamp,
-               ::llvm::Value* ts);
-    bool Minute(::llvm::BasicBlock* block, ::llvm::Value* ts,
-                ::llvm::Value** output, base::Status& status);  // NOLINT
-    bool Hour(::llvm::BasicBlock* block, ::llvm::Value* ts,
-              ::llvm::Value** output, base::Status& status);  // NOLINT
+    bool NewTimestamp(::llvm::BasicBlock* block, ::llvm::Value* ts, ::llvm::Value** output);
+    bool CopyFrom(::llvm::BasicBlock* block, ::llvm::Value* src, ::llvm::Value* dist);
+    base::Status CastFrom(::llvm::BasicBlock* block, const NativeValue& src, NativeValue* output);
+    bool GetTs(::llvm::BasicBlock* block, ::llvm::Value* timestamp, ::llvm::Value** output);
+    bool SetTs(::llvm::BasicBlock* block, ::llvm::Value* timestamp, ::llvm::Value* ts);
+    bool Minute(::llvm::BasicBlock* block, ::llvm::Value* ts, ::llvm::Value** output, base::Status& status);  // NOLINT
+    bool Hour(::llvm::BasicBlock* block, ::llvm::Value* ts, ::llvm::Value** output, base::Status& status);    // NOLINT
 
-    bool Second(::llvm::BasicBlock* block, ::llvm::Value* ts,
-                ::llvm::Value** output, base::Status& status);  // NOLINT
-    base::Status FDiv(::llvm::BasicBlock* block, ::llvm::Value* timestamp,
-                      ::llvm::Value* right, ::llvm::Value** output);
-    base::Status TimestampAdd(::llvm::BasicBlock* block,
-                              ::llvm::Value* timestamp, ::llvm::Value* right,
+    bool Second(::llvm::BasicBlock* block, ::llvm::Value* ts, ::llvm::Value** output, base::Status& status);  // NOLINT
+    base::Status FDiv(::llvm::BasicBlock* block, ::llvm::Value* timestamp, ::llvm::Value* right,
+                      ::llvm::Value** output);
+    base::Status TimestampAdd(::llvm::BasicBlock* block, ::llvm::Value* timestamp, ::llvm::Value* right,
                               ::llvm::Value** output);
     static int32_t TIME_ZONE;
 };

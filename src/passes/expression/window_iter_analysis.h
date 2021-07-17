@@ -43,11 +43,9 @@ struct WindowIterRank {
  */
 class WindowIterAnalysis {
  public:
-    explicit WindowIterAnalysis(node::ExprAnalysisContext* ctx)
-        : ctx_(ctx), scope_cache_list_(1) {}
+    explicit WindowIterAnalysis(node::ExprAnalysisContext* ctx) : ctx_(ctx), scope_cache_list_(1) {}
 
-    Status VisitFunctionLet(const node::ExprIdNode* row_arg,
-                            const node::ExprIdNode* window_arg,
+    Status VisitFunctionLet(const node::ExprIdNode* row_arg, const node::ExprIdNode* window_arg,
                             const node::ExprNode* body);
 
     // result query interface
@@ -62,12 +60,9 @@ class WindowIterAnalysis {
 
     Status VisitExpr(node::ExprNode* expr, WindowIterRank* rank);
 
-    Status VisitCall(node::FnDefNode* fn,
-                     const std::vector<WindowIterRank>& arg_ranks,
-                     WindowIterRank* rank);
+    Status VisitCall(node::FnDefNode* fn, const std::vector<WindowIterRank>& arg_ranks, WindowIterRank* rank);
 
-    Status VisitLambdaCall(node::LambdaNode* lambda,
-                           const std::vector<WindowIterRank>& arg_ranks,
+    Status VisitLambdaCall(node::LambdaNode* lambda, const std::vector<WindowIterRank>& arg_ranks,
                            WindowIterRank* rank);
 
     Status VisitUdaf(node::UdafDefNode* udaf, WindowIterRank* rank);

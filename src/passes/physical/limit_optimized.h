@@ -23,8 +23,7 @@ namespace passes {
 
 class LimitOptimized : public TransformUpPysicalPass {
  public:
-    explicit LimitOptimized(PhysicalPlanContext* plan_ctx)
-        : TransformUpPysicalPass(plan_ctx) {}
+    explicit LimitOptimized(PhysicalPlanContext* plan_ctx) : TransformUpPysicalPass(plan_ctx) {}
     ~LimitOptimized() {}
 
  private:

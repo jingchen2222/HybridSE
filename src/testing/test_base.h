@@ -44,15 +44,12 @@ void BuildRows(::hybridse::type::TableDef& table,    // NOLINT
                std::vector<Row>& rows);              // NOLINT
 void BuildT2Rows(::hybridse::type::TableDef& table,  // NOLINT
                  std::vector<Row>& rows);            // NOLINT
-void ExtractExprListFromSimpleSql(::hybridse::node::NodeManager* nm,
-                                  const std::string& sql,
+void ExtractExprListFromSimpleSql(::hybridse::node::NodeManager* nm, const std::string& sql,
                                   node::ExprListNode* output);
-void ExtractExprFromSimpleSql(::hybridse::node::NodeManager* nm,
-                              const std::string& sql, node::ExprNode** output);
+void ExtractExprFromSimpleSql(::hybridse::node::NodeManager* nm, const std::string& sql, node::ExprNode** output);
 bool AddTable(hybridse::type::Database& db,  // NOLINT
               const hybridse::type::TableDef& table_def);
-std::shared_ptr<SimpleCatalog> BuildSimpleCatalog(
-    const hybridse::type::Database& database);
+std::shared_ptr<SimpleCatalog> BuildSimpleCatalog(const hybridse::type::Database& database);
 
 std::shared_ptr<SimpleCatalog> BuildSimpleCatalog();
 bool InitSimpleCataLogFromSqlCase(SqlCase& sql_case,  // NOLINT

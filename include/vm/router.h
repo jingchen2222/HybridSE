@@ -25,9 +25,7 @@ namespace vm {
 
 class Router {
  public:
-    void SetMainTable(const std::string& main_table) {
-        main_table_ = main_table;
-    }
+    void SetMainTable(const std::string& main_table) { main_table_ = main_table; }
 
     const std::string& GetMainTable() const { return main_table_; }
 

@@ -39,12 +39,8 @@ using hybridse::common::kPlanError;
 namespace hybridse {
 namespace vm {
 
-SqlCompiler::SqlCompiler(const std::shared_ptr<Catalog>& cl, bool keep_ir,
-                         bool dump_plan, bool plan_only)
-    : cl_(cl),
-      keep_ir_(keep_ir),
-      dump_plan_(dump_plan),
-      plan_only_(plan_only) {}
+SqlCompiler::SqlCompiler(const std::shared_ptr<Catalog>& cl, bool keep_ir, bool dump_plan, bool plan_only)
+    : cl_(cl), keep_ir_(keep_ir), dump_plan_(dump_plan), plan_only_(plan_only) {}
 
 SqlCompiler::~SqlCompiler() {}
 
@@ -80,8 +76,7 @@ bool SqlCompiler::Compile(SqlContext& ctx, Status& status) {  // NOLINT
     auto m = ::llvm::make_unique<::llvm::Module>("sql", *llvm_ctx);
     ctx.udf_library = udf::DefaultUdfLibrary::get();
 
-    status =
-        BuildPhysicalPlan(&ctx, ctx.logical_plan, m.get(), &ctx.physical_plan);
+    status = BuildPhysicalPlan(&ctx, ctx.logical_plan, m.get(), &ctx.physical_plan);
     if (!status.isOK()) {
         return false;
     }
@@ -114,8 +109,7 @@ bool SqlCompiler::Compile(SqlContext& ctx, Status& status) {  // NOLINT
         return false;
     }
     // ::llvm::errs() << *(m.get());
-    auto jit = std::shared_ptr<HybridSeJitWrapper>(
-        HybridSeJitWrapper::Create(ctx.jit_options));
+    auto jit = std::shared_ptr<HybridSeJitWrapper>(HybridSeJitWrapper::Create(ctx.jit_options));
     if (jit == nullptr || !jit->Init()) {
         status.msg = "fail to init jit let";
         status.code = common::kJitError;
@@ -156,50 +150,41 @@ std::string EngineModeName(EngineMode mode) {
     }
 }
 
-Status SqlCompiler::BuildBatchModePhysicalPlan(
-    SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
-    ::llvm::Module* llvm_module, udf::UdfLibrary* library,
-    PhysicalOpNode** output) {
-    vm::BatchModeTransformer transformer(
-        &ctx->nm, ctx->db, cl_, llvm_module, library,
-        ctx->is_performance_sensitive, ctx->is_cluster_optimized,
-        ctx->enable_expr_optimize, ctx->enable_batch_window_parallelization);
+Status SqlCompiler::BuildBatchModePhysicalPlan(SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
+                                               ::llvm::Module* llvm_module, udf::UdfLibrary* library,
+                                               PhysicalOpNode** output) {
+    vm::BatchModeTransformer transformer(&ctx->nm, ctx->db, cl_, llvm_module, library, ctx->is_performance_sensitive,
+                                         ctx->is_cluster_optimized, ctx->enable_expr_optimize,
+                                         ctx->enable_batch_window_parallelization);
     transformer.AddDefaultPasses();
-    CHECK_STATUS(transformer.TransformPhysicalPlan(plan_list, output),
-                 "Fail to generate physical plan (batch mode)");
+    CHECK_STATUS(transformer.TransformPhysicalPlan(plan_list, output), "Fail to generate physical plan (batch mode)");
     ctx->schema = *(*output)->GetOutputSchema();
     return Status::OK();
 }
 
-Status SqlCompiler::BuildRequestModePhysicalPlan(
-    SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
-    ::llvm::Module* llvm_module, udf::UdfLibrary* library,
-    PhysicalOpNode** output) {
-    vm::RequestModeTransformer transformer(
-        &ctx->nm, ctx->db, cl_, llvm_module, library, {},
-        ctx->is_performance_sensitive, ctx->is_cluster_optimized, false,
-        ctx->enable_expr_optimize);
+Status SqlCompiler::BuildRequestModePhysicalPlan(SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
+                                                 ::llvm::Module* llvm_module, udf::UdfLibrary* library,
+                                                 PhysicalOpNode** output) {
+    vm::RequestModeTransformer transformer(&ctx->nm, ctx->db, cl_, llvm_module, library, {},
+                                           ctx->is_performance_sensitive, ctx->is_cluster_optimized, false,
+                                           ctx->enable_expr_optimize);
     transformer.AddDefaultPasses();
-    CHECK_STATUS(transformer.TransformPhysicalPlan(plan_list, output),
-                 "Fail to generate physical plan (request mode)");
+    CHECK_STATUS(transformer.TransformPhysicalPlan(plan_list, output), "Fail to generate physical plan (request mode)");
     ctx->request_schema = transformer.request_schema();
-    CHECK_TRUE(codec::SchemaCodec::Encode(transformer.request_schema(),
-                                          &ctx->encoded_request_schema),
-               kPlanError, "Fail to encode request schema");
+    CHECK_TRUE(codec::SchemaCodec::Encode(transformer.request_schema(), &ctx->encoded_request_schema), kPlanError,
+               "Fail to encode request schema");
     ctx->request_name = transformer.request_name();
     ctx->schema = *(*output)->GetOutputSchema();
     return Status::OK();
 }
 
-Status SqlCompiler::BuildBatchRequestModePhysicalPlan(
-    SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
-    ::llvm::Module* llvm_module, udf::UdfLibrary* library,
-    PhysicalOpNode** output) {
-    vm::RequestModeTransformer transformer(
-        &ctx->nm, ctx->db, cl_, llvm_module, library,
-        ctx->batch_request_info.common_column_indices,
-        ctx->is_performance_sensitive, ctx->is_cluster_optimized,
-        ctx->is_batch_request_optimized, ctx->enable_expr_optimize);
+Status SqlCompiler::BuildBatchRequestModePhysicalPlan(SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
+                                                      ::llvm::Module* llvm_module, udf::UdfLibrary* library,
+                                                      PhysicalOpNode** output) {
+    vm::RequestModeTransformer transformer(&ctx->nm, ctx->db, cl_, llvm_module, library,
+                                           ctx->batch_request_info.common_column_indices, ctx->is_performance_sensitive,
+                                           ctx->is_cluster_optimized, ctx->is_batch_request_optimized,
+                                           ctx->enable_expr_optimize);
     transformer.AddDefaultPasses();
     PhysicalOpNode* output_plan = nullptr;
     CHECK_STATUS(transformer.TransformPhysicalPlan(plan_list, &output_plan),
@@ -207,39 +192,29 @@ Status SqlCompiler::BuildBatchRequestModePhysicalPlan(
     *output = output_plan;
 
     ctx->request_schema = transformer.request_schema();
-    CHECK_TRUE(codec::SchemaCodec::Encode(transformer.request_schema(),
-                                          &ctx->encoded_request_schema),
-               kPlanError, "Fail to encode request schema");
+    CHECK_TRUE(codec::SchemaCodec::Encode(transformer.request_schema(), &ctx->encoded_request_schema), kPlanError,
+               "Fail to encode request schema");
     ctx->request_name = transformer.request_name();
 
     // set batch request output schema
-    const auto& output_common_indices =
-        transformer.batch_request_info().output_common_column_indices;
-    ctx->batch_request_info.output_common_column_indices =
-        output_common_indices;
-    ctx->batch_request_info.common_node_set =
-        transformer.batch_request_info().common_node_set;
-    if (!output_common_indices.empty() &&
-        output_common_indices.size() < output_plan->GetOutputSchemaSize()) {
+    const auto& output_common_indices = transformer.batch_request_info().output_common_column_indices;
+    ctx->batch_request_info.output_common_column_indices = output_common_indices;
+    ctx->batch_request_info.common_node_set = transformer.batch_request_info().common_node_set;
+    if (!output_common_indices.empty() && output_common_indices.size() < output_plan->GetOutputSchemaSize()) {
         CHECK_TRUE(output_plan->GetOutputSchemaSourceSize() == 2, kPlanError,
                    "Output plan should take 2 schema sources for "
                    "non-trival common columns");
-        CHECK_TRUE(output_plan->GetOutputSchemaSource(0)->size() ==
-                       output_common_indices.size(),
-                   kPlanError, "Illegal common column schema size");
+        CHECK_TRUE(output_plan->GetOutputSchemaSource(0)->size() == output_common_indices.size(), kPlanError,
+                   "Illegal common column schema size");
         ctx->schema.Clear();
         size_t common_col_idx = 0;
         size_t non_common_col_idx = 0;
         for (size_t i = 0; i < (*output)->GetOutputSchemaSize(); ++i) {
             if (output_common_indices.find(i) != output_common_indices.end()) {
-                *(ctx->schema.Add()) =
-                    output_plan->GetOutputSchemaSource(0)->GetSchema()->Get(
-                        common_col_idx);
+                *(ctx->schema.Add()) = output_plan->GetOutputSchemaSource(0)->GetSchema()->Get(common_col_idx);
                 common_col_idx += 1;
             } else {
-                *(ctx->schema.Add()) =
-                    output_plan->GetOutputSchemaSource(1)->GetSchema()->Get(
-                        non_common_col_idx);
+                *(ctx->schema.Add()) = output_plan->GetOutputSchemaSource(1)->GetSchema()->Get(non_common_col_idx);
                 non_common_col_idx += 1;
             }
         }
@@ -252,9 +227,8 @@ Status SqlCompiler::BuildBatchRequestModePhysicalPlan(
     return Status::OK();
 }
 
-Status SqlCompiler::BuildPhysicalPlan(
-    SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
-    ::llvm::Module* llvm_module, PhysicalOpNode** output) {
+Status SqlCompiler::BuildPhysicalPlan(SqlContext* ctx, const ::hybridse::node::PlanNodeList& plan_list,
+                                      ::llvm::Module* llvm_module, PhysicalOpNode** output) {
     Status status;
     CHECK_TRUE(ctx != nullptr, kPlanError, "Null sql context");
 
@@ -263,20 +237,16 @@ Status SqlCompiler::BuildPhysicalPlan(
 
     switch (ctx->engine_mode) {
         case kBatchMode: {
-            return BuildBatchModePhysicalPlan(ctx, plan_list, llvm_module,
-                                              library, output);
+            return BuildBatchModePhysicalPlan(ctx, plan_list, llvm_module, library, output);
         }
         case kRequestMode: {
-            return BuildRequestModePhysicalPlan(ctx, plan_list, llvm_module,
-                                                library, output);
+            return BuildRequestModePhysicalPlan(ctx, plan_list, llvm_module, library, output);
         }
         case kBatchRequestMode: {
-            return BuildBatchRequestModePhysicalPlan(
-                ctx, plan_list, llvm_module, library, output);
+            return BuildBatchRequestModePhysicalPlan(ctx, plan_list, llvm_module, library, output);
         }
         default:
-            return Status(kPlanError, "Unknown engine mode: " +
-                                          EngineModeName(ctx->engine_mode));
+            return Status(kPlanError, "Unknown engine mode: " + EngineModeName(ctx->engine_mode));
     }
 }
 
@@ -286,12 +256,9 @@ bool SqlCompiler::BuildClusterJob(SqlContext& ctx, Status& status) {  // NOLINT
         status.code = common::kOpGenError;
         return false;
     }
-    bool is_request_mode = vm::kRequestMode == ctx.engine_mode ||
-                           vm::kBatchRequestMode == ctx.engine_mode;
-    RunnerBuilder runner_builder(&ctx.nm, ctx.sql,
-                                 ctx.is_cluster_optimized && is_request_mode,
-                                 ctx.batch_request_info.common_column_indices,
-                                 ctx.batch_request_info.common_node_set);
+    bool is_request_mode = vm::kRequestMode == ctx.engine_mode || vm::kBatchRequestMode == ctx.engine_mode;
+    RunnerBuilder runner_builder(&ctx.nm, ctx.sql, ctx.is_cluster_optimized && is_request_mode,
+                                 ctx.batch_request_info.common_column_indices, ctx.batch_request_info.common_node_set);
     ctx.cluster_job = runner_builder.BuildClusterJob(ctx.physical_plan, status);
     return status.isOK();
 }
@@ -314,16 +281,14 @@ bool SqlCompiler::Parse(SqlContext& ctx,
     }
     return true;
 }
-bool SqlCompiler::ResolvePlanFnAddress(vm::PhysicalOpNode* node,
-                                       std::shared_ptr<HybridSeJitWrapper>& jit,
+bool SqlCompiler::ResolvePlanFnAddress(vm::PhysicalOpNode* node, std::shared_ptr<HybridSeJitWrapper>& jit,
                                        Status& status) {
     if (nullptr == node) {
         status.msg = "fail to resolve project fn address: node is null";
     }
 
     if (!node->producers().empty()) {
-        for (auto iter = node->producers().cbegin();
-             iter != node->producers().cend(); iter++) {
+        for (auto iter = node->producers().cbegin(); iter != node->producers().cend(); iter++) {
             if (!ResolvePlanFnAddress(*iter, jit, status)) {
                 return false;
             }
@@ -335,13 +300,10 @@ bool SqlCompiler::ResolvePlanFnAddress(vm::PhysicalOpNode* node,
     // 函数指针的注册需要整体优化一下设计
     switch (node->GetOpType()) {
         case kPhysicalOpRequestUnion: {
-            auto request_union_op =
-                dynamic_cast<PhysicalRequestUnionNode*>(node);
+            auto request_union_op = dynamic_cast<PhysicalRequestUnionNode*>(node);
             if (!request_union_op->window_unions_.Empty()) {
-                for (auto window_union :
-                     request_union_op->window_unions_.window_unions_) {
-                    if (!ResolvePlanFnAddress(window_union.first, jit,
-                                              status)) {
+                for (auto window_union : request_union_op->window_unions_.window_unions_) {
+                    if (!ResolvePlanFnAddress(window_union.first, jit, status)) {
                         return false;
                     }
                 }
@@ -351,22 +313,17 @@ bool SqlCompiler::ResolvePlanFnAddress(vm::PhysicalOpNode* node,
         case kPhysicalOpProject: {
             auto project_op = dynamic_cast<PhysicalProjectNode*>(node);
             if (kWindowAggregation == project_op->project_type_) {
-                auto window_agg_op =
-                    dynamic_cast<PhysicalWindowAggrerationNode*>(node);
+                auto window_agg_op = dynamic_cast<PhysicalWindowAggrerationNode*>(node);
                 if (!window_agg_op->window_joins_.Empty()) {
-                    for (auto window_join :
-                         window_agg_op->window_joins_.window_joins_) {
-                        if (!ResolvePlanFnAddress(window_join.first, jit,
-                                                  status)) {
+                    for (auto window_join : window_agg_op->window_joins_.window_joins_) {
+                        if (!ResolvePlanFnAddress(window_join.first, jit, status)) {
                             return false;
                         }
                     }
                 }
                 if (!window_agg_op->window_unions_.Empty()) {
-                    for (auto window_union :
-                         window_agg_op->window_unions_.window_unions_) {
-                        if (!ResolvePlanFnAddress(window_union.first, jit,
-                                                  status)) {
+                    for (auto window_union : window_agg_op->window_unions_.window_unions_) {
+                        if (!ResolvePlanFnAddress(window_union.first, jit, status)) {
                             return false;
                         }
                     }
@@ -380,13 +337,10 @@ bool SqlCompiler::ResolvePlanFnAddress(vm::PhysicalOpNode* node,
     if (!node->GetFnInfos().empty()) {
         for (auto info_ptr : node->GetFnInfos()) {
             if (!info_ptr->fn_name().empty()) {
-                DLOG(INFO) << "Start to resolve fn address "
-                           << info_ptr->fn_name();
+                DLOG(INFO) << "Start to resolve fn address " << info_ptr->fn_name();
                 auto addr = jit->FindFunction(info_ptr->fn_name());
                 if (addr == nullptr) {
-                    LOG(WARNING) << "Fail to find jit function "
-                                 << info_ptr->fn_name() << " for node\n"
-                                 << *node;
+                    LOG(WARNING) << "Fail to find jit function " << info_ptr->fn_name() << " for node\n" << *node;
                 }
                 const_cast<FnInfo*>(info_ptr)->SetFnPtr(addr);
             }

@@ -24,20 +24,15 @@ using namespace llvm::orc;  // NOLINT (build/namespaces)
 namespace hybridse {
 namespace vm {
 using hybridse::sqlcase::CaseDataMock;
-bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog,
-              const hybridse::type::TableDef& table_def,
+bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog, const hybridse::type::TableDef& table_def,
               std::shared_ptr<hybridse::storage::Table> table);
-bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog,
-              const hybridse::type::TableDef& table_def,
+bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog, const hybridse::type::TableDef& table_def,
               std::shared_ptr<hybridse::storage::Table> table, Engine* engine);
 
-bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog,
-              const hybridse::type::TableDef& table_def,
+bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog, const hybridse::type::TableDef& table_def,
               std::shared_ptr<hybridse::storage::Table> table) {
-    std::shared_ptr<tablet::TabletTableHandler> handler(
-        new tablet::TabletTableHandler(table_def.columns(), table_def.name(),
-                                       table_def.catalog(), table_def.indexes(),
-                                       table));
+    std::shared_ptr<tablet::TabletTableHandler> handler(new tablet::TabletTableHandler(
+        table_def.columns(), table_def.name(), table_def.catalog(), table_def.indexes(), table));
     bool ok = handler->Init();
     if (!ok) {
         return false;
@@ -45,29 +40,23 @@ bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog,
     return catalog->AddTable(handler);
 }
 
-bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog,
-              const hybridse::type::TableDef& table_def,
+bool AddTable(const std::shared_ptr<tablet::TabletCatalog>& catalog, const hybridse::type::TableDef& table_def,
               std::shared_ptr<hybridse::storage::Table> table, Engine* engine) {
-    auto local_tablet = std::shared_ptr<vm::Tablet>(
-        new vm::LocalTablet(engine, std::shared_ptr<CompileInfoCache>()));
-    std::shared_ptr<tablet::TabletTableHandler> handler(
-        new tablet::TabletTableHandler(table_def.columns(), table_def.name(),
-                                       table_def.catalog(), table_def.indexes(),
-                                       table, local_tablet));
+    auto local_tablet = std::shared_ptr<vm::Tablet>(new vm::LocalTablet(engine, std::shared_ptr<CompileInfoCache>()));
+    std::shared_ptr<tablet::TabletTableHandler> handler(new tablet::TabletTableHandler(
+        table_def.columns(), table_def.name(), table_def.catalog(), table_def.indexes(), table, local_tablet));
     bool ok = handler->Init();
     if (!ok) {
         return false;
     }
     return catalog->AddTable(handler);
 }
-bool InitToydbEngineCatalog(
-    SqlCase& sql_case,  // NOLINT
-    const EngineOptions& engine_options,
-    std::map<std::string,
-             std::shared_ptr<::hybridse::storage::Table>>&  // NOLINT
-        name_table_map,                                     // NOLINT
-    std::shared_ptr<vm::Engine> engine,
-    std::shared_ptr<tablet::TabletCatalog> catalog) {
+bool InitToydbEngineCatalog(SqlCase& sql_case,  // NOLINT
+                            const EngineOptions& engine_options,
+                            std::map<std::string,
+                                     std::shared_ptr<::hybridse::storage::Table>>&  // NOLINT
+                                name_table_map,                                     // NOLINT
+                            std::shared_ptr<vm::Engine> engine, std::shared_ptr<tablet::TabletCatalog> catalog) {
     LOG(INFO) << "Init Toy DB Engine & Catalog";
     for (int32_t i = 0; i < sql_case.CountInputs(); i++) {
         if (sql_case.inputs_[i].name_.empty()) {
@@ -79,8 +68,7 @@ bool InitToydbEngineCatalog(
         }
         table_def.set_name(sql_case.inputs_[i].name_);
 
-        std::shared_ptr<::hybridse::storage::Table> table(
-            new ::hybridse::storage::Table(i + 1, 1, table_def));
+        std::shared_ptr<::hybridse::storage::Table> table(new ::hybridse::storage::Table(i + 1, 1, table_def));
         if (!table->Init()) {
             LOG(WARNING) << "Fail to init toydb storage table";
             return false;
@@ -104,9 +92,8 @@ std::shared_ptr<tablet::TabletCatalog> BuildToydbCatalog() {
     std::shared_ptr<tablet::TabletCatalog> catalog(new tablet::TabletCatalog());
     return catalog;
 }
-std::shared_ptr<tablet::TabletCatalog> BuildCommonCatalog(
-    const hybridse::type::TableDef& table_def,
-    std::shared_ptr<hybridse::storage::Table> table) {
+std::shared_ptr<tablet::TabletCatalog> BuildCommonCatalog(const hybridse::type::TableDef& table_def,
+                                                          std::shared_ptr<hybridse::storage::Table> table) {
     std::shared_ptr<tablet::TabletCatalog> catalog(new tablet::TabletCatalog());
     bool ok = catalog->Init();
     if (!ok) {
@@ -118,8 +105,7 @@ std::shared_ptr<tablet::TabletCatalog> BuildCommonCatalog(
     return catalog;
 }
 
-std::shared_ptr<tablet::TabletCatalog> BuildOnePkTableStorage(
-    int32_t data_size) {
+std::shared_ptr<tablet::TabletCatalog> BuildOnePkTableStorage(int32_t data_size) {
     DLOG(INFO) << "insert window data";
     type::TableDef table_def;
     std::vector<Row> buffer;
@@ -130,8 +116,7 @@ std::shared_ptr<tablet::TabletCatalog> BuildOnePkTableStorage(
     index->add_first_keys("col0");
     index->set_second_key("col5");
 
-    std::shared_ptr<::hybridse::storage::Table> table(
-        new ::hybridse::storage::Table(1, 1, table_def));
+    std::shared_ptr<::hybridse::storage::Table> table(new ::hybridse::storage::Table(1, 1, table_def));
 
     table->Init();
 
@@ -141,9 +126,8 @@ std::shared_ptr<tablet::TabletCatalog> BuildOnePkTableStorage(
     }
     return catalog;
 }
-void BatchRequestEngineCheckWithCommonColumnIndices(
-    const SqlCase& sql_case, const EngineOptions options,
-    const std::set<size_t>& common_column_indices) {
+void BatchRequestEngineCheckWithCommonColumnIndices(const SqlCase& sql_case, const EngineOptions options,
+                                                    const std::set<size_t>& common_column_indices) {
     std::ostringstream oss;
     for (size_t index : common_column_indices) {
         oss << index << ",";
@@ -151,32 +135,28 @@ void BatchRequestEngineCheckWithCommonColumnIndices(
     LOG(INFO) << "BatchRequestEngineCheckWithCommonColumnIndices: "
                  "common_column_indices = ["
               << oss.str() << "]";
-    ToydbBatchRequestEngineTestRunner engine_test(sql_case, options,
-                                                  common_column_indices);
+    ToydbBatchRequestEngineTestRunner engine_test(sql_case, options, common_column_indices);
     engine_test.RunCheck();
 }
 
-void BatchRequestEngineCheck(const SqlCase& sql_case,
-                             const EngineOptions options) {
+void BatchRequestEngineCheck(const SqlCase& sql_case, const EngineOptions options) {
     bool has_batch_request = !sql_case.batch_request().columns_.empty();
     if (has_batch_request) {
-        BatchRequestEngineCheckWithCommonColumnIndices(
-            sql_case, options, sql_case.batch_request().common_column_indices_);
+        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options,
+                                                       sql_case.batch_request().common_column_indices_);
     } else if (!sql_case.inputs().empty()) {
         // set different common column conf
         size_t schema_size = sql_case.inputs()[0].columns_.size();
         std::set<size_t> common_column_indices;
 
         // empty
-        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options,
-                                                       common_column_indices);
+        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options, common_column_indices);
 
         // full
         for (size_t i = 0; i < schema_size; ++i) {
             common_column_indices.insert(i);
         }
-        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options,
-                                                       common_column_indices);
+        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options, common_column_indices);
         common_column_indices.clear();
 
         // partial
@@ -184,21 +164,18 @@ void BatchRequestEngineCheck(const SqlCase& sql_case,
         for (size_t i = 0; i < schema_size; i += 2) {
             common_column_indices.insert(i);
         }
-        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options,
-                                                       common_column_indices);
+        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options, common_column_indices);
         common_column_indices.clear();
         return;
         // 1, 3, 5, ...
         for (size_t i = 1; i < schema_size; i += 2) {
             common_column_indices.insert(i);
         }
-        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options,
-                                                       common_column_indices);
+        BatchRequestEngineCheckWithCommonColumnIndices(sql_case, options, common_column_indices);
     }
 }
 
-void EngineCheck(const SqlCase& sql_case, const EngineOptions& options,
-                 EngineMode engine_mode) {
+void EngineCheck(const SqlCase& sql_case, const EngineOptions& options, EngineMode engine_mode) {
     if (engine_mode == kBatchMode) {
         ToydbBatchEngineTestRunner engine_test(sql_case, options);
         engine_test.RunCheck();
@@ -211,8 +188,7 @@ void EngineCheck(const SqlCase& sql_case, const EngineOptions& options,
     }
 }
 
-int GenerateSqliteTestStringCallback(void* s, int argc, char** argv,
-                                     char** azColName) {
+int GenerateSqliteTestStringCallback(void* s, int argc, char** argv, char** azColName) {
     std::string& sqliteStr = *static_cast<std::string*>(s);
     int i;
     for (i = 0; i < argc; i++) {
@@ -224,8 +200,7 @@ int GenerateSqliteTestStringCallback(void* s, int argc, char** argv,
     return 0;
 }
 
-void CheckSqliteCompatible(const SqlCase& sql_case, const vm::Schema& schema,
-                           const std::vector<Row>& output) {
+void CheckSqliteCompatible(const SqlCase& sql_case, const vm::Schema& schema, const std::vector<Row>& output) {
     // Use Sqlite to get output
     sqlite3* db;
     char* zErrMsg = 0;
@@ -276,12 +251,10 @@ void CheckSqliteCompatible(const SqlCase& sql_case, const vm::Schema& schema,
     // Execute SQL statement
     const char* create_execute_sql_ch = sql_case.sql_str().c_str();
     std::string sqliteStr = "";
-    rc = sqlite3_exec(db, create_execute_sql_ch,
-                      GenerateSqliteTestStringCallback,
-                      static_cast<void*>(&sqliteStr), &zErrMsg);
+    rc = sqlite3_exec(db, create_execute_sql_ch, GenerateSqliteTestStringCallback, static_cast<void*>(&sqliteStr),
+                      &zErrMsg);
     if (rc != SQLITE_OK) {
-        LOG(ERROR) << "SQL error: " << zErrMsg
-                   << "\nsql: " << create_execute_sql_ch;
+        LOG(ERROR) << "SQL error: " << zErrMsg << "\nsql: " << create_execute_sql_ch;
         sqlite3_free(zErrMsg);
     } else {
         LOG(INFO) << "Operation done successfully\n";
@@ -294,9 +267,8 @@ void CheckSqliteCompatible(const SqlCase& sql_case, const vm::Schema& schema,
     SqlCase::ExtractRows(schema, sqliteStr, sqliteRows);
 
     // Compare ToyDB output with Sqlite output.
-    ASSERT_NO_FATAL_FAILURE(CheckRows(
-        schema, SortRows(schema, sqliteRows, sql_case.expect().order_),
-        SortRows(schema, output, sql_case.expect().order_)));
+    ASSERT_NO_FATAL_FAILURE(CheckRows(schema, SortRows(schema, sqliteRows, sql_case.expect().order_),
+                                      SortRows(schema, output, sql_case.expect().order_)));
 }
 }  // namespace vm
 }  // namespace hybridse

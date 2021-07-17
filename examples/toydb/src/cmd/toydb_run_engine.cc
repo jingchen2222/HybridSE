@@ -17,20 +17,13 @@
 #include "testing/toydb_engine_test_base.h"
 
 DEFINE_string(yaml_path, "", "Yaml filepath to load cases from");
-DEFINE_string(runner_mode, "batch",
-              "Specify runner mode, can be batch or request");
-DEFINE_string(cluster_mode, "standalone",
-              "Specify cluster mode, can be standalone or cluster");
-DEFINE_bool(
-    enable_batch_request_opt, true,
-    "Specify whether perform batch request optimization in batch request mode");
-DEFINE_bool(performance_sensitive, true,
-            "Specify whether do performance sensitive check");
-DEFINE_bool(enable_expr_opt, true,
-            "Specify whether do expression optimization");
-DEFINE_bool(
-    enable_batch_window_parallelization, false,
-    "Specify whether enable window parallelization in spark batch mode");
+DEFINE_string(runner_mode, "batch", "Specify runner mode, can be batch or request");
+DEFINE_string(cluster_mode, "standalone", "Specify cluster mode, can be standalone or cluster");
+DEFINE_bool(enable_batch_request_opt, true, "Specify whether perform batch request optimization in batch request mode");
+DEFINE_bool(performance_sensitive, true, "Specify whether do performance sensitive check");
+DEFINE_bool(enable_expr_opt, true, "Specify whether do expression optimization");
+DEFINE_bool(enable_batch_window_parallelization, false,
+            "Specify whether enable window parallelization in spark batch mode");
 DEFINE_int32(run_iters, 0, "Measure the approximate run time if specified");
 DEFINE_int32(case_id, -1, "Specify the case id to run and skip others");
 
@@ -43,18 +36,15 @@ DEFINE_bool(enable_perf, false, "Enable llvm jit perf events");
 namespace hybridse {
 namespace vm {
 
-int DoRunEngine(const SqlCase& sql_case, const EngineOptions& options,
-                EngineMode engine_mode) {
+int DoRunEngine(const SqlCase& sql_case, const EngineOptions& options, EngineMode engine_mode) {
     std::shared_ptr<EngineTestRunner> runner;
     if (engine_mode == kBatchMode) {
-        runner =
-            std::make_shared<ToydbBatchEngineTestRunner>(sql_case, options);
+        runner = std::make_shared<ToydbBatchEngineTestRunner>(sql_case, options);
     } else if (engine_mode == kRequestMode) {
-        runner =
-            std::make_shared<ToydbRequestEngineTestRunner>(sql_case, options);
+        runner = std::make_shared<ToydbRequestEngineTestRunner>(sql_case, options);
     } else {
-        runner = std::make_shared<ToydbBatchRequestEngineTestRunner>(
-            sql_case, options, sql_case.batch_request().common_column_indices_);
+        runner = std::make_shared<ToydbBatchRequestEngineTestRunner>(sql_case, options,
+                                                                     sql_case.batch_request().common_column_indices_);
     }
     if (FLAGS_run_iters > 0) {
         runner->RunBenchmark(FLAGS_run_iters);
@@ -75,8 +65,7 @@ int RunSingle(const std::string& yaml_path) {
     options.set_batch_request_optimized(FLAGS_enable_batch_request_opt);
     options.set_performance_sensitive(FLAGS_performance_sensitive);
     options.set_enable_expr_optimize(FLAGS_enable_expr_opt);
-    options.set_enable_batch_window_parallelization(
-        FLAGS_enable_batch_window_parallelization);
+    options.set_enable_batch_window_parallelization(FLAGS_enable_batch_window_parallelization);
 
     JitOptions& jit_options = options.jit_options();
     jit_options.set_enable_mcjit(FLAGS_enable_mcjit);
@@ -85,8 +74,7 @@ int RunSingle(const std::string& yaml_path) {
     jit_options.set_enable_perf(FLAGS_enable_perf);
 
     for (auto& sql_case : cases) {
-        if (FLAGS_case_id >= 0 &&
-            std::to_string(FLAGS_case_id) != sql_case.id()) {
+        if (FLAGS_case_id >= 0 && std::to_string(FLAGS_case_id) != sql_case.id()) {
             continue;
         }
         EngineMode mode;

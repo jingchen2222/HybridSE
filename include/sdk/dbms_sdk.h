@@ -36,44 +36,34 @@ class DBMSSdk {
  public:
     DBMSSdk() {}
     virtual ~DBMSSdk() {}
-    virtual void CreateDatabase(const std::string &catalog,
-                                sdk::Status *status) {}
+    virtual void CreateDatabase(const std::string &catalog, sdk::Status *status) {}
 
-    virtual std::shared_ptr<TableSet> GetTables(const std::string &catalog,
-                                                sdk::Status *status) {
+    virtual std::shared_ptr<TableSet> GetTables(const std::string &catalog, sdk::Status *status) {
         return std::shared_ptr<TableSet>();
     }
 
-    virtual std::vector<std::string> GetDatabases(sdk::Status *status) {
-        return std::vector<std::string>();
-    }
+    virtual std::vector<std::string> GetDatabases(sdk::Status *status) { return std::vector<std::string>(); }
 
-    virtual std::shared_ptr<ResultSet> ExecuteQuery(const std::string &catalog,
-                                                    const std::string &sql,
+    virtual std::shared_ptr<ResultSet> ExecuteQuery(const std::string &catalog, const std::string &sql,
                                                     sdk::Status *status) {
         return std::shared_ptr<ResultSet>();
     }
 
-    virtual std::shared_ptr<ResultSet> ExecuteQuery(
-        const std::string &catalog, const std::string &sql,
-        const std::shared_ptr<RequestRow> &row, sdk::Status *status) {
+    virtual std::shared_ptr<ResultSet> ExecuteQuery(const std::string &catalog, const std::string &sql,
+                                                    const std::shared_ptr<RequestRow> &row, sdk::Status *status) {
         return std::shared_ptr<ResultSet>();
     }
 
-    virtual const Schema &GetInputSchema(const std::string &catalog,
-                                         const std::string &sql,
-                                         sdk::Status *status) {
+    virtual const Schema &GetInputSchema(const std::string &catalog, const std::string &sql, sdk::Status *status) {
         return EMPTY;
     }
 
-    virtual std::shared_ptr<RequestRow> GetRequestRow(
-        const std::string &catalog, const std::string &sql,
-        sdk::Status *status) {
+    virtual std::shared_ptr<RequestRow> GetRequestRow(const std::string &catalog, const std::string &sql,
+                                                      sdk::Status *status) {
         return std::shared_ptr<RequestRow>();
     }
 
-    virtual std::shared_ptr<ExplainInfo> Explain(const std::string &catalog,
-                                                 const std::string &sql,
+    virtual std::shared_ptr<ExplainInfo> Explain(const std::string &catalog, const std::string &sql,
                                                  sdk::Status *status) {
         return std::shared_ptr<ExplainInfo>();
     }

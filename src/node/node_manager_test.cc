@@ -48,15 +48,12 @@ TEST_F(NodeManagerTest, MakeAndExprTest) {
     manager->MakeLimitNode(10);
 
     ExprListNode expr_list;
-    expr_list.AddChild(manager->MakeBinaryExprNode(
-        manager->MakeColumnRefNode("col1", "t1"),
-        manager->MakeColumnRefNode("col1", "t2"), node::kFnOpEq));
-    expr_list.AddChild(manager->MakeBinaryExprNode(
-        manager->MakeColumnRefNode("col2", "t1"),
-        manager->MakeColumnRefNode("col2", "t2"), node::kFnOpEq));
-    expr_list.AddChild(manager->MakeBinaryExprNode(
-        manager->MakeColumnRefNode("col3", "t1"),
-        manager->MakeColumnRefNode("col3", "t2"), node::kFnOpEq));
+    expr_list.AddChild(manager->MakeBinaryExprNode(manager->MakeColumnRefNode("col1", "t1"),
+                                                   manager->MakeColumnRefNode("col1", "t2"), node::kFnOpEq));
+    expr_list.AddChild(manager->MakeBinaryExprNode(manager->MakeColumnRefNode("col2", "t1"),
+                                                   manager->MakeColumnRefNode("col2", "t2"), node::kFnOpEq));
+    expr_list.AddChild(manager->MakeBinaryExprNode(manager->MakeColumnRefNode("col3", "t1"),
+                                                   manager->MakeColumnRefNode("col3", "t2"), node::kFnOpEq));
 
     ASSERT_EQ("t1.col1 = t2.col1 AND t1.col2 = t2.col2 AND t1.col3 = t2.col3",
               node::ExprString(manager->MakeAndExpr(&expr_list)));
@@ -69,12 +66,10 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsTest) {
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100), manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 120),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 120), manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRows, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_rows()->start()->bound_type());
@@ -86,12 +81,10 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsTest) {
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100), manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 120),
-                                    manager.MakeFrameBound(kPreceding, 50))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 120), manager.MakeFrameBound(kPreceding, 50))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRows, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_rows()->start()->bound_type());
@@ -103,12 +96,10 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsTest) {
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100),
-                                    manager.MakeFrameBound(kPreceding, 50))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100), manager.MakeFrameBound(kPreceding, 50))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 30),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 30), manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRows, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_rows()->start()->bound_type());
@@ -120,12 +111,10 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsTest) {
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100),
-                                    manager.MakeFrameBound(kPreceding, 50))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 100), manager.MakeFrameBound(kPreceding, 50))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 30),
-                                    manager.MakeFrameBound(kFollowing, 80))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 30), manager.MakeFrameBound(kFollowing, 80))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRows, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_rows()->start()->bound_type());
@@ -136,18 +125,15 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsTest) {
 
     // [UNBOUND, 50] U [-30, UNBOUND] = [UNBOUND, UNBOUND]
     {
-        FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPrecedingUnbound),
-                                    manager.MakeFrameBound(kPreceding, 50))));
-        FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRows, manager.MakeFrameExtent(
-                            manager.MakeFrameBound(kPreceding, 30),
-                            manager.MakeFrameBound(kFollowingUnbound))));
+        FrameNode *frame1 = dynamic_cast<FrameNode *>(
+            manager.MakeFrameNode(kFrameRows, manager.MakeFrameExtent(manager.MakeFrameBound(kPrecedingUnbound),
+                                                                      manager.MakeFrameBound(kPreceding, 50))));
+        FrameNode *frame2 = dynamic_cast<FrameNode *>(
+            manager.MakeFrameNode(kFrameRows, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 30),
+                                                                      manager.MakeFrameBound(kFollowingUnbound))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRows, merged->frame_type());
-        ASSERT_EQ(kPrecedingUnbound,
-                  merged->frame_rows()->start()->bound_type());
+        ASSERT_EQ(kPrecedingUnbound, merged->frame_rows()->start()->bound_type());
         ASSERT_EQ(kFollowingUnbound, merged->frame_rows()->end()->bound_type());
     }
 }
@@ -156,15 +142,11 @@ TEST_F(NodeManagerTest, MergeFrameNode_RangeTest) {
     // [-1d, 0] U [-6h, 0] = [-1d, 0]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRange, manager.MakeFrameExtent(
-                             manager.MakeFrameBound(
-                                 kPreceding, manager.MakeConstNode(1, kDay)),
-                             manager.MakeFrameBound(kCurrent))));
+            kFrameRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                 manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRange, manager.MakeFrameExtent(
-                             manager.MakeFrameBound(
-                                 kPreceding, manager.MakeConstNode(6, kHour)),
-                             manager.MakeFrameBound(kCurrent))));
+            kFrameRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(6, kHour)),
+                                                 manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -175,17 +157,12 @@ TEST_F(NodeManagerTest, MergeFrameNode_RangeTest) {
     // [-1d, 0] U [-6h, -30m] = [-1d, 0]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRange, manager.MakeFrameExtent(
-                             manager.MakeFrameBound(
-                                 kPreceding, manager.MakeConstNode(1, kDay)),
-                             manager.MakeFrameBound(kCurrent))));
+            kFrameRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                 manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(6, kHour)),
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(6, kHour)),
+                                    manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -197,16 +174,11 @@ TEST_F(NodeManagerTest, MergeFrameNode_RangeTest) {
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                    manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRange, manager.MakeFrameExtent(
-                             manager.MakeFrameBound(
-                                 kPreceding, manager.MakeConstNode(6, kHour)),
-                             manager.MakeFrameBound(kCurrent))));
+            kFrameRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(6, kHour)),
+                                                 manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -216,22 +188,15 @@ TEST_F(NodeManagerTest, MergeFrameNode_RangeTest) {
     // [UNBOUND, -1d] U [-6h, UNBOUND] = [UNBOUND, UNBOUND]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRange, manager.MakeFrameExtent(
-                             manager.MakeFrameBound(kPrecedingUnbound),
-                             manager.MakeFrameBound(
-                                 kPreceding, manager.MakeConstNode(1, kDay)))));
+            kFrameRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPrecedingUnbound),
+                                                 manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)),
-                manager.MakeFrameBound(kFollowingUnbound))));
+            kFrameRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)),
+                                                 manager.MakeFrameBound(kFollowingUnbound))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRange, merged->frame_type());
-        ASSERT_EQ(kPrecedingUnbound,
-                  merged->frame_range()->start()->bound_type());
-        ASSERT_EQ(kFollowingUnbound,
-                  merged->frame_range()->end()->bound_type());
+        ASSERT_EQ(kPrecedingUnbound, merged->frame_range()->start()->bound_type());
+        ASSERT_EQ(kFollowingUnbound, merged->frame_range()->end()->bound_type());
     }
 }
 
@@ -240,17 +205,12 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsRangeTest) {
     // [-1d, 0] U [-6h, 0] = [-1d, 0]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kCurrent))));
+            kFrameRowsRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                     manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(6, kHour)),
-                manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(6, kHour)),
+                                    manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRowsRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -261,18 +221,12 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsRangeTest) {
     // [-1d, 0] U [-6h, -30m] = [-1d, 0]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kCurrent))));
+            kFrameRowsRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                     manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(6, kHour)),
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(6, kHour)),
+                                    manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRowsRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -284,17 +238,12 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsRangeTest) {
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                    manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(6, kHour)),
-                manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(6, kHour)),
+                                    manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRowsRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -305,44 +254,31 @@ TEST_F(NodeManagerTest, MergeFrameNode_RowsRangeTest) {
     // [-1d, 0] U [UNBOUND, -30m] = [UNBOUND, 0]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kCurrent))));
+            kFrameRowsRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                     manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPrecedingUnbound),
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPrecedingUnbound),
+                                    manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRowsRange, merged->frame_type());
-        ASSERT_EQ(kPrecedingUnbound,
-                  merged->frame_range()->start()->bound_type());
+        ASSERT_EQ(kPrecedingUnbound, merged->frame_range()->start()->bound_type());
         ASSERT_EQ(kCurrent, merged->frame_range()->end()->bound_type());
     }
 
     // [-1d, UNBOUND] U [UNBOUND, -30m] = [UNBOUND, UNBOUND]
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kFollowingUnbound))));
+            kFrameRowsRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                     manager.MakeFrameBound(kFollowingUnbound))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPrecedingUnbound),
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(30, kMinute)))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPrecedingUnbound),
+                                    manager.MakeFrameBound(kPreceding, manager.MakeConstNode(30, kMinute)))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRowsRange, merged->frame_type());
-        ASSERT_EQ(kPrecedingUnbound,
-                  merged->frame_range()->start()->bound_type());
-        ASSERT_EQ(kFollowingUnbound,
-                  merged->frame_range()->end()->bound_type());
+        ASSERT_EQ(kPrecedingUnbound, merged->frame_range()->start()->bound_type());
+        ASSERT_EQ(kFollowingUnbound, merged->frame_range()->end()->bound_type());
     }
 }
 
@@ -351,15 +287,11 @@ TEST_F(NodeManagerTest, RowMergeRowsRangeTest) {
     // [-1d, 0] U [-1000, 0] = [-1d, 0],rows_size = 1000
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kCurrent))));
+            kFrameRowsRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                     manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 1000),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 1000), manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame1, frame2);
         ASSERT_EQ(kFrameRowsMergeRowsRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());
@@ -371,20 +303,15 @@ TEST_F(NodeManagerTest, RowMergeRowsRangeTest) {
     // [-1d, 0] U [-1000, 0] U [-10000, 0] = [-1d, 0],rows_size = 10000
     {
         FrameNode *frame1 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
-            kFrameRowsRange,
-            manager.MakeFrameExtent(
-                manager.MakeFrameBound(kPreceding,
-                                       manager.MakeConstNode(1, kDay)),
-                manager.MakeFrameBound(kCurrent))));
+            kFrameRowsRange, manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, manager.MakeConstNode(1, kDay)),
+                                                     manager.MakeFrameBound(kCurrent))));
         FrameNode *frame2 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 1000),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 1000), manager.MakeFrameBound(kCurrent))));
         FrameNode *frame3 = manager.MergeFrameNode(frame1, frame2);
         FrameNode *frame4 = dynamic_cast<FrameNode *>(manager.MakeFrameNode(
             kFrameRows,
-            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 10000),
-                                    manager.MakeFrameBound(kCurrent))));
+            manager.MakeFrameExtent(manager.MakeFrameBound(kPreceding, 10000), manager.MakeFrameBound(kCurrent))));
         FrameNode *merged = manager.MergeFrameNode(frame3, frame4);
         ASSERT_EQ(kFrameRowsMergeRowsRange, merged->frame_type());
         ASSERT_EQ(kPreceding, merged->frame_range()->start()->bound_type());

@@ -35,8 +35,7 @@ FnIRBuilder::FnIRBuilder(::llvm::Module *module) : module_(module) {}
 
 FnIRBuilder::~FnIRBuilder() {}
 
-bool FnIRBuilder::Build(::hybridse::node::FnNodeFnDef *root,
-                        ::llvm::Function **result,
+bool FnIRBuilder::Build(::hybridse::node::FnNodeFnDef *root, ::llvm::Function **result,
                         base::Status &status) {  // NOLINT
     if (root == NULL || root->GetType() != ::hybridse::node::kFnDef) {
         status.code = common::kCodegenError;
@@ -79,8 +78,8 @@ bool FnIRBuilder::Build(::hybridse::node::FnNodeFnDef *root,
     return true;
 }
 
-bool FnIRBuilder::BuildFnHead(const ::hybridse::node::FnNodeFnHeander *header,
-                              CodeGenContext *ctx, ::llvm::Function **fn,
+bool FnIRBuilder::BuildFnHead(const ::hybridse::node::FnNodeFnHeander *header, CodeGenContext *ctx,
+                              ::llvm::Function **fn,
                               base::Status &status) {  // NOLINE
     ::llvm::Type *ret_type = NULL;
     bool ok = GetLlvmType(module_, header->ret_type_, &ret_type);
@@ -108,10 +107,9 @@ bool FnIRBuilder::BuildFnHead(const ::hybridse::node::FnNodeFnHeander *header,
     return true;
 }
 
-bool FnIRBuilder::CreateFunction(
-    const ::hybridse::node::FnNodeFnHeander *fn_def, bool return_by_arg,
-    ::llvm::Function **fn,
-    base::Status &status) {  // NOLINE
+bool FnIRBuilder::CreateFunction(const ::hybridse::node::FnNodeFnHeander *fn_def, bool return_by_arg,
+                                 ::llvm::Function **fn,
+                                 base::Status &status) {  // NOLINE
     if (fn_def == NULL || fn == NULL) {
         status.code = common::kCodegenError;
         status.msg = "input is null";
@@ -140,15 +138,13 @@ bool FnIRBuilder::CreateFunction(
 
     std::string fn_name = fn_def->GeIRFunctionName();
     ::llvm::ArrayRef<::llvm::Type *> array_ref(paras);
-    ::llvm::FunctionType *fnt =
-        ::llvm::FunctionType::get(ret_type, array_ref, false);
+    ::llvm::FunctionType *fnt = ::llvm::FunctionType::get(ret_type, array_ref, false);
     auto callee = module_->getOrInsertFunction(fn_name, fnt);
     *fn = reinterpret_cast<::llvm::Function *>(callee.getCallee());
     return true;
 }
 
-bool FnIRBuilder::FillArgs(const ::hybridse::node::FnNodeList *node,
-                           ScopeVar *sv, bool return_by_arg,
+bool FnIRBuilder::FillArgs(const ::hybridse::node::FnNodeList *node, ScopeVar *sv, bool return_by_arg,
                            ::llvm::Function *fn,
                            base::Status &status) {  // NOLINE
     if (node == NULL) {
@@ -161,12 +157,10 @@ bool FnIRBuilder::FillArgs(const ::hybridse::node::FnNodeList *node,
     ::llvm::Function::arg_iterator it = fn->arg_begin();
     uint32_t index = 0;
     for (; it != fn->arg_end() && index < node->children.size(); ++it) {
-        ::hybridse::node::FnParaNode *pnode =
-            (::hybridse::node::FnParaNode *)node->children[index];
+        ::hybridse::node::FnParaNode *pnode = (::hybridse::node::FnParaNode *)node->children[index];
         ::llvm::Argument *argu = &*it;
 
-        bool ok = sv->AddVar(pnode->GetExprId()->GetExprString(),
-                             NativeValue::Create(argu));
+        bool ok = sv->AddVar(pnode->GetExprId()->GetExprString(), NativeValue::Create(argu));
         if (!ok) {
             status.code = common::kCodegenError;
             status.msg = "fail to define var " + pnode->GetName();
@@ -188,8 +182,7 @@ bool FnIRBuilder::FillArgs(const ::hybridse::node::FnNodeList *node,
     return true;
 }
 
-bool FnIRBuilder::BuildParas(const ::hybridse::node::FnNodeList *node,
-                             std::vector<::llvm::Type *> &paras,
+bool FnIRBuilder::BuildParas(const ::hybridse::node::FnNodeList *node, std::vector<::llvm::Type *> &paras,
                              base::Status &status) {  // NOLINE
     if (node == NULL) {
         status.code = common::kCodegenError;
@@ -199,14 +192,12 @@ bool FnIRBuilder::BuildParas(const ::hybridse::node::FnNodeList *node,
     }
 
     for (uint32_t i = 0; i < node->children.size(); i++) {
-        ::hybridse::node::FnParaNode *pnode =
-            (::hybridse::node::FnParaNode *)node->children[i];
+        ::hybridse::node::FnParaNode *pnode = (::hybridse::node::FnParaNode *)node->children[i];
         ::llvm::Type *type = NULL;
         bool ok = GetLlvmType(module_, pnode->GetParaType(), &type);
         if (!ok) {
             status.code = common::kCodegenError;
-            status.msg =
-                "fail to get primary type for pname " + pnode->GetName();
+            status.msg = "fail to get primary type for pname " + pnode->GetName();
             LOG(WARNING) << status;
             return false;
         }

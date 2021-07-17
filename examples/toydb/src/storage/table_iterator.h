@@ -63,8 +63,7 @@ class EmptyWindowIterator : public ConstIterator<uint64_t, Row> {
 
 class WindowInternalIterator : public ConstIterator<uint64_t, Row> {
  public:
-    explicit WindowInternalIterator(
-        std::unique_ptr<base::Iterator<uint64_t, DataBlock*>> ts_it);
+    explicit WindowInternalIterator(std::unique_ptr<base::Iterator<uint64_t, DataBlock*>> ts_it);
     ~WindowInternalIterator();
 
     inline void Seek(const uint64_t& ts);
@@ -87,8 +86,7 @@ class WindowInternalIterator : public ConstIterator<uint64_t, Row> {
 
 class WindowTableIterator : public WindowIterator {
  public:
-    WindowTableIterator(Segment*** segments, uint32_t seg_cnt, uint32_t index,
-                        std::shared_ptr<Table> table);
+    WindowTableIterator(Segment*** segments, uint32_t seg_cnt, uint32_t index, std::shared_ptr<Table> table);
     ~WindowTableIterator();
 
     void Seek(const std::string& key);
@@ -116,11 +114,9 @@ class WindowTableIterator : public WindowIterator {
 // the full table iterator
 class FullTableIterator : public ConstIterator<uint64_t, Row> {
  public:
-    FullTableIterator()
-        : seg_cnt_(0), seg_idx_(0), segments_(NULL), value_(), key_(0) {}
+    FullTableIterator() : seg_cnt_(0), seg_idx_(0), segments_(NULL), value_(), key_(0) {}
 
-    explicit FullTableIterator(Segment*** segments, uint32_t seg_cnt,
-                               std::shared_ptr<Table> table);
+    explicit FullTableIterator(Segment*** segments, uint32_t seg_cnt, std::shared_ptr<Table> table);
 
     ~FullTableIterator() {}
 

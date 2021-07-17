@@ -32,9 +32,8 @@ namespace codegen {
 BlockIRBuilder::BlockIRBuilder(CodeGenContext *ctx) : ctx_(ctx) {}
 BlockIRBuilder::~BlockIRBuilder() {}
 
-bool hybridse::codegen::BlockIRBuilder::BuildBlock(
-    const hybridse::node::FnNodeList *statements,
-    hybridse::base::Status &status) {
+bool hybridse::codegen::BlockIRBuilder::BuildBlock(const hybridse::node::FnNodeList *statements,
+                                                   hybridse::base::Status &status) {
     if (statements == NULL) {
         status.code = common::kCodegenError;
         status.msg = "node or block is null";
@@ -49,44 +48,32 @@ bool hybridse::codegen::BlockIRBuilder::BuildBlock(
     for (const node::FnNode *node : statements->children) {
         switch (node->GetType()) {
             case node::kFnAssignStmt: {
-                if (!BuildAssignStmt(
-                        dynamic_cast<const ::hybridse::node::FnAssignNode *>(
-                            node),
-                        status)) {
+                if (!BuildAssignStmt(dynamic_cast<const ::hybridse::node::FnAssignNode *>(node), status)) {
                     return false;
                 }
                 break;
             }
             case node::kFnReturnStmt: {
-                if (!BuildReturnStmt(
-                        dynamic_cast<const node::FnReturnStmt *>(node),
-                        status)) {
+                if (!BuildReturnStmt(dynamic_cast<const node::FnReturnStmt *>(node), status)) {
                     return false;
                 }
                 break;
             }
             case node::kFnIfElseBlock: {
-                if (!BuildIfElseBlock(
-                        dynamic_cast<const ::hybridse::node::FnIfElseBlock *>(
-                            node),
-                        status)) {
+                if (!BuildIfElseBlock(dynamic_cast<const ::hybridse::node::FnIfElseBlock *>(node), status)) {
                     return false;
                 }
                 break;
             }
             case node::kFnForInBlock: {
-                if (!BuildForInBlock(
-                        dynamic_cast<const ::hybridse::node::FnForInBlock *>(
-                            node),
-                        status)) {
+                if (!BuildForInBlock(dynamic_cast<const ::hybridse::node::FnForInBlock *>(node), status)) {
                     return false;
                 }
                 break;
             }
             default: {
                 status.code = common::kCodegenError;
-                status.msg = "fail to codegen for unrecognized fn type " +
-                             node::NameOfSqlNodeType(node->GetType());
+                status.msg = "fail to codegen for unrecognized fn type " + node::NameOfSqlNodeType(node->GetType());
                 LOG(WARNING) << status;
                 return false;
             }
@@ -95,9 +82,8 @@ bool hybridse::codegen::BlockIRBuilder::BuildBlock(
     return true;
 }
 
-bool BlockIRBuilder::DoBuildBranchBlock(
-    const ::hybridse::node::FnIfElseBlock *if_else_block, size_t branch_idx,
-    CodeGenContext *ctx, Status &status) {
+bool BlockIRBuilder::DoBuildBranchBlock(const ::hybridse::node::FnIfElseBlock *if_else_block, size_t branch_idx,
+                                        CodeGenContext *ctx, Status &status) {
     if (branch_idx == 0) {
         // if () {}
         return BuildBlock(if_else_block->if_block_->block_, status);
@@ -109,8 +95,7 @@ bool BlockIRBuilder::DoBuildBranchBlock(
 
         NativeValue elif_condition;
         ExprIRBuilder expr_builder(ctx_);
-        status = expr_builder.Build(elif_block->elif_node_->expression_,
-                                    &elif_condition);
+        status = expr_builder.Build(elif_block->elif_node_->expression_, &elif_condition);
         if (!status.isOK()) {
             LOG(WARNING) << "fail to codegen else if condition: " << status;
             return false;
@@ -120,23 +105,19 @@ bool BlockIRBuilder::DoBuildBranchBlock(
             elif_condition,
             [&]() {
                 bool ok = BuildBlock(elif_block->block_, status);
-                CHECK_TRUE(ok, kCodegenError,
-                           "fail to codegen block: ", status.str());
+                CHECK_TRUE(ok, kCodegenError, "fail to codegen block: ", status.str());
                 return Status::OK();
             },
             [&]() {
-                bool ok = DoBuildBranchBlock(if_else_block, branch_idx + 1, ctx,
-                                             status);
-                CHECK_TRUE(ok, kCodegenError,
-                           "fail to codegen block: ", status.str());
+                bool ok = DoBuildBranchBlock(if_else_block, branch_idx + 1, ctx, status);
+                CHECK_TRUE(ok, kCodegenError, "fail to codegen block: ", status.str());
                 return Status::OK();
             });
 
     } else {
         // else {}
         if (nullptr != if_else_block->else_block_) {
-            bool else_ok =
-                BuildBlock(if_else_block->else_block_->block_, status);
+            bool else_ok = BuildBlock(if_else_block->else_block_->block_, status);
             if (!else_ok) {
                 LOG(WARNING) << "fail to codegen else block: " << status;
                 return false;
@@ -146,9 +127,8 @@ bool BlockIRBuilder::DoBuildBranchBlock(
     return true;
 }
 
-bool BlockIRBuilder::BuildIfElseBlock(
-    const ::hybridse::node::FnIfElseBlock *if_else_block,
-    base::Status &status) {  // NOLINE
+bool BlockIRBuilder::BuildIfElseBlock(const ::hybridse::node::FnIfElseBlock *if_else_block,
+                                      base::Status &status) {  // NOLINE
     if (if_else_block == nullptr) {
         status.code = common::kCodegenError;
         status.msg = "fail to codegen if else block: node is null";
@@ -159,8 +139,7 @@ bool BlockIRBuilder::BuildIfElseBlock(
     // first condition
     ExprIRBuilder expr_builder(ctx_);
     NativeValue condition;
-    status = expr_builder.Build(if_else_block->if_block_->if_node->expression_,
-                                &condition);
+    status = expr_builder.Build(if_else_block->if_block_->if_node->expression_, &condition);
     if (!status.isOK()) {
         LOG(WARNING) << "fail to codegen condition expression: " << status;
         return false;
@@ -169,13 +148,13 @@ bool BlockIRBuilder::BuildIfElseBlock(
     status = ctx_->CreateBranch(
         condition,
         [&]() {
-            CHECK_TRUE(DoBuildBranchBlock(if_else_block, 0, ctx_, status),
-                       kCodegenError, "fail to codegen block:", status.str());
+            CHECK_TRUE(DoBuildBranchBlock(if_else_block, 0, ctx_, status), kCodegenError,
+                       "fail to codegen block:", status.str());
             return Status::OK();
         },
         [&]() {
-            CHECK_TRUE(DoBuildBranchBlock(if_else_block, 1, ctx_, status),
-                       kCodegenError, "fail to codegen block:", status.str());
+            CHECK_TRUE(DoBuildBranchBlock(if_else_block, 1, ctx_, status), kCodegenError,
+                       "fail to codegen block:", status.str());
             return Status::OK();
         });
 
@@ -186,8 +165,7 @@ bool BlockIRBuilder::BuildIfElseBlock(
     return true;
 }
 
-bool BlockIRBuilder::BuildForInBlock(const ::hybridse::node::FnForInBlock *node,
-                                     base::Status &status) {
+bool BlockIRBuilder::BuildForInBlock(const ::hybridse::node::FnForInBlock *node, base::Status &status) {
     if (node == nullptr) {
         status.code = common::kCodegenError;
         status.msg = "fail to codegen for block: node is null";
@@ -195,14 +173,12 @@ bool BlockIRBuilder::BuildForInBlock(const ::hybridse::node::FnForInBlock *node,
         return false;
     }
 
-    ListIRBuilder list_ir_builder(ctx_->GetCurrentBlock(),
-                                  ctx_->GetCurrentScope()->sv());
+    ListIRBuilder list_ir_builder(ctx_->GetCurrentBlock(), ctx_->GetCurrentScope()->sv());
     ExprIRBuilder expr_builder(ctx_);
 
     // loop start
     NativeValue container_value_wrapper;
-    status = expr_builder.Build(node->for_in_node_->in_expression_,
-                                &container_value_wrapper);
+    status = expr_builder.Build(node->for_in_node_->in_expression_, &container_value_wrapper);
     if (!status.isOK()) {
         LOG(WARNING) << "fail to build for condition expression: " << status;
         return false;
@@ -210,21 +186,18 @@ bool BlockIRBuilder::BuildForInBlock(const ::hybridse::node::FnForInBlock *node,
     llvm::Value *container_value = container_value_wrapper.GetValue(ctx_);
 
     const hybridse::node::TypeNode *container_type_node = nullptr;
-    if (false == GetFullType(ctx_->node_manager(), container_value->getType(),
-                             &container_type_node) ||
+    if (false == GetFullType(ctx_->node_manager(), container_value->getType(), &container_type_node) ||
         hybridse::node::kList != container_type_node->base()) {
         status.msg = "fail to codegen list[pos]: invalid list type";
         status.code = common::kCodegenError;
         LOG(WARNING) << status;
         return false;
     }
-    const hybridse::node::TypeNode *elem_type_node =
-        container_type_node->generics_[0];
+    const hybridse::node::TypeNode *elem_type_node = container_type_node->generics_[0];
     const bool elem_nullable = false;
 
     llvm::Value *iterator = nullptr;
-    status = list_ir_builder.BuildIterator(container_value, elem_type_node,
-                                           &iterator);
+    status = list_ir_builder.BuildIterator(container_value, elem_type_node, &iterator);
     if (!status.isOK()) {
         LOG(WARNING) << "fail to build iterator expression: " << status;
         return false;
@@ -233,20 +206,15 @@ bool BlockIRBuilder::BuildForInBlock(const ::hybridse::node::FnForInBlock *node,
     status = ctx_->CreateWhile(
         [&](::llvm::Value **condition) {
             // build has next
-            ListIRBuilder list_ir_builder(ctx_->GetCurrentBlock(),
-                                          ctx_->GetCurrentScope()->sv());
-            return list_ir_builder.BuildIteratorHasNext(
-                iterator, elem_type_node, condition);
+            ListIRBuilder list_ir_builder(ctx_->GetCurrentBlock(), ctx_->GetCurrentScope()->sv());
+            return list_ir_builder.BuildIteratorHasNext(iterator, elem_type_node, condition);
         },
         [&]() {
             // build body
-            ListIRBuilder list_ir_builder(ctx_->GetCurrentBlock(),
-                                          ctx_->GetCurrentScope()->sv());
-            VariableIRBuilder var_ir_builder(ctx_->GetCurrentBlock(),
-                                             ctx_->GetCurrentScope()->sv());
+            ListIRBuilder list_ir_builder(ctx_->GetCurrentBlock(), ctx_->GetCurrentScope()->sv());
+            VariableIRBuilder var_ir_builder(ctx_->GetCurrentBlock(), ctx_->GetCurrentScope()->sv());
             NativeValue next;
-            CHECK_STATUS(list_ir_builder.BuildIteratorNext(
-                iterator, elem_type_node, elem_nullable, &next));
+            CHECK_STATUS(list_ir_builder.BuildIteratorNext(iterator, elem_type_node, elem_nullable, &next));
             auto var_key = node->for_in_node_->var_->GetExprString();
             if (!var_ir_builder.StoreValue(var_key, next, false, status)) {
                 return status;
@@ -259,11 +227,9 @@ bool BlockIRBuilder::BuildForInBlock(const ::hybridse::node::FnForInBlock *node,
         });
 
     // delete iterator
-    ListIRBuilder list_ir_builder_delete(ctx_->GetCurrentBlock(),
-                                         ctx_->GetCurrentScope()->sv());
+    ListIRBuilder list_ir_builder_delete(ctx_->GetCurrentBlock(), ctx_->GetCurrentScope()->sv());
     llvm::Value *ret_delete = nullptr;
-    status = list_ir_builder_delete.BuildIteratorDelete(
-        iterator, elem_type_node, &ret_delete);
+    status = list_ir_builder_delete.BuildIteratorDelete(iterator, elem_type_node, &ret_delete);
     return status.isOK();
 }
 
@@ -289,15 +255,13 @@ bool BlockIRBuilder::BuildReturnStmt(const ::hybridse::node::FnReturnStmt *node,
     ::llvm::Value *value = value_wrapper.GetValue(&builder);
     if (TypeIRBuilder::IsStructPtr(value->getType())) {
         StructTypeIRBuilder *struct_builder =
-            StructTypeIRBuilder::CreateStructTypeIRBuilder(block->getModule(),
-                                                           value->getType());
+            StructTypeIRBuilder::CreateStructTypeIRBuilder(block->getModule(), value->getType());
         NativeValue ret_value;
         if (!var_ir_builder.LoadRetStruct(&ret_value, status)) {
             LOG(WARNING) << "fail to load ret struct address";
             return false;
         }
-        if (!struct_builder->CopyFrom(block, value,
-                                      ret_value.GetValue(&builder))) {
+        if (!struct_builder->CopyFrom(block, value, ret_value.GetValue(&builder))) {
             return false;
         }
         value = builder.getInt1(true);
@@ -315,8 +279,7 @@ bool BlockIRBuilder::BuildAssignStmt(const ::hybridse::node::FnAssignNode *node,
         return false;
     }
     ExprIRBuilder builder(ctx_);
-    VariableIRBuilder variable_ir_builder(ctx_->GetCurrentBlock(),
-                                          ctx_->GetCurrentScope()->sv());
+    VariableIRBuilder variable_ir_builder(ctx_->GetCurrentBlock(), ctx_->GetCurrentScope()->sv());
     NativeValue value;
     status = builder.Build(node->expression_, &value);
     if (!status.isOK()) {

@@ -27,16 +27,15 @@ class MemoryChunk {
  public:
     MemoryChunk(MemoryChunk* next, size_t request_size)
         : next_(next),
-          chuck_size_(request_size > DEFAULT_CHUCK_SIZE ? request_size
-                                                        : DEFAULT_CHUCK_SIZE),
+          chuck_size_(request_size > DEFAULT_CHUCK_SIZE ? request_size : DEFAULT_CHUCK_SIZE),
           allocated_size_(0),
           mem_(new char[chuck_size_]) {
-        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "("
-                   << reinterpret_cast<void*>(this) << ")" << std::endl;
+        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "(" << reinterpret_cast<void*>(this) << ")"
+                   << std::endl;
     }
     ~MemoryChunk() {
-        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "("
-                   << reinterpret_cast<void*>(this) << ")" << std::endl;
+        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "(" << reinterpret_cast<void*>(this) << ")"
+                   << std::endl;
         delete[] mem_;
     }
     inline size_t available_size() { return chuck_size_ - allocated_size_; }
@@ -60,16 +59,15 @@ class MemoryChunk {
 };
 class ByteMemoryPool {
  public:
-    explicit ByteMemoryPool(size_t init_size = MemoryChunk::DEFAULT_CHUCK_SIZE)
-        : chucks_(nullptr) {
-        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "("
-                   << reinterpret_cast<void*>(this) << ")" << std::endl;
+    explicit ByteMemoryPool(size_t init_size = MemoryChunk::DEFAULT_CHUCK_SIZE) : chucks_(nullptr) {
+        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "(" << reinterpret_cast<void*>(this) << ")"
+                   << std::endl;
 
         ExpandStorage(init_size);
     }
     ~ByteMemoryPool() {
-        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "("
-                   << reinterpret_cast<void*>(this) << ")" << std::endl;
+        DLOG(INFO) << std::this_thread::get_id() << " " << __FUNCTION__ << "(" << reinterpret_cast<void*>(this) << ")"
+                   << std::endl;
         Reset();
     }
     char* Alloc(size_t request_size) {
@@ -89,9 +87,7 @@ class ByteMemoryPool {
             chuck = chucks_;
         }
     }
-    void ExpandStorage(size_t request_size) {
-        chucks_ = new MemoryChunk(chucks_, request_size);
-    }
+    void ExpandStorage(size_t request_size) { chucks_ = new MemoryChunk(chucks_, request_size); }
 
  private:
     MemoryChunk* chucks_;

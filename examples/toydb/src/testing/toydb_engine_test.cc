@@ -39,8 +39,7 @@ TEST_P(EngineTest, test_batch_engine) {
     ParamType sql_case = GetParam();
     EngineOptions options;
     LOG(INFO) << "ID: " << sql_case.id() << ", DESC: " << sql_case.desc();
-    if (!boost::contains(sql_case.mode(), "batch-unsupport") &&
-        !boost::contains(sql_case.mode(), "rtidb-unsupport") &&
+    if (!boost::contains(sql_case.mode(), "batch-unsupport") && !boost::contains(sql_case.mode(), "rtidb-unsupport") &&
         !boost::contains(sql_case.mode(), "rtidb-batch-unsupport")) {
         EngineCheck(sql_case, options, kBatchMode);
     } else {

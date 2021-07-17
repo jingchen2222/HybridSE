@@ -22,26 +22,21 @@ namespace hybridse {
 namespace bm {
 using namespace ::llvm;  // NOLINT
 
-static void BM_EngineRequestSimpleSelectVarchar(
-    benchmark::State& state) {  // NOLINT
+static void BM_EngineRequestSimpleSelectVarchar(benchmark::State& state) {  // NOLINT
     EngineRequestSimpleSelectVarchar(&state, BENCHMARK);
 }
-static void BM_EngineRequestSimpleSelectDouble(
-    benchmark::State& state) {  // NOLINT
+static void BM_EngineRequestSimpleSelectDouble(benchmark::State& state) {  // NOLINT
     EngineRequestSimpleSelectDouble(&state, BENCHMARK);
 }
-static void BM_EngineRequestSimpleSelectInt32(
-    benchmark::State& state) {  // NOLINT
+static void BM_EngineRequestSimpleSelectInt32(benchmark::State& state) {  // NOLINT
     EngineRequestSimpleSelectInt32(&state, BENCHMARK);
 }
 
-static void BM_EngineRequestSimpleSelectTimestamp(
-    benchmark::State& state) {  // NOLINT
+static void BM_EngineRequestSimpleSelectTimestamp(benchmark::State& state) {  // NOLINT
     EngineRequestSimpleSelectTimestamp(&state, BENCHMARK);
 }
 
-static void BM_EngineRequestSimpleSelectDate(
-    benchmark::State& state) {  // NOLINT
+static void BM_EngineRequestSimpleSelectDate(benchmark::State& state) {  // NOLINT
     EngineRequestSimpleSelectDate(&state, BENCHMARK);
 }
 static void BM_EngineRequestSimpleUDF(benchmark::State& state) {  // NOLINT
@@ -56,53 +51,37 @@ static void BM_EngineWindowSumFeature5(benchmark::State& state) {  // NOLINT
     EngineWindowSumFeature5(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
-static void BM_EngineWindowSumFeature1ExcludeCurrentTime(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowSumFeature1ExcludeCurrentTime(&state, BENCHMARK, state.range(0),
-                                              state.range(1));
+static void BM_EngineWindowSumFeature1ExcludeCurrentTime(benchmark::State& state) {  // NOLINT
+    EngineWindowSumFeature1ExcludeCurrentTime(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
-static void BM_EngineWindowSumFeature5ExcludeCurrentTime(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowSumFeature5ExcludeCurrentTime(&state, BENCHMARK, state.range(0),
-                                              state.range(1));
+static void BM_EngineWindowSumFeature5ExcludeCurrentTime(benchmark::State& state) {  // NOLINT
+    EngineWindowSumFeature5ExcludeCurrentTime(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
-static void BM_EngineWindowSumFeature5Window5(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowSumFeature5Window5(&state, BENCHMARK, state.range(0),
-                                   state.range(1));
+static void BM_EngineWindowSumFeature5Window5(benchmark::State& state) {  // NOLINT
+    EngineWindowSumFeature5Window5(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineWindowDistinctCntFeature(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowDistinctCntFeature(&state, BENCHMARK, state.range(0),
-                                   state.range(1));
+static void BM_EngineWindowDistinctCntFeature(benchmark::State& state) {  // NOLINT
+    EngineWindowDistinctCntFeature(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
-static void BM_EngineWindowTop1RatioFeature(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowTop1RatioFeature(&state, BENCHMARK, state.range(0),
-                                 state.range(1));
+static void BM_EngineWindowTop1RatioFeature(benchmark::State& state) {  // NOLINT
+    EngineWindowTop1RatioFeature(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
 static void BM_MapTop(benchmark::State& state) {  // NOLINT
     MapTop1(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
-static void BM_EngineWindowMultiAggFeature5(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowMultiAggFeature5(&state, BENCHMARK, state.range(0),
-                                 state.range(1));
+static void BM_EngineWindowMultiAggFeature5(benchmark::State& state) {  // NOLINT
+    EngineWindowMultiAggFeature5(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineWindowMultiAggWindow25Feature25(
-    benchmark::State& state) {  // NOLINT
-    EngineWindowMultiAggWindow25Feature25(&state, BENCHMARK, state.range(0),
-                                          state.range(1));
+static void BM_EngineWindowMultiAggWindow25Feature25(benchmark::State& state) {  // NOLINT
+    EngineWindowMultiAggWindow25Feature25(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineRunBatchWindowMultiAggWindow25Feature25(
-    benchmark::State& state) {  // NOLINT
-    EngineRunBatchWindowMultiAggWindow25Feature25(
-        &state, BENCHMARK, state.range(0), state.range(1));
+static void BM_EngineRunBatchWindowMultiAggWindow25Feature25(benchmark::State& state) {  // NOLINT
+    EngineRunBatchWindowMultiAggWindow25Feature25(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
 static void BM_EngineSimpleSelectVarchar(benchmark::State& state) {  // NOLINT
@@ -124,30 +103,20 @@ static void BM_EngineSimpleUDF(benchmark::State& state) {  // NOLINT
     EngineSimpleUDF(&state, BENCHMARK);
 }
 
-static void BM_EngineRunBatchWindowSumFeature1(
-    benchmark::State& state) {  // NOLINT
-    EngineRunBatchWindowSumFeature1(&state, BENCHMARK, state.range(0),
-                                    state.range(1));
+static void BM_EngineRunBatchWindowSumFeature1(benchmark::State& state) {  // NOLINT
+    EngineRunBatchWindowSumFeature1(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineRunBatchWindowSumFeature5(
-    benchmark::State& state) {  // NOLINT
-    EngineRunBatchWindowSumFeature5(&state, BENCHMARK, state.range(0),
-                                    state.range(1));
+static void BM_EngineRunBatchWindowSumFeature5(benchmark::State& state) {  // NOLINT
+    EngineRunBatchWindowSumFeature5(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineRunBatchWindowSumFeature1ExcludeCurrentTime(
-    benchmark::State& state) {  // NOLINT
-    EngineRunBatchWindowSumFeature1ExcludeCurrentTime(
-        &state, BENCHMARK, state.range(0), state.range(1));
+static void BM_EngineRunBatchWindowSumFeature1ExcludeCurrentTime(benchmark::State& state) {  // NOLINT
+    EngineRunBatchWindowSumFeature1ExcludeCurrentTime(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineRunBatchWindowSumFeature5ExcludeCurrentTime(
-    benchmark::State& state) {  // NOLINT
-    EngineRunBatchWindowSumFeature5ExcludeCurrentTime(
-        &state, BENCHMARK, state.range(0), state.range(1));
+static void BM_EngineRunBatchWindowSumFeature5ExcludeCurrentTime(benchmark::State& state) {  // NOLINT
+    EngineRunBatchWindowSumFeature5ExcludeCurrentTime(&state, BENCHMARK, state.range(0), state.range(1));
 }
-static void BM_EngineRunBatchWindowSumFeature5Window5(
-    benchmark::State& state) {  // NOLINT
-    EngineRunBatchWindowSumFeature5Window5(&state, BENCHMARK, state.range(0),
-                                           state.range(1));
+static void BM_EngineRunBatchWindowSumFeature5Window5(benchmark::State& state) {  // NOLINT
+    EngineRunBatchWindowSumFeature5Window5(&state, BENCHMARK, state.range(0), state.range(1));
 }
 
 // request engine simple bm
@@ -188,13 +157,7 @@ BENCHMARK(BM_EngineWindowSumFeature5)
     ->Args({1000, 1000})
     ->Args({10000, 10000});
 
-BENCHMARK(BM_MapTop)
-    ->Args({1, 2})
-    ->Args({1, 10})
-    ->Args({1, 100})
-    ->Args({1, 1000})
-    ->Args({1, 2000})
-    ->Args({1, 10000});
+BENCHMARK(BM_MapTop)->Args({1, 2})->Args({1, 10})->Args({1, 100})->Args({1, 1000})->Args({1, 2000})->Args({1, 10000});
 
 BENCHMARK(BM_EngineWindowDistinctCntFeature)
     ->Args({1, 2})

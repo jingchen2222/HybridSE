@@ -348,14 +348,12 @@ void BuildT2Rows(::hybridse::type::TableDef& table,  // NOLINT
         rows.push_back(Row(base::RefCountedSlice::Create(ptr, total_size)));
     }
 }
-void ExtractExprListFromSimpleSql(::hybridse::node::NodeManager* nm,
-                                  const std::string& sql,
+void ExtractExprListFromSimpleSql(::hybridse::node::NodeManager* nm, const std::string& sql,
                                   node::ExprListNode* output) {
     std::cout << sql << std::endl;
     ::hybridse::node::PlanNodeList plan_trees;
     ::hybridse::base::Status base_status;
-    if (::hybridse::plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, nm,
-                                                            base_status)) {
+    if (::hybridse::plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, nm, base_status)) {
         std::cout << base_status.str();
         std::cout << *(plan_trees[0]) << std::endl;
     } else {
@@ -365,25 +363,20 @@ void ExtractExprListFromSimpleSql(::hybridse::node::NodeManager* nm,
     std::cout.flush();
 
     ASSERT_EQ(node::kPlanTypeProject, plan_trees[0]->GetChildren()[0]->type_);
-    auto project_plan_node =
-        dynamic_cast<node::ProjectPlanNode*>(plan_trees[0]->GetChildren()[0]);
+    auto project_plan_node = dynamic_cast<node::ProjectPlanNode*>(plan_trees[0]->GetChildren()[0]);
     ASSERT_EQ(1u, project_plan_node->project_list_vec_.size());
 
-    auto project_list = dynamic_cast<node::ProjectListNode*>(
-        project_plan_node->project_list_vec_[0]);
+    auto project_list = dynamic_cast<node::ProjectListNode*>(project_plan_node->project_list_vec_[0]);
     for (auto project : project_list->GetProjects()) {
-        output->AddChild(
-            dynamic_cast<node::ProjectNode*>(project)->GetExpression());
+        output->AddChild(dynamic_cast<node::ProjectNode*>(project)->GetExpression());
     }
 }
-void ExtractExprFromSimpleSql(::hybridse::node::NodeManager* nm,
-                              const std::string& sql, node::ExprNode** output) {
+void ExtractExprFromSimpleSql(::hybridse::node::NodeManager* nm, const std::string& sql, node::ExprNode** output) {
     std::cout << sql << std::endl;
     ::hybridse::node::PlanNodeList plan_trees;
     ::hybridse::base::Status base_status;
     ASSERT_EQ(0, base_status.code);
-    if (::hybridse::plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, nm,
-                                                            base_status)) {
+    if (::hybridse::plan::PlanAPI::CreatePlanTreeFromScript(sql, plan_trees, nm, base_status)) {
         std::cout << base_status.str();
         std::cout << *(plan_trees[0]) << std::endl;
     } else {
@@ -393,14 +386,11 @@ void ExtractExprFromSimpleSql(::hybridse::node::NodeManager* nm,
     std::cout.flush();
 
     ASSERT_EQ(node::kPlanTypeProject, plan_trees[0]->GetChildren()[0]->type_);
-    auto project_plan_node =
-        dynamic_cast<node::ProjectPlanNode*>(plan_trees[0]->GetChildren()[0]);
+    auto project_plan_node = dynamic_cast<node::ProjectPlanNode*>(plan_trees[0]->GetChildren()[0]);
     ASSERT_EQ(1u, project_plan_node->project_list_vec_.size());
 
-    auto project_list = dynamic_cast<node::ProjectListNode*>(
-        project_plan_node->project_list_vec_[0]);
-    auto project =
-        dynamic_cast<node::ProjectNode*>(project_list->GetProjects()[0]);
+    auto project_list = dynamic_cast<node::ProjectListNode*>(project_plan_node->project_list_vec_[0]);
+    auto project = dynamic_cast<node::ProjectNode*>(project_list->GetProjects()[0]);
     *output = project->GetExpression();
 }
 bool AddTable(hybridse::type::Database& db,  // NOLINT
@@ -408,19 +398,16 @@ bool AddTable(hybridse::type::Database& db,  // NOLINT
     *(db.add_tables()) = table_def;
     return true;
 }
-std::shared_ptr<SimpleCatalog> BuildSimpleCatalog(
-    const hybridse::type::Database& database) {
+std::shared_ptr<SimpleCatalog> BuildSimpleCatalog(const hybridse::type::Database& database) {
     std::shared_ptr<SimpleCatalog> catalog(new SimpleCatalog(true));
     catalog->AddDatabase(database);
     return catalog;
 }
-std::shared_ptr<SimpleCatalog> BuildSimpleCatalog() {
-    return std::make_shared<SimpleCatalog>(true);
-}
+std::shared_ptr<SimpleCatalog> BuildSimpleCatalog() { return std::make_shared<SimpleCatalog>(true); }
 bool InitSimpleCataLogFromSqlCase(SqlCase& sql_case,  // NOLINT
                                   std::shared_ptr<SimpleCatalog> catalog) {
     if (sql_case.db_.empty()) {
-        sql_case.db_ =  sqlcase::SqlCase::GenRand("auto_db");
+        sql_case.db_ = sqlcase::SqlCase::GenRand("auto_db");
     }
     hybridse::type::Database db;
     db.set_name(sql_case.db());

@@ -18,16 +18,10 @@
 #include <algorithm>
 namespace hybridse {
 namespace vm {
-MemTimeTableIterator::MemTimeTableIterator(const MemTimeTable* table,
-                                           const vm::Schema* schema)
-    : table_(table),
-      schema_(schema),
-      start_iter_(table->cbegin()),
-      end_iter_(table->cend()),
-      iter_(table->cbegin()) {}
-MemTimeTableIterator::MemTimeTableIterator(const MemTimeTable* table,
-                                           const vm::Schema* schema,
-                                           int32_t start, int32_t end)
+MemTimeTableIterator::MemTimeTableIterator(const MemTimeTable* table, const vm::Schema* schema)
+    : table_(table), schema_(schema), start_iter_(table->cbegin()), end_iter_(table->cend()), iter_(table->cbegin()) {}
+MemTimeTableIterator::MemTimeTableIterator(const MemTimeTable* table, const vm::Schema* schema, int32_t start,
+                                           int32_t end)
     : table_(table),
       schema_(schema),
       start_iter_(table_->begin() + start),
@@ -47,14 +41,11 @@ void MemTimeTableIterator::Seek(const uint64_t& ts) {
 }
 void MemTimeTableIterator::SeekToFirst() { iter_ = start_iter_; }
 const uint64_t& MemTimeTableIterator::GetKey() const { return iter_->first; }
-const Row& hybridse::vm::MemTimeTableIterator::GetValue() {
-    return iter_->second;
-}
+const Row& hybridse::vm::MemTimeTableIterator::GetValue() { return iter_->second; }
 void MemTimeTableIterator::Next() { iter_++; }
 bool MemTimeTableIterator::Valid() const { return end_iter_ > iter_; }
 bool MemTimeTableIterator::IsSeekable() const { return true; }
-MemWindowIterator::MemWindowIterator(const MemSegmentMap* partitions,
-                                     const Schema* schema)
+MemWindowIterator::MemWindowIterator(const MemSegmentMap* partitions, const Schema* schema)
     : WindowIterator(),
       partitions_(partitions),
       schema_(schema),
@@ -64,20 +55,15 @@ MemWindowIterator::MemWindowIterator(const MemSegmentMap* partitions,
 
 MemWindowIterator::~MemWindowIterator() {}
 
-void MemWindowIterator::Seek(const std::string& key) {
-    iter_ = partitions_->find(key);
-}
+void MemWindowIterator::Seek(const std::string& key) { iter_ = partitions_->find(key); }
 void MemWindowIterator::SeekToFirst() { iter_ = start_iter_; }
 void MemWindowIterator::Next() { iter_++; }
 bool MemWindowIterator::Valid() { return end_iter_ != iter_; }
 std::unique_ptr<RowIterator> MemWindowIterator::GetValue() {
-    return std::unique_ptr<RowIterator>(
-        new MemTimeTableIterator(&(iter_->second), schema_));
+    return std::unique_ptr<RowIterator>(new MemTimeTableIterator(&(iter_->second), schema_));
 }
 
-RowIterator* MemWindowIterator::GetRawValue() {
-    return new MemTimeTableIterator(&(iter_->second), schema_);
-}
+RowIterator* MemWindowIterator::GetRawValue() { return new MemTimeTableIterator(&(iter_->second), schema_); }
 
 const Row MemWindowIterator::GetKey() { return Row(iter_->first); }
 
@@ -99,9 +85,7 @@ MemTimeTableHandler::MemTimeTableHandler(const Schema* schema)
       index_hint_(),
       table_(),
       order_type_(kNoneOrder) {}
-MemTimeTableHandler::MemTimeTableHandler(const std::string& table_name,
-                                         const std::string& db,
-                                         const Schema* schema)
+MemTimeTableHandler::MemTimeTableHandler(const std::string& table_name, const std::string& db, const Schema* schema)
     : TableHandler(),
       table_name_(table_name),
       db_(db),
@@ -113,18 +97,14 @@ MemTimeTableHandler::MemTimeTableHandler(const std::string& table_name,
 
 MemTimeTableHandler::~MemTimeTableHandler() {}
 std::unique_ptr<RowIterator> MemTimeTableHandler::GetIterator() {
-    std::unique_ptr<MemTimeTableIterator> it(
-        new MemTimeTableIterator(&table_, schema_));
+    std::unique_ptr<MemTimeTableIterator> it(new MemTimeTableIterator(&table_, schema_));
     return std::move(it);
 }
-std::unique_ptr<WindowIterator> MemTimeTableHandler::GetWindowIterator(
-    const std::string& idx_name) {
+std::unique_ptr<WindowIterator> MemTimeTableHandler::GetWindowIterator(const std::string& idx_name) {
     return std::unique_ptr<WindowIterator>();
 }
 
-void MemTimeTableHandler::AddRow(const uint64_t key, const Row& row) {
-    table_.emplace_back(std::make_pair(key, row));
-}
+void MemTimeTableHandler::AddRow(const uint64_t key, const Row& row) { table_.emplace_back(std::make_pair(key, row)); }
 
 void MemTimeTableHandler::AddFrontRow(const uint64_t key, const Row& row) {
     table_.emplace_front(std::make_pair(key, row));
@@ -148,55 +128,34 @@ void MemTimeTableHandler::Sort(const bool is_asc) {
 }
 void MemTimeTableHandler::Reverse() {
     std::reverse(table_.begin(), table_.end());
-    order_type_ = kAscOrder == order_type_
-                      ? kDescOrder
-                      : kDescOrder == order_type_ ? kAscOrder : kNoneOrder;
+    order_type_ = kAscOrder == order_type_ ? kDescOrder : kDescOrder == order_type_ ? kAscOrder : kNoneOrder;
 }
-RowIterator* MemTimeTableHandler::GetRawIterator() {
-    return new MemTimeTableIterator(&table_, schema_);
-}
+RowIterator* MemTimeTableHandler::GetRawIterator() { return new MemTimeTableIterator(&table_, schema_); }
 
 MemPartitionHandler::MemPartitionHandler()
-    : PartitionHandler(),
-      table_name_(""),
-      db_(""),
-      schema_(nullptr),
-      order_type_(kNoneOrder) {}
+    : PartitionHandler(), table_name_(""), db_(""), schema_(nullptr), order_type_(kNoneOrder) {}
 
 MemPartitionHandler::MemPartitionHandler(const Schema* schema)
-    : PartitionHandler(),
-      table_name_(""),
-      db_(""),
-      schema_(schema),
-      order_type_(kNoneOrder) {}
-MemPartitionHandler::MemPartitionHandler(const std::string& table_name,
-                                         const std::string& db,
-                                         const Schema* schema)
-    : PartitionHandler(),
-      table_name_(table_name),
-      db_(db),
-      schema_(schema),
-      order_type_(kNoneOrder) {}
+    : PartitionHandler(), table_name_(""), db_(""), schema_(schema), order_type_(kNoneOrder) {}
+MemPartitionHandler::MemPartitionHandler(const std::string& table_name, const std::string& db, const Schema* schema)
+    : PartitionHandler(), table_name_(table_name), db_(db), schema_(schema), order_type_(kNoneOrder) {}
 MemPartitionHandler::~MemPartitionHandler() {}
 const Schema* MemPartitionHandler::GetSchema() { return schema_; }
 const std::string& MemPartitionHandler::GetName() { return table_name_; }
 const std::string& MemPartitionHandler::GetDatabase() { return db_; }
 const Types& MemPartitionHandler::GetTypes() { return types_; }
 const IndexHint& MemPartitionHandler::GetIndex() { return index_hint_; }
-bool MemPartitionHandler::AddRow(const std::string& key, uint64_t ts,
-                                 const Row& row) {
+bool MemPartitionHandler::AddRow(const std::string& key, uint64_t ts, const Row& row) {
     auto iter = partitions_.find(key);
     if (iter == partitions_.cend()) {
-        partitions_.insert(std::pair<std::string, MemTimeTable>(
-            key, {std::make_pair(ts, row)}));
+        partitions_.insert(std::pair<std::string, MemTimeTable>(key, {std::make_pair(ts, row)}));
     } else {
         iter->second.push_back(std::make_pair(ts, row));
     }
     return true;
 }
 std::unique_ptr<WindowIterator> MemPartitionHandler::GetWindowIterator() {
-    return std::unique_ptr<WindowIterator>(
-        new MemWindowIterator(&partitions_, schema_));
+    return std::unique_ptr<WindowIterator>(new MemWindowIterator(&partitions_, schema_));
 }
 void MemPartitionHandler::Sort(const bool is_asc) {
     if (is_asc) {
@@ -217,33 +176,26 @@ void MemPartitionHandler::Reverse() {
     for (auto& segment : partitions_) {
         std::reverse(segment.second.begin(), segment.second.end());
     }
-    order_type_ = kAscOrder == order_type_
-                      ? kDescOrder
-                      : kDescOrder == order_type_ ? kAscOrder : kNoneOrder;
+    order_type_ = kAscOrder == order_type_ ? kDescOrder : kDescOrder == order_type_ ? kAscOrder : kNoneOrder;
 }
 void MemPartitionHandler::Print() {
     for (auto iter = partitions_.cbegin(); iter != partitions_.cend(); iter++) {
         std::cout << iter->first << ":";
-        for (auto segment_iter = iter->second.cbegin();
-             segment_iter != iter->second.cend(); segment_iter++) {
+        for (auto segment_iter = iter->second.cbegin(); segment_iter != iter->second.cend(); segment_iter++) {
             std::cout << segment_iter->first << ",";
         }
         std::cout << std::endl;
     }
 }
 
-std::unique_ptr<WindowIterator> MemTableHandler::GetWindowIterator(
-    const std::string& idx_name) {
+std::unique_ptr<WindowIterator> MemTableHandler::GetWindowIterator(const std::string& idx_name) {
     return std::unique_ptr<WindowIterator>();
 }
 std::unique_ptr<RowIterator> MemTableHandler::GetIterator() {
-    std::unique_ptr<MemTableIterator> it(
-        new MemTableIterator(&table_, schema_));
+    std::unique_ptr<MemTableIterator> it(new MemTableIterator(&table_, schema_));
     return std::move(it);
 }
-RowIterator* MemTableHandler::GetRawIterator() {
-    return new MemTableIterator(&table_, schema_);
-}
+RowIterator* MemTableHandler::GetRawIterator() { return new MemTableIterator(&table_, schema_); }
 
 MemTableHandler::MemTableHandler()
     : TableHandler(),
@@ -263,8 +215,7 @@ MemTableHandler::MemTableHandler(const Schema* schema)
       index_hint_(),
       table_(),
       order_type_(kNoneOrder) {}
-MemTableHandler::MemTableHandler(const std::string& table_name,
-                                 const std::string& db, const Schema* schema)
+MemTableHandler::MemTableHandler(const std::string& table_name, const std::string& db, const Schema* schema)
     : TableHandler(),
       table_name_(table_name),
       db_(db),
@@ -284,22 +235,17 @@ bool MemTableHandler::SetRow(const size_t idx, const Row& row) {
 }
 void MemTableHandler::Reverse() {
     std::reverse(table_.begin(), table_.end());
-    order_type_ = kAscOrder == order_type_
-                      ? kDescOrder
-                      : kDescOrder == order_type_ ? kAscOrder : kNoneOrder;
+    order_type_ = kAscOrder == order_type_ ? kDescOrder : kDescOrder == order_type_ ? kAscOrder : kNoneOrder;
 }
 MemTableHandler::~MemTableHandler() {}
-MemTableIterator::MemTableIterator(const MemTable* table,
-                                   const vm::Schema* schema)
+MemTableIterator::MemTableIterator(const MemTable* table, const vm::Schema* schema)
     : table_(table),
       schema_(schema),
       start_iter_(table->cbegin()),
       end_iter_(table->cend()),
       iter_(table->cbegin()),
       key_(0) {}
-MemTableIterator::MemTableIterator(const MemTable* table,
-                                   const vm::Schema* schema, int32_t start,
-                                   int32_t end)
+MemTableIterator::MemTableIterator(const MemTable* table, const vm::Schema* schema, int32_t start, int32_t end)
     : table_(table),
       schema_(schema),
       start_iter_(table_->begin() + start),
@@ -330,15 +276,10 @@ bool MemTableIterator::IsSeekable() const { return true; }
  */
 class RequestUnionIterator : public RowIterator {
  public:
-    RequestUnionIterator(uint64_t request_ts, const Row* request_row,
-                         RowIterator* window_iter)
-        : request_ts_(request_ts),
-          request_row_(request_row),
-          window_iter_(window_iter) {}
+    RequestUnionIterator(uint64_t request_ts, const Row* request_row, RowIterator* window_iter)
+        : request_ts_(request_ts), request_row_(request_row), window_iter_(window_iter) {}
     ~RequestUnionIterator() { delete window_iter_; }
-    bool Valid() const override {
-        return window_iter_start_ ? window_iter_->Valid() : true;
-    }
+    bool Valid() const override { return window_iter_start_ ? window_iter_->Valid() : true; }
     void Next() override {
         if (window_iter_start_) {
             window_iter_->Next();
@@ -346,12 +287,8 @@ class RequestUnionIterator : public RowIterator {
             window_iter_start_ = true;
         }
     }
-    const uint64_t& GetKey() const override {
-        return window_iter_start_ ? window_iter_->GetKey() : request_ts_;
-    }
-    const Row& GetValue() override {
-        return window_iter_start_ ? window_iter_->GetValue() : *request_row_;
-    }
+    const uint64_t& GetKey() const override { return window_iter_start_ ? window_iter_->GetKey() : request_ts_; }
+    const Row& GetValue() override { return window_iter_start_ ? window_iter_->GetValue() : *request_row_; }
     void Seek(const uint64_t& key) override {
         if (request_ts_ <= key) {
             SeekToFirst();
@@ -386,35 +323,29 @@ RowIterator* RequestUnionTableHandler::GetRawIterator() {
 void GetRowIter(int8_t* input, int8_t* iter_addr) {
     auto list_ref = reinterpret_cast<codec::ListRef<Row>*>(input);
     auto handler = reinterpret_cast<codec::ListV<Row>*>(list_ref->list);
-    auto local_iter =
-        new (iter_addr) std::unique_ptr<RowIterator>(handler->GetIterator());
+    auto local_iter = new (iter_addr) std::unique_ptr<RowIterator>(handler->GetIterator());
     (*local_iter)->SeekToFirst();
 }
 bool RowIterHasNext(int8_t* iter_ptr) {
-    auto& local_iter =
-        *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
+    auto& local_iter = *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
     return local_iter->Valid();
 }
 void RowIterNext(int8_t* iter_ptr) {
-    auto& local_iter =
-        *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
+    auto& local_iter = *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
     local_iter->Next();
 }
 int8_t* RowIterGetCurSlice(int8_t* iter_ptr, size_t idx) {
-    auto& local_iter =
-        *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
+    auto& local_iter = *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
     const Row& row = local_iter->GetValue();
     return row.buf(idx);
 }
 size_t RowIterGetCurSliceSize(int8_t* iter_ptr, size_t idx) {
-    auto& local_iter =
-        *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
+    auto& local_iter = *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
     const Row& row = local_iter->GetValue();
     return row.size(idx);
 }
 void RowIterDelete(int8_t* iter_ptr) {
-    auto& local_iter =
-        *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
+    auto& local_iter = *reinterpret_cast<std::unique_ptr<RowIterator>*>(iter_ptr);
     local_iter = nullptr;
 }
 int8_t* RowGetSlice(int8_t* row_ptr, size_t idx) {

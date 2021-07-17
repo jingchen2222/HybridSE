@@ -34,62 +34,43 @@ using hybridse::vm::TableHandler;
 
 class GroupAndSortOptimized : public TransformUpPysicalPass {
  public:
-    explicit GroupAndSortOptimized(PhysicalPlanContext* plan_ctx)
-        : TransformUpPysicalPass(plan_ctx) {}
+    explicit GroupAndSortOptimized(PhysicalPlanContext* plan_ctx) : TransformUpPysicalPass(plan_ctx) {}
 
     ~GroupAndSortOptimized() {}
 
  private:
     bool Transform(PhysicalOpNode* in, PhysicalOpNode** output);
 
-    bool KeysOptimized(const SchemasContext* root_schemas_ctx,
-                       PhysicalOpNode* in, Key* left_key, Key* index_key,
+    bool KeysOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Key* left_key, Key* index_key,
                        Key* right_key, Sort* sort, PhysicalOpNode** new_in);
 
-    bool FilterAndOrderOptimized(const SchemasContext* root_schemas_ctx,
-                                 PhysicalOpNode* in, Filter* filter, Sort* sort,
+    bool FilterAndOrderOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Filter* filter, Sort* sort,
                                  PhysicalOpNode** new_in);
 
-    bool KeyAndOrderOptimized(const SchemasContext* root_schemas_ctx,
-                              PhysicalOpNode* in, Key* group, Sort* sort,
+    bool KeyAndOrderOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Key* group, Sort* sort,
                               PhysicalOpNode** new_in);
 
-    bool KeysAndOrderFilterOptimized(const SchemasContext* root_schemas_ctx,
-                                     PhysicalOpNode* in, Key* group, Key* hash,
+    bool KeysAndOrderFilterOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Key* group, Key* hash,
                                      Sort* sort, PhysicalOpNode** new_in);
 
-    bool FilterOptimized(const SchemasContext* root_schemas_ctx,
-                         PhysicalOpNode* in, Filter* filter,
+    bool FilterOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Filter* filter,
                          PhysicalOpNode** new_in);
-    bool JoinKeysOptimized(const SchemasContext* schemas_ctx,
-                           PhysicalOpNode* in, Join* join,
-                           PhysicalOpNode** new_in);
-    bool KeysFilterOptimized(const SchemasContext* root_schemas_ctx,
-                             PhysicalOpNode* in, Key* group, Key* hash,
+    bool JoinKeysOptimized(const SchemasContext* schemas_ctx, PhysicalOpNode* in, Join* join, PhysicalOpNode** new_in);
+    bool KeysFilterOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Key* group, Key* hash,
                              PhysicalOpNode** new_in);
-    bool GroupOptimized(const SchemasContext* root_schemas_ctx,
-                        PhysicalOpNode* in, Key* group,
+    bool GroupOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Key* group,
                         PhysicalOpNode** new_in);
-    bool SortOptimized(const SchemasContext* root_schemas_ctx,
-                       PhysicalOpNode* in, Sort* sort);
-    bool TransformGroupExpr(const SchemasContext* schemas_ctx,
-                            const node::ExprListNode* group,
-                            std::shared_ptr<TableHandler> table_handler,
-                            std::string* index, std::vector<bool>* best_bitmap);
-    bool TransformOrderExpr(const SchemasContext* schemas_ctx,
-                            const node::OrderByNode* order,
-                            const Schema& schema, const IndexSt& index_st,
-                            const node::OrderByNode** output);
-    bool TransformKeysAndOrderExpr(const SchemasContext* schemas_ctx,
-                                   const node::ExprListNode* groups,
-                                   const node::OrderByNode* order,
-                                   std::shared_ptr<TableHandler> table_handler,
-                                   std::string* index,
-                                   std::vector<bool>* best_bitmap);
-    bool MatchBestIndex(const std::vector<std::string>& columns,
-                        const std::vector<std::string>& order_columns,
-                        std::shared_ptr<TableHandler> table_handler,
-                        std::vector<bool>* bitmap, std::string* index_name,
+    bool SortOptimized(const SchemasContext* root_schemas_ctx, PhysicalOpNode* in, Sort* sort);
+    bool TransformGroupExpr(const SchemasContext* schemas_ctx, const node::ExprListNode* group,
+                            std::shared_ptr<TableHandler> table_handler, std::string* index,
+                            std::vector<bool>* best_bitmap);
+    bool TransformOrderExpr(const SchemasContext* schemas_ctx, const node::OrderByNode* order, const Schema& schema,
+                            const IndexSt& index_st, const node::OrderByNode** output);
+    bool TransformKeysAndOrderExpr(const SchemasContext* schemas_ctx, const node::ExprListNode* groups,
+                                   const node::OrderByNode* order, std::shared_ptr<TableHandler> table_handler,
+                                   std::string* index, std::vector<bool>* best_bitmap);
+    bool MatchBestIndex(const std::vector<std::string>& columns, const std::vector<std::string>& order_columns,
+                        std::shared_ptr<TableHandler> table_handler, std::vector<bool>* bitmap, std::string* index_name,
                         std::vector<bool>* best_bitmap);  // NOLINT
 };
 }  // namespace passes

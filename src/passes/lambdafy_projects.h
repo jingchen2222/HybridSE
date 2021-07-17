@@ -54,8 +54,7 @@ class LambdafyProjects {
      * "*" is expanded to all columns of input thus the final output
      * expressions num maybe larger than original projects num.
      */
-    Status Transform(const std::vector<const node::ExprNode*>& exprs,
-                     node::LambdaNode** out_lambda,
+    Status Transform(const std::vector<const node::ExprNode*>& exprs, node::LambdaNode** out_lambda,
                      std::vector<int>* require_agg);
 
     /**
@@ -66,16 +65,13 @@ class LambdafyProjects {
      * Return transformed expression and fill two flags:
      *   "has_agg": Whether there exist agg expr node in output tree.
      */
-    Status VisitExpr(node::ExprNode* expr, node::ExprIdNode* row_arg,
-                     node::ExprIdNode* window_arg, node::ExprNode** out,
-                     bool* has_agg);
+    Status VisitExpr(node::ExprNode* expr, node::ExprIdNode* row_arg, node::ExprIdNode* window_arg,
+                     node::ExprNode** out, bool* has_agg);
 
-    Status VisitLeafExpr(node::ExprNode* expr, node::ExprIdNode* row_arg,
-                         node::ExprNode** out);
+    Status VisitLeafExpr(node::ExprNode* expr, node::ExprIdNode* row_arg, node::ExprNode** out);
 
-    Status VisitAggExpr(node::CallExprNode* call, node::ExprIdNode* row_arg,
-                        node::ExprIdNode* window_arg, node::ExprNode** out,
-                        bool* is_window_agg);
+    Status VisitAggExpr(node::CallExprNode* call, node::ExprIdNode* row_arg, node::ExprIdNode* window_arg,
+                        node::ExprNode** out, bool* is_window_agg);
 
  private:
     node::ExprAnalysisContext* ctx_;
@@ -83,8 +79,7 @@ class LambdafyProjects {
     // to make compatible with legacy agg builder
     bool FallBackToLegacyAgg(const node::ExprNode* expr);
     bool legacy_agg_opt_;
-    std::unordered_set<std::string> agg_opt_fn_names_ = {"sum", "min", "max",
-                                                         "count", "avg"};
+    std::unordered_set<std::string> agg_opt_fn_names_ = {"sum", "min", "max", "count", "avg"};
 };
 
 }  // namespace passes

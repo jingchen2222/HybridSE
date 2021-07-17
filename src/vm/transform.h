@@ -46,12 +46,9 @@ class LogicalOp {
  public:
     explicit LogicalOp(const node::PlanNode* node) : node_(node) {}
     const size_t Hash() const { return static_cast<size_t>(node_->GetType()); }
-    const bool Equals(const LogicalOp& that) const {
-        return node::PlanEquals(node_, that.node_);
-    }
+    const bool Equals(const LogicalOp& that) const { return node::PlanEquals(node_, that.node_); }
 
-    friend std::ostream& operator<<(std::ostream& output,
-                                    const LogicalOp& thiz);
+    friend std::ostream& operator<<(std::ostream& output, const LogicalOp& thiz);
     const node::PlanNode* node_;
 };
 
@@ -62,20 +59,14 @@ struct HashLogicalOp {
     }
 };
 struct EqualLogicalOp {
-    bool operator()(const class LogicalOp& a1,
-                    const class LogicalOp& a2) const {
-        return a1.Equals(a2);
-    }
+    bool operator()(const class LogicalOp& a1, const class LogicalOp& a2) const { return a1.Equals(a2); }
 };
 
 class PhysicalOpVertex {
  public:
-    explicit PhysicalOpVertex(size_t id, const PhysicalOpNode* node)
-        : id_(id), node_(node) {}
+    explicit PhysicalOpVertex(size_t id, const PhysicalOpNode* node) : id_(id), node_(node) {}
     const size_t Hash() const { return id_ % 100; }
-    const bool Equals(const PhysicalOpVertex& that) const {
-        return id_ == that.id_;
-    }
+    const bool Equals(const PhysicalOpVertex& that) const { return id_ == that.id_; }
     const size_t id_;
     const PhysicalOpNode* node_;
 };
@@ -86,51 +77,39 @@ struct HashPhysicalOp {
     }
 };
 struct EqualPhysicalOp {
-    bool operator()(const class PhysicalOpVertex& a1,
-                    const class PhysicalOpVertex& a2) const {
-        return a1.Equals(a2);
-    }
+    bool operator()(const class PhysicalOpVertex& a1, const class PhysicalOpVertex& a2) const { return a1.Equals(a2); }
 };
 
 using hybridse::base::Status;
 
-typedef hybridse::base::Graph<LogicalOp, HashLogicalOp, EqualLogicalOp>
-    LogicalGraph;
+typedef hybridse::base::Graph<LogicalOp, HashLogicalOp, EqualLogicalOp> LogicalGraph;
 
 class BatchModeTransformer {
  public:
     BatchModeTransformer(node::NodeManager* node_manager, const std::string& db,
-                         const std::shared_ptr<Catalog>& catalog,
-                         ::llvm::Module* module,
+                         const std::shared_ptr<Catalog>& catalog, ::llvm::Module* module,
                          const udf::UdfLibrary* library);
     BatchModeTransformer(node::NodeManager* node_manager, const std::string& db,
-                         const std::shared_ptr<Catalog>& catalog,
-                         ::llvm::Module* module, const udf::UdfLibrary* library,
-                         bool performance_sensitive,
-                         bool cluster_optimized_mode, bool enable_expr_opt,
-                         bool enable_window_parallelization);
+                         const std::shared_ptr<Catalog>& catalog, ::llvm::Module* module,
+                         const udf::UdfLibrary* library, bool performance_sensitive, bool cluster_optimized_mode,
+                         bool enable_expr_opt, bool enable_window_parallelization);
     virtual ~BatchModeTransformer();
     bool AddDefaultPasses();
-    virtual Status TransformPhysicalPlan(
-        const ::hybridse::node::PlanNodeList& trees,
-        ::hybridse::vm::PhysicalOpNode** output);
-    virtual Status TransformQueryPlan(const ::hybridse::node::PlanNode* node,
-                                      ::hybridse::vm::PhysicalOpNode** output);
+    virtual Status TransformPhysicalPlan(const ::hybridse::node::PlanNodeList& trees,
+                                         ::hybridse::vm::PhysicalOpNode** output);
+    virtual Status TransformQueryPlan(const ::hybridse::node::PlanNode* node, ::hybridse::vm::PhysicalOpNode** output);
     virtual Status ValidatePlan(PhysicalOpNode* in);
 
     bool AddPass(PhysicalPlanPassType type);
 
-    typedef std::unordered_map<LogicalOp, ::hybridse::vm::PhysicalOpNode*,
-                               HashLogicalOp, EqualLogicalOp>
-        LogicalOpMap;
+    typedef std::unordered_map<LogicalOp, ::hybridse::vm::PhysicalOpNode*, HashLogicalOp, EqualLogicalOp> LogicalOpMap;
 
     // Generate function info for node's all components
     Status InitFnInfo(PhysicalOpNode* node, std::set<PhysicalOpNode*>* visited);
 
     Status GenJoin(Join* join, PhysicalOpNode* in);
     Status GenFilter(Filter* filter, PhysicalOpNode* in);
-    Status GenConditionFilter(ConditionFilter* filter,
-                              const SchemasContext* schemas_ctx);
+    Status GenConditionFilter(ConditionFilter* filter, const SchemasContext* schemas_ctx);
     Status GenKey(Key* hash, const SchemasContext* schemas_ctx);
     Status GenWindow(WindowOp* window, PhysicalOpNode* in);
     Status GenRequestWindow(RequestWindowOp* window, PhysicalOpNode* in);
@@ -143,60 +122,39 @@ class BatchModeTransformer {
     Status ValidatePartitionDataProvider(PhysicalOpNode* physical_plan);
     std::string ExtractSchameName(PhysicalOpNode* physical_plan);
     Status ValidateRequestDataProvider(PhysicalOpNode* physical_plan);
-    Status ValidateWindowIndexOptimization(const WindowOp& window,
-                                           PhysicalOpNode* in);
+    Status ValidateWindowIndexOptimization(const WindowOp& window, PhysicalOpNode* in);
     Status ValidateJoinIndexOptimization(const Join& join, PhysicalOpNode* in);
-    Status ValidateRequestJoinIndexOptimization(const Join& join,
-                                                PhysicalOpNode* in);
+    Status ValidateRequestJoinIndexOptimization(const Join& join, PhysicalOpNode* in);
     Status ValidateIndexOptimization(PhysicalOpNode* physical_plan);
 
     PhysicalPlanContext* GetPlanContext() { return &plan_ctx_; }
 
  protected:
-    virtual Status TransformPlanOp(const ::hybridse::node::PlanNode* node,
-                                   ::hybridse::vm::PhysicalOpNode** ouput);
-    virtual Status TransformLimitOp(const node::LimitPlanNode* node,
-                                    PhysicalOpNode** output);
-    virtual Status TransformProjectPlanOp(const node::ProjectPlanNode* node,
-                                          PhysicalOpNode** output);
-    virtual Status TransformWindowOp(PhysicalOpNode* depend,
-                                     const node::WindowPlanNode* w_ptr,
+    virtual Status TransformPlanOp(const ::hybridse::node::PlanNode* node, ::hybridse::vm::PhysicalOpNode** ouput);
+    virtual Status TransformLimitOp(const node::LimitPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformProjectPlanOp(const node::ProjectPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformWindowOp(PhysicalOpNode* depend, const node::WindowPlanNode* w_ptr,
                                      PhysicalOpNode** output);
-    virtual Status TransformJoinOp(const node::JoinPlanNode* node,
-                                   PhysicalOpNode** output);
-    virtual Status TransformUnionOp(const node::UnionPlanNode* node,
-                                    PhysicalOpNode** output);
-    virtual Status TransformGroupOp(const node::GroupPlanNode* node,
-                                    PhysicalOpNode** output);
-    virtual Status TransformSortOp(const node::SortPlanNode* node,
-                                   PhysicalOpNode** output);
-    virtual Status TransformFilterOp(const node::FilterPlanNode* node,
-                                     PhysicalOpNode** output);
-    virtual Status TransformScanOp(const node::TablePlanNode* node,
-                                   PhysicalOpNode** output);
-    virtual Status TransformRenameOp(const node::RenamePlanNode* node,
-                                     PhysicalOpNode** output);
-    virtual Status TransformDistinctOp(const node::DistinctPlanNode* node,
-                                       PhysicalOpNode** output);
+    virtual Status TransformJoinOp(const node::JoinPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformUnionOp(const node::UnionPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformGroupOp(const node::GroupPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformSortOp(const node::SortPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformFilterOp(const node::FilterPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformScanOp(const node::TablePlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformRenameOp(const node::RenamePlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformDistinctOp(const node::DistinctPlanNode* node, PhysicalOpNode** output);
 
-    virtual Status CreatePhysicalConstProjectNode(
-        node::ProjectListNode* project_list, PhysicalOpNode** output);
+    virtual Status CreatePhysicalConstProjectNode(node::ProjectListNode* project_list, PhysicalOpNode** output);
 
-    base::Status CreateRequestUnionNode(PhysicalOpNode* request,
-                                        PhysicalOpNode* right,
-                                        const std::string& primary_name,
-                                        const codec::Schema* primary_schema,
-                                        const node::ExprListNode* partition,
-                                        const node::WindowPlanNode* window_plan,
-                                        PhysicalRequestUnionNode** output);
+    base::Status CreateRequestUnionNode(PhysicalOpNode* request, PhysicalOpNode* right, const std::string& primary_name,
+                                        const codec::Schema* primary_schema, const node::ExprListNode* partition,
+                                        const node::WindowPlanNode* window_plan, PhysicalRequestUnionNode** output);
 
-    virtual Status CreatePhysicalProjectNode(
-        const ProjectType project_type, PhysicalOpNode* node,
-        node::ProjectListNode* project_list, bool append_input,
-        PhysicalOpNode** output);
+    virtual Status CreatePhysicalProjectNode(const ProjectType project_type, PhysicalOpNode* node,
+                                             node::ProjectListNode* project_list, bool append_input,
+                                             PhysicalOpNode** output);
 
-    virtual Status TransformProjectOp(node::ProjectListNode* node,
-                                      PhysicalOpNode* depend, bool append_input,
+    virtual Status TransformProjectOp(node::ProjectListNode* node, PhysicalOpNode* depend, bool append_input,
                                       PhysicalOpNode** output);
     virtual void ApplyPasses(PhysicalOpNode* node, PhysicalOpNode** output);
 
@@ -212,30 +170,23 @@ class BatchModeTransformer {
      */
     Status InstantiateLLVMFunction(const FnInfo& fn_info);
 
-    Status GenWindowJoinList(PhysicalWindowAggrerationNode* window_agg_op,
-                             PhysicalOpNode* in);
-    Status GenWindowUnionList(WindowUnionList* window_union_list,
-                              PhysicalOpNode* in);
-    Status GenRequestWindowUnionList(RequestWindowUnionList* window_unions,
-                                     PhysicalOpNode* in);
+    Status GenWindowJoinList(PhysicalWindowAggrerationNode* window_agg_op, PhysicalOpNode* in);
+    Status GenWindowUnionList(WindowUnionList* window_union_list, PhysicalOpNode* in);
+    Status GenRequestWindowUnionList(RequestWindowUnionList* window_unions, PhysicalOpNode* in);
     bool IsSimpleProject(const ColumnProjects& project);
 
     Status CheckHistoryWindowFrame(const node::WindowPlanNode* w_ptr);
-    Status CheckWindow(const node::WindowPlanNode* w_ptr,
-                       const vm::SchemasContext* schemas_ctx);
+    Status CheckWindow(const node::WindowPlanNode* w_ptr, const vm::SchemasContext* schemas_ctx);
 
-    base::Status CheckTimeOrIntegerOrderColumn(
-        const node::OrderByNode* orders, const SchemasContext* schemas_ctx);
+    base::Status CheckTimeOrIntegerOrderColumn(const node::OrderByNode* orders, const SchemasContext* schemas_ctx);
 
     node::NodeManager* node_manager_;
     const std::string db_;
     const std::shared_ptr<Catalog> catalog_;
 
  private:
-    virtual Status TransformProjectPlanOpWithWindowParallel(
-        const node::ProjectPlanNode* node, PhysicalOpNode** output);
-    virtual Status TransformProjectPlanOpWindowSerial(
-        const node::ProjectPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformProjectPlanOpWithWindowParallel(const node::ProjectPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformProjectPlanOpWindowSerial(const node::ProjectPlanNode* node, PhysicalOpNode** output);
     ::llvm::Module* module_;
     uint32_t id_;
     // window partition and order should be optimized under
@@ -252,34 +203,25 @@ class BatchModeTransformer {
 
 class RequestModeTransformer : public BatchModeTransformer {
  public:
-    RequestModeTransformer(
-        node::NodeManager* node_manager, const std::string& db,
-        const std::shared_ptr<Catalog>& catalog, ::llvm::Module* module,
-        udf::UdfLibrary* library, const std::set<size_t>& common_column_indices,
-        const bool performance_sensitive, const bool cluster_optimized,
-        const bool enable_batch_request_opt, bool enable_expr_opt);
+    RequestModeTransformer(node::NodeManager* node_manager, const std::string& db,
+                           const std::shared_ptr<Catalog>& catalog, ::llvm::Module* module, udf::UdfLibrary* library,
+                           const std::set<size_t>& common_column_indices, const bool performance_sensitive,
+                           const bool cluster_optimized, const bool enable_batch_request_opt, bool enable_expr_opt);
     virtual ~RequestModeTransformer();
 
     const Schema& request_schema() const { return request_schema_; }
     const std::string& request_name() const { return request_name_; }
-    const BatchRequestInfo& batch_request_info() const {
-        return batch_request_info_;
-    }
+    const BatchRequestInfo& batch_request_info() const { return batch_request_info_; }
     Status ValidatePlan(PhysicalOpNode* in) override;
-    Status ValidatePrimaryPath(PhysicalOpNode* in,
-                               PhysicalOpNode** primary_source);
+    Status ValidatePrimaryPath(PhysicalOpNode* in, PhysicalOpNode** primary_source);
 
  protected:
     void ApplyPasses(PhysicalOpNode* node, PhysicalOpNode** output) override;
-    virtual Status TransformProjectOp(node::ProjectListNode* node,
-                                      PhysicalOpNode* depend, bool append_input,
+    virtual Status TransformProjectOp(node::ProjectListNode* node, PhysicalOpNode* depend, bool append_input,
                                       PhysicalOpNode** output);
-    virtual Status TransformProjectPlanOp(const node::ProjectPlanNode* node,
-                                          PhysicalOpNode** output);
-    virtual Status TransformJoinOp(const node::JoinPlanNode* node,
-                                   PhysicalOpNode** output);
-    virtual Status TransformScanOp(const node::TablePlanNode* node,
-                                   PhysicalOpNode** output);
+    virtual Status TransformProjectPlanOp(const node::ProjectPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformJoinOp(const node::JoinPlanNode* node, PhysicalOpNode** output);
+    virtual Status TransformScanOp(const node::TablePlanNode* node, PhysicalOpNode** output);
 
  private:
     bool enable_batch_request_opt_;
@@ -288,8 +230,7 @@ class RequestModeTransformer : public BatchModeTransformer {
     BatchRequestInfo batch_request_info_;
 };
 
-inline bool SchemaType2DataType(const ::hybridse::type::Type type,
-                                ::hybridse::node::DataType* output) {
+inline bool SchemaType2DataType(const ::hybridse::type::Type type, ::hybridse::node::DataType* output) {
     switch (type) {
         case ::hybridse::type::kBool: {
             *output = ::hybridse::node::kBool;
@@ -328,23 +269,18 @@ inline bool SchemaType2DataType(const ::hybridse::type::Type type,
             break;
         }
         default: {
-            LOG(WARNING) << "unrecognized schema type "
-                         << ::hybridse::type::Type_Name(type);
+            LOG(WARNING) << "unrecognized schema type " << ::hybridse::type::Type_Name(type);
             return false;
         }
     }
     return true;
 }
 
-bool TransformLogicalTreeToLogicalGraph(
-    const ::hybridse::node::PlanNode* node, LogicalGraph* graph,
-    hybridse::base::Status& status);  // NOLINT
+bool TransformLogicalTreeToLogicalGraph(const ::hybridse::node::PlanNode* node, LogicalGraph* graph,
+                                        hybridse::base::Status& status);  // NOLINT
 
-Status ExtractProjectInfos(const node::PlanNodeList& projects,
-                           const node::FrameNode* primary_frame,
-                           const SchemasContext* schemas_ctx,
-                           node::NodeManager* node_manager,
-                           ColumnProjects* output);
+Status ExtractProjectInfos(const node::PlanNodeList& projects, const node::FrameNode* primary_frame,
+                           const SchemasContext* schemas_ctx, node::NodeManager* node_manager, ColumnProjects* output);
 }  // namespace vm
 }  // namespace hybridse
 #endif  // SRC_VM_TRANSFORM_H_

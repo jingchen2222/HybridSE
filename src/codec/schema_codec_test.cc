@@ -21,8 +21,7 @@
 namespace hybridse {
 namespace codec {
 
-class SchemaCodecTest
-    : public ::testing::TestWithParam<std::pair<vm::Schema, uint32_t>> {
+class SchemaCodecTest : public ::testing::TestWithParam<std::pair<vm::Schema, uint32_t>> {
  public:
     SchemaCodecTest() {}
     ~SchemaCodecTest() {}
@@ -170,8 +169,7 @@ TEST_P(SchemaCodecTest, test_normal) {
     CompareSchema(pair.first, schema);
 }
 
-INSTANTIATE_TEST_CASE_P(SchemaCodecTestPrefix, SchemaCodecTest,
-                        testing::ValuesIn(GenTestInput()));
+INSTANTIATE_TEST_CASE_P(SchemaCodecTestPrefix, SchemaCodecTest, testing::ValuesIn(GenTestInput()));
 
 }  // namespace codec
 }  // namespace hybridse

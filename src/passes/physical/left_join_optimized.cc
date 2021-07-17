@@ -29,8 +29,7 @@ bool LeftJoinOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
         vm::kPhysicalOpJoin != in->producers()[0]->GetOpType()) {
         return false;
     }
-    vm::PhysicalJoinNode* join_op =
-        dynamic_cast<vm::PhysicalJoinNode*>(in->producers()[0]);
+    vm::PhysicalJoinNode* join_op = dynamic_cast<vm::PhysicalJoinNode*>(in->producers()[0]);
 
     auto join_type = join_op->join().join_type();
     if (node::kJoinTypeLeft != join_type && node::kJoinTypeLast != join_type) {
@@ -44,23 +43,20 @@ bool LeftJoinOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
                 DLOG(WARNING) << "Join optimized skip: groups is null or empty";
             }
 
-            if (!CheckExprListFromSchema(
-                    group_op->group_.keys_,
-                    join_op->GetProducers()[0]->GetOutputSchema())) {
+            if (!CheckExprListFromSchema(group_op->group_.keys_, join_op->GetProducers()[0]->GetOutputSchema())) {
                 return false;
             }
             auto group_expr = group_op->group_.keys_;
             // 符合优化条件
             vm::PhysicalGroupNode* new_group_op = nullptr;
-            Status status = plan_ctx_->CreateOp<vm::PhysicalGroupNode>(
-                &new_group_op, join_op->producers()[0], group_expr);
+            Status status =
+                plan_ctx_->CreateOp<vm::PhysicalGroupNode>(&new_group_op, join_op->producers()[0], group_expr);
             if (!status.isOK()) {
                 return false;
             }
             vm::PhysicalJoinNode* new_join_op = nullptr;
-            status = plan_ctx_->CreateOp<vm::PhysicalJoinNode>(
-                &new_join_op, new_group_op, join_op->GetProducers()[1],
-                join_op->join_);
+            status = plan_ctx_->CreateOp<vm::PhysicalJoinNode>(&new_join_op, new_group_op, join_op->GetProducers()[1],
+                                                               join_op->join_);
             if (!status.isOK()) {
                 return false;
             }
@@ -69,26 +65,23 @@ bool LeftJoinOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
         }
         case vm::kPhysicalOpSortBy: {
             auto sort_op = dynamic_cast<vm::PhysicalSortNode*>(in);
-            if (nullptr == sort_op->sort_.orders_ ||
-                node::ExprListNullOrEmpty(sort_op->sort_.orders_->order_by_)) {
+            if (nullptr == sort_op->sort_.orders_ || node::ExprListNullOrEmpty(sort_op->sort_.orders_->order_by_)) {
                 DLOG(WARNING) << "Join optimized skip: order is null or empty";
             }
-            if (!CheckExprListFromSchema(
-                    sort_op->sort_.orders_->order_by_,
-                    join_op->GetProducers()[0]->GetOutputSchema())) {
+            if (!CheckExprListFromSchema(sort_op->sort_.orders_->order_by_,
+                                         join_op->GetProducers()[0]->GetOutputSchema())) {
                 return false;
             }
             // 符合优化条件
             vm::PhysicalSortNode* new_order_op = nullptr;
-            Status status = plan_ctx_->CreateOp<vm::PhysicalSortNode>(
-                &new_order_op, join_op->producers()[0], sort_op->sort_);
+            Status status =
+                plan_ctx_->CreateOp<vm::PhysicalSortNode>(&new_order_op, join_op->producers()[0], sort_op->sort_);
             if (!status.isOK()) {
                 return false;
             }
             vm::PhysicalJoinNode* new_join_op = nullptr;
-            status = plan_ctx_->CreateOp<vm::PhysicalJoinNode>(
-                &new_join_op, new_order_op, join_op->GetProducers()[1],
-                join_op->join_);
+            status = plan_ctx_->CreateOp<vm::PhysicalJoinNode>(&new_join_op, new_order_op, join_op->GetProducers()[1],
+                                                               join_op->join_);
             if (!status.isOK()) {
                 return false;
             }
@@ -107,30 +100,21 @@ bool LeftJoinOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
                               << node::JoinTypeName(join_type);
                 return false;
             }
-            auto window_agg_op =
-                dynamic_cast<vm::PhysicalWindowAggrerationNode*>(in);
-            if (node::ExprListNullOrEmpty(
-                    window_agg_op->window_.partition_.keys_) &&
+            auto window_agg_op = dynamic_cast<vm::PhysicalWindowAggrerationNode*>(in);
+            if (node::ExprListNullOrEmpty(window_agg_op->window_.partition_.keys_) &&
                 (nullptr == window_agg_op->window_.sort_.orders_ ||
-                 node::ExprListNullOrEmpty(
-                     window_agg_op->window_.sort_.orders_->order_by_))) {
-                DLOG(WARNING)
-                    << "Window Join optimized skip: both partition and"
-                       "order are empty ";
+                 node::ExprListNullOrEmpty(window_agg_op->window_.sort_.orders_->order_by_))) {
+                DLOG(WARNING) << "Window Join optimized skip: both partition and"
+                                 "order are empty ";
                 return false;
             }
             auto left_schemas_ctx = join_op->GetProducer(0)->schemas_ctx();
-            if (!CheckExprDependOnChildOnly(
-                     window_agg_op->window_.partition_.keys_, left_schemas_ctx)
-                     .isOK()) {
+            if (!CheckExprDependOnChildOnly(window_agg_op->window_.partition_.keys_, left_schemas_ctx).isOK()) {
                 DLOG(WARNING) << "Window Join optimized skip: partition keys "
                                  "are resolved from secondary table";
                 return false;
             }
-            if (!CheckExprDependOnChildOnly(
-                     window_agg_op->window_.sort_.orders_->order_by_,
-                     left_schemas_ctx)
-                     .isOK()) {
+            if (!CheckExprDependOnChildOnly(window_agg_op->window_.sort_.orders_->order_by_, left_schemas_ctx).isOK()) {
                 DLOG(WARNING) << "Window Join optimized skip: order keys are "
                                  "resolved from secondary table";
                 return false;
@@ -151,8 +135,7 @@ bool LeftJoinOptimized::Transform(PhysicalOpNode* in, PhysicalOpNode** output) {
         }
     }
 }
-bool LeftJoinOptimized::ColumnExist(const Schema& schema,
-                                    const std::string& column_name) {
+bool LeftJoinOptimized::ColumnExist(const Schema& schema, const std::string& column_name) {
     for (int32_t i = 0; i < schema.size(); i++) {
         const type::ColumnDef& column = schema.Get(i);
         if (column_name == column.name()) {
@@ -162,8 +145,7 @@ bool LeftJoinOptimized::ColumnExist(const Schema& schema,
     return false;
 }
 
-bool LeftJoinOptimized::CheckExprListFromSchema(
-    const node::ExprListNode* expr_list, const Schema* schema) {
+bool LeftJoinOptimized::CheckExprListFromSchema(const node::ExprListNode* expr_list, const Schema* schema) {
     if (node::ExprListNullOrEmpty(expr_list)) {
         return true;
     }

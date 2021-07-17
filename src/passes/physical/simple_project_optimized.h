@@ -23,8 +23,7 @@ namespace passes {
 
 class SimpleProjectOptimized : public TransformUpPysicalPass {
  public:
-    explicit SimpleProjectOptimized(PhysicalPlanContext* plan_ctx)
-        : TransformUpPysicalPass(plan_ctx) {}
+    explicit SimpleProjectOptimized(PhysicalPlanContext* plan_ctx) : TransformUpPysicalPass(plan_ctx) {}
     ~SimpleProjectOptimized() {}
 
  private:

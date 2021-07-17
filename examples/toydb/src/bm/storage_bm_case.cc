@@ -34,10 +34,8 @@ DefaultComparator cmp;
 
 int64_t RunIterate(storage::BaseList<uint64_t, int64_t>* list);
 int64_t RunIterateTest(storage::BaseList<uint64_t, int64_t>* list);
-const int64_t PartitionHandlerIterate(vm::PartitionHandler* partition_handler,
-                                      const std::string& key);
-const int64_t PartitionHandlerIterateTest(
-    vm::PartitionHandler* partition_handler, const std::string& key);
+const int64_t PartitionHandlerIterate(vm::PartitionHandler* partition_handler, const std::string& key);
+const int64_t PartitionHandlerIterateTest(vm::PartitionHandler* partition_handler, const std::string& key);
 static void BuildData(type::TableDef& table_def,   // NOLINT
                       vm::MemTableHandler& table,  // NOLINT
                       int64_t data_size) {
@@ -141,21 +139,18 @@ void MemTableIterate(benchmark::State* state, MODE mode, int64_t data_size) {
     }
 }
 
-void RequestUnionTableIterate(benchmark::State* state, MODE mode,
-                              int64_t data_size) {
+void RequestUnionTableIterate(benchmark::State* state, MODE mode, int64_t data_size) {
     auto table_handler = std::make_shared<vm::MemTimeTableHandler>();
     type::TableDef table_def;
     BuildData(table_def, *table_handler.get(), data_size);
     codec::Row request_row = table_handler->GetBackRow().second;
     table_handler->PopBackRow();
 
-    auto request_union = std::make_shared<vm::RequestUnionTableHandler>(
-        0, request_row, table_handler);
+    auto request_union = std::make_shared<vm::RequestUnionTableHandler>(0, request_row, table_handler);
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
-                benchmark::DoNotOptimize(
-                    TableHanlderIterate(request_union.get()));
+                benchmark::DoNotOptimize(TableHanlderIterate(request_union.get()));
             }
             break;
         }
@@ -190,8 +185,7 @@ void TabletFullIterate(benchmark::State* state, MODE mode, int64_t data_size) {
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
-                benchmark::DoNotOptimize(
-                    TableHanlderIterate(table_hanlder.get()));
+                benchmark::DoNotOptimize(TableHanlderIterate(table_hanlder.get()));
             }
             break;
         }
@@ -203,8 +197,7 @@ void TabletFullIterate(benchmark::State* state, MODE mode, int64_t data_size) {
     }
 }
 
-const int64_t PartitionHandlerIterate(vm::PartitionHandler* partition_handler,
-                                      const std::string& key) {
+const int64_t PartitionHandlerIterate(vm::PartitionHandler* partition_handler, const std::string& key) {
     auto p_iter = partition_handler->GetWindowIterator();
     p_iter->Seek(key);
     auto iter = p_iter->GetValue();
@@ -214,8 +207,7 @@ const int64_t PartitionHandlerIterate(vm::PartitionHandler* partition_handler,
     }
     return 0;
 }
-const int64_t PartitionHandlerIterateTest(
-    vm::PartitionHandler* partition_handler, const std::string& key) {
+const int64_t PartitionHandlerIterateTest(vm::PartitionHandler* partition_handler, const std::string& key) {
     int64_t cnt = 0;
     auto p_iter = partition_handler->GetWindowIterator();
     p_iter->Seek(key);
@@ -227,8 +219,7 @@ const int64_t PartitionHandlerIterateTest(
     }
     return cnt;
 }
-void TabletWindowIterate(benchmark::State* state, MODE mode,
-                         int64_t data_size) {
+void TabletWindowIterate(benchmark::State* state, MODE mode, int64_t data_size) {
     auto catalog = vm::BuildOnePkTableStorage(data_size);
     auto table_hanlder = catalog->GetTable("db", "t1");
     auto partition_handler = table_hanlder->GetPartition("index1");
@@ -238,14 +229,12 @@ void TabletWindowIterate(benchmark::State* state, MODE mode,
     switch (mode) {
         case BENCHMARK: {
             for (auto _ : *state) {
-                benchmark::DoNotOptimize(
-                    PartitionHandlerIterate(partition_handler.get(), "hello"));
+                benchmark::DoNotOptimize(PartitionHandlerIterate(partition_handler.get(), "hello"));
             }
             break;
         }
         case TEST: {
-            if (data_size !=
-                PartitionHandlerIterateTest(partition_handler.get(), "hello")) {
+            if (data_size != PartitionHandlerIterateTest(partition_handler.get(), "hello")) {
                 FAIL();
             }
         }

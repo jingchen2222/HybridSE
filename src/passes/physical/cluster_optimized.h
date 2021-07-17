@@ -23,14 +23,12 @@ namespace passes {
 
 class ClusterOptimized : public TransformUpPysicalPass {
  public:
-    explicit ClusterOptimized(PhysicalPlanContext* plan_ctx)
-        : TransformUpPysicalPass(plan_ctx) {}
+    explicit ClusterOptimized(PhysicalPlanContext* plan_ctx) : TransformUpPysicalPass(plan_ctx) {}
 
  private:
     virtual bool Transform(PhysicalOpNode* in, PhysicalOpNode** output);
     bool SimplifyJoinLeftInput(PhysicalOpNode* join_op, const vm::Join& join,
-                               const vm::SchemasContext* joined_schema_ctx,
-                               PhysicalOpNode** out);
+                               const vm::SchemasContext* joined_schema_ctx, PhysicalOpNode** out);
 };
 
 }  // namespace passes

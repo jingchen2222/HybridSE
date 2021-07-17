@@ -31,15 +31,12 @@ using hybridse::vm::kWindowAggregation;
 using hybridse::vm::PhysicalProjectNode;
 using hybridse::vm::PhysicalSimpleProjectNode;
 
-Status WindowColumnPruning::Apply(PhysicalPlanContext* ctx,
-                                  PhysicalOpNode* input, PhysicalOpNode** out) {
+Status WindowColumnPruning::Apply(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out) {
     cache_.clear();
     return DoApply(ctx, input, out);
 }
 
-Status WindowColumnPruning::DoApply(PhysicalPlanContext* ctx,
-                                    PhysicalOpNode* input,
-                                    PhysicalOpNode** out) {
+Status WindowColumnPruning::DoApply(PhysicalPlanContext* ctx, PhysicalOpNode* input, PhysicalOpNode** out) {
     CHECK_TRUE(input != nullptr, kPlanError);
     auto cache_iter = cache_.find(input->node_id());
     if (cache_iter != cache_.end()) {
@@ -69,8 +66,7 @@ Status WindowColumnPruning::DoApply(PhysicalPlanContext* ctx,
             if (project_op->project_type_ != kWindowAggregation) {
                 break;
             }
-            auto agg_op =
-                dynamic_cast<PhysicalWindowAggrerationNode*>(project_op);
+            auto agg_op = dynamic_cast<PhysicalWindowAggrerationNode*>(project_op);
             if (agg_op->window_joins_.Empty() && !agg_op->need_append_input()) {
                 CHECK_STATUS(ProcessWindow(ctx, agg_op, out));
             }
@@ -87,12 +83,10 @@ struct ColIndexInfo {
     size_t cid;
     size_t schema_idx;
     size_t col_idx;
-    ColIndexInfo(size_t cid, size_t schema_idx, size_t col_idx)
-        : cid(cid), schema_idx(schema_idx), col_idx(col_idx) {}
+    ColIndexInfo(size_t cid, size_t schema_idx, size_t col_idx) : cid(cid), schema_idx(schema_idx), col_idx(col_idx) {}
 };
 
-Status WindowColumnPruning::ProcessWindow(PhysicalPlanContext* ctx,
-                                          PhysicalWindowAggrerationNode* agg_op,
+Status WindowColumnPruning::ProcessWindow(PhysicalPlanContext* ctx, PhysicalWindowAggrerationNode* agg_op,
                                           PhysicalOpNode** out) {
     auto input = agg_op->GetProducer(0);
     auto input_schema = input->schemas_ctx();
@@ -105,10 +99,8 @@ Status WindowColumnPruning::ProcessWindow(PhysicalPlanContext* ctx,
     const auto& projects = agg_op->project();
     for (size_t i = 0; i < projects.size(); ++i) {
         std::vector<const node::ExprNode*> project_depend_columns;
-        CHECK_STATUS(input_schema->ResolveExprDependentColumns(
-            projects.GetExpr(i), &project_depend_columns));
-        std::copy(project_depend_columns.begin(), project_depend_columns.end(),
-                  std::back_inserter(depend_columns));
+        CHECK_STATUS(input_schema->ResolveExprDependentColumns(projects.GetExpr(i), &project_depend_columns));
+        std::copy(project_depend_columns.begin(), project_depend_columns.end(), std::back_inserter(depend_columns));
     }
 
     // collect all columns to depend on: (column id, slice index, column index)
@@ -122,16 +114,13 @@ Status WindowColumnPruning::ProcessWindow(PhysicalPlanContext* ctx,
         switch (col_expr->GetExprType()) {
             case node::kExprColumnRef: {
                 auto col = dynamic_cast<const node::ColumnRefNode*>(col_expr);
-                CHECK_STATUS(input_schema->ResolveColumnRefIndex(
-                    col, &schema_idx, &col_idx));
-                cid = input_schema->GetSchemaSource(schema_idx)
-                          ->GetColumnID(col_idx);
+                CHECK_STATUS(input_schema->ResolveColumnRefIndex(col, &schema_idx, &col_idx));
+                cid = input_schema->GetSchemaSource(schema_idx)->GetColumnID(col_idx);
                 break;
             }
             case node::kExprColumnId: {
                 auto col = dynamic_cast<const node::ColumnIdNode*>(col_expr);
-                CHECK_STATUS(input_schema->ResolveColumnIndexByID(
-                    col->GetColumnID(), &schema_idx, &col_idx));
+                CHECK_STATUS(input_schema->ResolveColumnIndexByID(col->GetColumnID(), &schema_idx, &col_idx));
                 cid = col->GetColumnID();
                 break;
             }
@@ -147,24 +136,20 @@ Status WindowColumnPruning::ProcessWindow(PhysicalPlanContext* ctx,
 
     // sort by column index
     size_t col_num = input_schema->GetColumnNum();
-    std::sort(column_indexes.begin(), column_indexes.end(),
-              [col_num](const ColIndexInfo& l, const ColIndexInfo& r) {
-                  return l.schema_idx * col_num + l.col_idx <
-                         r.schema_idx * col_num + r.col_idx;
-              });
+    std::sort(column_indexes.begin(), column_indexes.end(), [col_num](const ColIndexInfo& l, const ColIndexInfo& r) {
+        return l.schema_idx * col_num + l.col_idx < r.schema_idx * col_num + r.col_idx;
+    });
 
     // create column pruning
     ColumnProjects pruned_projects;
     for (size_t i = 0; i < column_indexes.size(); ++i) {
         const auto& info = column_indexes[i];
         auto col_expr = ctx->node_manager()->MakeColumnIdNode(info.cid);
-        std::string name = input_schema->GetSchemaSource(info.schema_idx)
-                               ->GetColumnName(info.col_idx);
+        std::string name = input_schema->GetSchemaSource(info.schema_idx)->GetColumnName(info.col_idx);
         pruned_projects.Add(name, col_expr, nullptr);
     }
     PhysicalSimpleProjectNode* pruned_project_op = nullptr;
-    CHECK_STATUS(ctx->CreateOp<PhysicalSimpleProjectNode>(
-        &pruned_project_op, input, pruned_projects));
+    CHECK_STATUS(ctx->CreateOp<PhysicalSimpleProjectNode>(&pruned_project_op, input, pruned_projects));
 
     // create column pruning on window unions
     std::vector<PhysicalOpNode*> pruned_unions;
@@ -174,23 +159,20 @@ Status WindowColumnPruning::ProcessWindow(PhysicalPlanContext* ctx,
         for (size_t i = 0; i < column_indexes.size(); ++i) {
             const auto& info = column_indexes[i];
             auto source = schemas_ctx->GetSchemaSource(info.schema_idx);
-            auto col_expr = ctx->node_manager()->MakeColumnIdNode(
-                source->GetColumnID(info.col_idx));
+            auto col_expr = ctx->node_manager()->MakeColumnIdNode(source->GetColumnID(info.col_idx));
             std::string name = source->GetColumnName(info.col_idx);
             union_pruned_projects.Add(name, col_expr, nullptr);
         }
         PhysicalSimpleProjectNode* union_op = nullptr;
-        CHECK_STATUS(ctx->CreateOp<PhysicalSimpleProjectNode>(
-            &union_op, pair.first, union_pruned_projects));
+        CHECK_STATUS(ctx->CreateOp<PhysicalSimpleProjectNode>(&union_op, pair.first, union_pruned_projects));
         pruned_unions.push_back(union_op);
     }
 
     // create new agg op
     PhysicalWindowAggrerationNode* new_agg_op = nullptr;
     CHECK_STATUS(ctx->CreateOp<PhysicalWindowAggrerationNode>(
-        &new_agg_op, pruned_project_op, projects, agg_op->window(),
-        agg_op->instance_not_in_window(), agg_op->need_append_input(),
-        agg_op->exclude_current_time()));
+        &new_agg_op, pruned_project_op, projects, agg_op->window(), agg_op->instance_not_in_window(),
+        agg_op->need_append_input(), agg_op->exclude_current_time()));
     for (auto union_op : pruned_unions) {
         new_agg_op->AddWindowUnion(union_op);
     }

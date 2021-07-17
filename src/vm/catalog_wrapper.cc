@@ -18,14 +18,12 @@
 namespace hybridse {
 namespace vm {
 
-std::shared_ptr<TableHandler> PartitionProjectWrapper::GetSegment(
-    const std::string& key) {
+std::shared_ptr<TableHandler> PartitionProjectWrapper::GetSegment(const std::string& key) {
     auto segment = partition_handler_->GetSegment(key);
     if (!segment) {
         return std::shared_ptr<TableHandler>();
     } else {
-        return std::shared_ptr<TableHandler>(
-            new TableProjectWrapper(segment, fun_));
+        return std::shared_ptr<TableHandler>(new TableProjectWrapper(segment, fun_));
     }
 }
 base::ConstIterator<uint64_t, Row>* PartitionProjectWrapper::GetRawIterator() {
@@ -37,14 +35,12 @@ base::ConstIterator<uint64_t, Row>* PartitionProjectWrapper::GetRawIterator() {
     }
 }
 
-std::shared_ptr<TableHandler> PartitionFilterWrapper::GetSegment(
-    const std::string& key) {
+std::shared_ptr<TableHandler> PartitionFilterWrapper::GetSegment(const std::string& key) {
     auto segment = partition_handler_->GetSegment(key);
     if (!segment) {
         return std::shared_ptr<TableHandler>();
     } else {
-        return std::shared_ptr<TableHandler>(
-            new TableFilterWrapper(segment, fun_));
+        return std::shared_ptr<TableHandler>(new TableFilterWrapper(segment, fun_));
     }
 }
 base::ConstIterator<uint64_t, Row>* PartitionFilterWrapper::GetRawIterator() {
@@ -55,24 +51,20 @@ base::ConstIterator<uint64_t, Row>* PartitionFilterWrapper::GetRawIterator() {
         return new IteratorFilterWrapper(std::move(iter), fun_);
     }
 }
-std::shared_ptr<PartitionHandler> TableProjectWrapper::GetPartition(
-    const std::string& index_name) {
+std::shared_ptr<PartitionHandler> TableProjectWrapper::GetPartition(const std::string& index_name) {
     auto partition = table_hander_->GetPartition(index_name);
     if (!partition) {
         return std::shared_ptr<PartitionHandler>();
     } else {
-        return std::shared_ptr<PartitionHandler>(
-            new PartitionProjectWrapper(partition, fun_));
+        return std::shared_ptr<PartitionHandler>(new PartitionProjectWrapper(partition, fun_));
     }
 }
-std::shared_ptr<PartitionHandler> TableFilterWrapper::GetPartition(
-    const std::string& index_name) {
+std::shared_ptr<PartitionHandler> TableFilterWrapper::GetPartition(const std::string& index_name) {
     auto partition = table_hander_->GetPartition(index_name);
     if (!partition) {
         return std::shared_ptr<PartitionHandler>();
     } else {
-        return std::shared_ptr<PartitionHandler>(
-            new PartitionFilterWrapper(partition, fun_));
+        return std::shared_ptr<PartitionHandler>(new PartitionFilterWrapper(partition, fun_));
     }
 }
 }  // namespace vm

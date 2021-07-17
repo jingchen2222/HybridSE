@@ -71,9 +71,7 @@ TEST_F(EngineBMCaseTest, EngineRunBatchWindowSumFeature1_TEST) {
 TEST_F(EngineBMCaseTest, EngineRunBatchWindowSumFeature5Window5_TEST) {
     EngineRunBatchWindowSumFeature5Window5(nullptr, TEST, 100L, 100L);
 }
-TEST_F(EngineBMCaseTest, EngineWindowMultiAggFeature5_TEST) {
-    EngineWindowMultiAggFeature5(nullptr, TEST, 100L, 100L);
-}
+TEST_F(EngineBMCaseTest, EngineWindowMultiAggFeature5_TEST) { EngineWindowMultiAggFeature5(nullptr, TEST, 100L, 100L); }
 TEST_F(EngineBMCaseTest, WINDOW_CASE0_QUERY_BATCH_TEST) {
     EngineRunBatchWindowSumFeature5(nullptr, TEST, 1L, 2L);
     EngineRunBatchWindowSumFeature5(nullptr, TEST, 1L, 10L);
@@ -82,50 +80,30 @@ TEST_F(EngineBMCaseTest, WINDOW_CASE0_QUERY_BATCH_TEST) {
     EngineRunBatchWindowSumFeature5(nullptr, TEST, 1000L, 1000L);
 }
 
-TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectDouble_TEST) {
-    EngineRequestSimpleSelectDouble(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectDouble_TEST) { EngineRequestSimpleSelectDouble(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectInt32_TEST) {
-    EngineRequestSimpleSelectInt32(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectInt32_TEST) { EngineRequestSimpleSelectInt32(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectVarchar_TEST) {
-    EngineRequestSimpleSelectVarchar(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectVarchar_TEST) { EngineRequestSimpleSelectVarchar(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectDate_TEST) {
-    EngineRequestSimpleSelectDate(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectDate_TEST) { EngineRequestSimpleSelectDate(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectTimestamp_TEST) {
-    EngineRequestSimpleSelectTimestamp(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineRequestSimpleSelectTimestamp_TEST) { EngineRequestSimpleSelectTimestamp(nullptr, TEST); }
 
 // TODO(xxx): udf script fix
 // TEST_F(EngineBMCaseTest, EngineRequestSimpleUDF_TEST) {
 //    EngineRequestSimpleUDF(nullptr, TEST);
 // }
 
-TEST_F(EngineBMCaseTest, EngineSimpleSelectDouble_TEST) {
-    EngineSimpleSelectDouble(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineSimpleSelectDouble_TEST) { EngineSimpleSelectDouble(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineSimpleSelectInt32_TEST) {
-    EngineSimpleSelectInt32(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineSimpleSelectInt32_TEST) { EngineSimpleSelectInt32(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineSimpleSelectVarchar_TEST) {
-    EngineSimpleSelectVarchar(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineSimpleSelectVarchar_TEST) { EngineSimpleSelectVarchar(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineSimpleSelectTimestamp_TEST) {
-    EngineSimpleSelectTimestamp(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineSimpleSelectTimestamp_TEST) { EngineSimpleSelectTimestamp(nullptr, TEST); }
 
-TEST_F(EngineBMCaseTest, EngineSimpleSelectDate_TEST) {
-    EngineSimpleSelectDate(nullptr, TEST);
-}
+TEST_F(EngineBMCaseTest, EngineSimpleSelectDate_TEST) { EngineSimpleSelectDate(nullptr, TEST); }
 
 // TODO(xxx): udf script fix
 // TEST_F(EngineBMCaseTest, EngineSimpleUDF_TEST) {

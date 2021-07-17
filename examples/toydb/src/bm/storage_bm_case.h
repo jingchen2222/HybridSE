@@ -24,8 +24,7 @@ namespace hybridse {
 namespace bm {
 enum MODE { BENCHMARK, TEST };
 void MemTableIterate(benchmark::State* state, MODE mode, int64_t data_size);
-void RequestUnionTableIterate(benchmark::State* state, MODE mode,
-                              int64_t data_size);
+void RequestUnionTableIterate(benchmark::State* state, MODE mode, int64_t data_size);
 void MemSegmentIterate(benchmark::State* state, MODE mode, int64_t data_size);
 void TabletFullIterate(benchmark::State* state, MODE mode, int64_t data_size);
 void TabletWindowIterate(benchmark::State* state, MODE mode, int64_t data_size);

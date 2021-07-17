@@ -92,8 +92,7 @@ class Iterator : public AbstractIterator<K, V, V&> {};
 /// \tparam K key type of elements
 /// \tparam V value type of elements
 template <class K, class V>
-class ConstIterator : public hybridse::base::AbstractIterator<K, V, const V&> {
-};
+class ConstIterator : public hybridse::base::AbstractIterator<K, V, const V&> {};
 }  // namespace base
 }  // namespace hybridse
 #endif  // INCLUDE_BASE_ITERATOR_H_

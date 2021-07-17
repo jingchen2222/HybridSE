@@ -92,37 +92,31 @@ class SchemasContext {
      * Given relation name and column name, return schema slice
      * index and column index within current context.
      */
-    base::Status ResolveColumnIndexByName(const std::string& relation_name,
-                                          const std::string& column_name,
-                                          size_t* schema_idx,
-                                          size_t* col_idx) const;
+    base::Status ResolveColumnIndexByName(const std::string& relation_name, const std::string& column_name,
+                                          size_t* schema_idx, size_t* col_idx) const;
 
     /**
      * Given unique column id, return schema slice index and
      * column index within schema slice within current context.
      */
-    base::Status ResolveColumnIndexByID(size_t column_id, size_t* schema_idx,
-                                        size_t* col_idx) const;
+    base::Status ResolveColumnIndexByID(size_t column_id, size_t* schema_idx, size_t* col_idx) const;
 
     /**
      * Given unique column id, return column name.
      */
-    base::Status ResolveColumnNameByID(size_t column_id,
-                                       std::string* name) const;
+    base::Status ResolveColumnNameByID(size_t column_id, std::string* name) const;
 
     /**
      * Resolve index for column reference expression
      */
-    base::Status ResolveColumnRefIndex(const node::ColumnRefNode* column_ref,
-                                       size_t* schema_idx,
+    base::Status ResolveColumnRefIndex(const node::ColumnRefNode* column_ref, size_t* schema_idx,
                                        size_t* col_idx) const;
 
     /**
      * Given relation name and column name, return column unique id
      * under current context.
      */
-    base::Status ResolveColumnID(const std::string& relation_name,
-                                 const std::string& column_name,
+    base::Status ResolveColumnID(const std::string& relation_name, const std::string& column_name,
                                  size_t* column_id) const;
 
     /**
@@ -131,21 +125,16 @@ class SchemasContext {
      * else `child_path_id` is the index of the child which the column
      * is resolved from.
      */
-    base::Status ResolveColumnID(const std::string& relation_name,
-                                 const std::string& column_name,
-                                 size_t* column_id, int* child_path_idx,
-                                 size_t* child_column_id,
-                                 size_t* source_column_id,
+    base::Status ResolveColumnID(const std::string& relation_name, const std::string& column_name, size_t* column_id,
+                                 int* child_path_idx, size_t* child_column_id, size_t* source_column_id,
                                  const PhysicalOpNode** source_node) const;
     /**
      * Resolve all columns input expression will depend on.
      * Return column id list.
      */
-    base::Status ResolveExprDependentColumns(
-        const node::ExprNode* expr, std::set<size_t>* column_ids) const;
-    base::Status ResolveExprDependentColumns(
-        const node::ExprNode* expr,
-        std::vector<const node::ExprNode*>* columns) const;
+    base::Status ResolveExprDependentColumns(const node::ExprNode* expr, std::set<size_t>* column_ids) const;
+    base::Status ResolveExprDependentColumns(const node::ExprNode* expr,
+                                             std::vector<const node::ExprNode*>* columns) const;
 
     /**
      * Get the relation name for this schema context, default ""
@@ -194,8 +183,7 @@ class SchemasContext {
      * The source informations are set to traceback which child column
      * the new column is from.
      */
-    void MergeWithNewID(size_t child_idx, const SchemasContext* child,
-                        PhysicalPlanContext* plan_ctx);
+    void MergeWithNewID(size_t child_idx, const SchemasContext* child, PhysicalPlanContext* plan_ctx);
 
     void Clear();
     void Build();
@@ -229,8 +217,7 @@ class SchemasContext {
     std::map<size_t, std::pair<size_t, size_t>> column_id_map_;
 
     // column name -> [(schema idx, column idx)] mapping
-    std::map<std::string, std::vector<std::pair<size_t, size_t>>>
-        column_name_map_;
+    std::map<std::string, std::vector<std::pair<size_t, size_t>>> column_name_map_;
 
     // child source mapping
     // child idx -> (child column id -> column idx)

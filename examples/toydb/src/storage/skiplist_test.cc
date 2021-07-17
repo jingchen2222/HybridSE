@@ -37,9 +37,7 @@ class SkipListTest : public ::testing::Test {
 };
 
 struct SliceComparator {
-    int operator()(const Slice& a, const Slice& b) const {
-        return a.compare(b);
-    }
+    int operator()(const Slice& a, const Slice& b) const { return a.compare(b); }
 };
 
 std::vector<uint8_t> vec = {1, 2, 5, 10, 12};
@@ -72,9 +70,7 @@ struct KE {
 };
 
 struct StrComparator {
-    int operator()(const std::string& a, const std::string& b) const {
-        return a.compare(b);
-    }
+    int operator()(const std::string& a, const std::string& b) const { return a.compare(b); }
 };
 
 TEST_F(NodeTest, SetNext) {

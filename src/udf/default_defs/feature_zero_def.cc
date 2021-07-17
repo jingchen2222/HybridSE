@@ -57,8 +57,7 @@ class MutableStringListV : public codec::ListV<StringRef> {
     MutableStringListV() {}
     ~MutableStringListV() {}
 
-    std::unique_ptr<base::ConstIterator<uint64_t, StringRef>> GetIterator()
-        override;
+    std::unique_ptr<base::ConstIterator<uint64_t, StringRef>> GetIterator() override;
     base::ConstIterator<uint64_t, StringRef>* GetRawIterator() override;
 
     const uint64_t GetCount() override { return buffer_.size(); }
@@ -79,8 +78,7 @@ class MutableStringListV : public codec::ListV<StringRef> {
     size_t total_len_ = 0;
 };
 
-class MutableStringListVIterator
-    : public base::ConstIterator<uint64_t, StringRef> {
+class MutableStringListVIterator : public base::ConstIterator<uint64_t, StringRef> {
  public:
     explicit MutableStringListVIterator(const std::vector<std::string>* buffer)
         : buffer_(buffer), iter_(buffer->cbegin()), key_(0) {
@@ -92,9 +90,7 @@ class MutableStringListVIterator
     ~MutableStringListVIterator() {}
 
     void Seek(const uint64_t& key) override {
-        iter_ = (buffer_->cbegin() + key) >= buffer_->cend()
-                    ? buffer_->cend()
-                    : buffer_->cbegin() + key;
+        iter_ = (buffer_->cbegin() + key) >= buffer_->cend() ? buffer_->cend() : buffer_->cbegin() + key;
     }
 
     bool Valid() const override { return buffer_->cend() != iter_; }
@@ -126,10 +122,8 @@ class MutableStringListVIterator
     uint64_t key_;
 };
 
-std::unique_ptr<base::ConstIterator<uint64_t, StringRef>>
-MutableStringListV::GetIterator() {
-    return std::unique_ptr<MutableStringListVIterator>(
-        new MutableStringListVIterator(&buffer_));
+std::unique_ptr<base::ConstIterator<uint64_t, StringRef>> MutableStringListV::GetIterator() {
+    return std::unique_ptr<MutableStringListVIterator>(new MutableStringListVIterator(&buffer_));
 }
 base::ConstIterator<uint64_t, StringRef>* MutableStringListV::GetRawIterator() {
     return new MutableStringListVIterator(&buffer_);
@@ -150,13 +144,9 @@ class StringSplitState : public base::FeBaseObject {
 
     void SetDelimeterInitialized() { delims_compiled_ = true; }
 
-    void InitDelimeter(const std::string& delim) {
-        delims_[0] = boost::regex(delim);
-    }
+    void InitDelimeter(const std::string& delim) { delims_[0] = boost::regex(delim); }
 
-    void InitKVDelimeter(const std::string& delim) {
-        delims_[1] = boost::regex(delim);
-    }
+    void InitKVDelimeter(const std::string& delim) { delims_[1] = boost::regex(delim); }
 
     boost::regex& GetDelimeter() { return delims_[0]; }
 
@@ -177,14 +167,9 @@ struct FZStringOpsDef {
         return list;
     }
 
-    static void OutputList(StringSplitState* state,
-                           ListRef<StringRef>* output) {
-        *output = *state->GetListRef();
-    }
+    static void OutputList(StringSplitState* state, ListRef<StringRef>* output) { *output = *state->GetListRef(); }
 
-    static StringSplitState* UpdateSplit(StringSplitState* state,
-                                         StringRef* str, bool is_null,
-                                         StringRef* delimeter) {
+    static StringSplitState* UpdateSplit(StringSplitState* state, StringRef* str, bool is_null, StringRef* delimeter) {
         if (is_null || delimeter->size_ == 0) {
             return state;
         }
@@ -221,17 +206,14 @@ struct FZStringOpsDef {
         return state;
     }
 
-    static void SingleSplit(StringRef* str, bool is_null, StringRef* delimeter,
-                            ListRef<StringRef>* output) {
+    static void SingleSplit(StringRef* str, bool is_null, StringRef* delimeter, ListRef<StringRef>* output) {
         auto list = InitList();
         UpdateSplit(list, str, is_null, delimeter);
         output->list = reinterpret_cast<int8_t*>(list->GetListV());
     }
 
-    static StringSplitState* UpdateSplitByKey(StringSplitState* state,
-                                              StringRef* str, bool is_null,
-                                              StringRef* delimeter,
-                                              StringRef* kv_delimeter) {
+    static StringSplitState* UpdateSplitByKey(StringSplitState* state, StringRef* str, bool is_null,
+                                              StringRef* delimeter, StringRef* kv_delimeter) {
         if (is_null || delimeter->size_ == 0 || kv_delimeter->size_ == 0) {
             return state;
         }
@@ -273,18 +255,15 @@ struct FZStringOpsDef {
         return state;
     }
 
-    static void SingleSplitByKey(StringRef* str, bool is_null,
-                                 StringRef* delimeter, StringRef* kv_delimeter,
+    static void SingleSplitByKey(StringRef* str, bool is_null, StringRef* delimeter, StringRef* kv_delimeter,
                                  ListRef<StringRef>* output) {
         auto list = InitList();
         UpdateSplitByKey(list, str, is_null, delimeter, kv_delimeter);
         output->list = reinterpret_cast<int8_t*>(list->GetListV());
     }
 
-    static StringSplitState* UpdateSplitByValue(StringSplitState* state,
-                                                StringRef* str, bool is_null,
-                                                StringRef* delimeter,
-                                                StringRef* kv_delimeter) {
+    static StringSplitState* UpdateSplitByValue(StringSplitState* state, StringRef* str, bool is_null,
+                                                StringRef* delimeter, StringRef* kv_delimeter) {
         if (is_null || delimeter->size_ == 0 || kv_delimeter->size_ == 0) {
             return state;
         }
@@ -339,17 +318,14 @@ struct FZStringOpsDef {
         return state;
     }
 
-    static void SingleSplitByValue(StringRef* str, bool is_null,
-                                   StringRef* delimeter,
-                                   StringRef* kv_delimeter,
+    static void SingleSplitByValue(StringRef* str, bool is_null, StringRef* delimeter, StringRef* kv_delimeter,
                                    ListRef<StringRef>* output) {
         auto list = InitList();
         UpdateSplitByValue(list, str, is_null, delimeter, kv_delimeter);
         output->list = reinterpret_cast<int8_t*>(list->GetListV());
     }
 
-    static void StringJoin(ListRef<StringRef>* list_ref, StringRef* delimeter,
-                           StringRef* output) {
+    static void StringJoin(ListRef<StringRef>* list_ref, StringRef* delimeter, StringRef* output) {
         auto list = reinterpret_cast<codec::ListV<StringRef>*>(list_ref->list);
         auto iter = list->GetIterator();
         std::string delim = delimeter->ToString();
@@ -389,8 +365,7 @@ struct FZTop1Ratio {
     using InputK = typename ContainerT::InputK;
 
     void operator()(UdafRegistryHelper& helper) {  // NOLINT
-        std::string suffix =
-            ".opaque_dict_" + DataTypeTrait<K>::to_string() + "_";
+        std::string suffix = ".opaque_dict_" + DataTypeTrait<K>::to_string() + "_";
         helper.doc(helper.GetDoc())
             .templates<double, Opaque<ContainerT>, Nullable<K>>()
             .init("fz_top1_ratio_init" + suffix, ContainerT::Init)
@@ -438,8 +413,7 @@ struct FZTopNFrequency {
     static const size_t MAXIMUM_TOPN = 1024;
 
     // we need store top_n config in state
-    class TopNContainer
-        : public udf::container::BoundedGroupByDict<K, int64_t> {
+    class TopNContainer : public udf::container::BoundedGroupByDict<K, int64_t> {
      public:
         static void Init(TopNContainer* addr) { new (addr) TopNContainer(); }
         static void Destroy(TopNContainer* ptr) { ptr->~TopNContainer(); }
@@ -450,8 +424,7 @@ struct FZTopNFrequency {
     using InputK = typename TopNContainer::InputK;
 
     void operator()(UdafRegistryHelper& helper) {  // NOLINT
-        std::string suffix =
-            ".opaque_dict_" + DataTypeTrait<K>::to_string() + "_";
+        std::string suffix = ".opaque_dict_" + DataTypeTrait<K>::to_string() + "_";
         helper.doc(helper.GetDoc())
             .templates<StringRef, Opaque<TopNContainer>, Nullable<K>, int32_t>()
             .init("fz_topn_frequency_init" + suffix, TopNContainer::Init)
@@ -459,8 +432,7 @@ struct FZTopNFrequency {
             .output("fz_topn_frequency_output" + suffix, Output);
     }
 
-    static TopNContainer* Update(TopNContainer* ptr, InputK key,
-                                 bool is_key_null, int32_t top_n) {
+    static TopNContainer* Update(TopNContainer* ptr, InputK key, bool is_key_null, int32_t top_n) {
         auto& map = ptr->map();
         ptr->top_n_ = top_n;
         if (is_key_null) {
@@ -496,8 +468,7 @@ struct FZTopNFrequency {
                 return false;
             }
         };
-        std::priority_queue<Entry, std::vector<Entry>, decltype(cmp)> queue(
-            cmp);
+        std::priority_queue<Entry, std::vector<Entry>, decltype(cmp)> queue(cmp);
         for (auto iter = map.begin(); iter != map.end(); ++iter) {
             queue.push({iter->first, iter->second});
         }
@@ -548,8 +519,7 @@ struct FZTopNFrequency {
 
 void DefaultUdfLibrary::InitFeatureZero() {
     RegisterUdaf("fz_window_split")
-        .templates<ListRef<StringRef>, Opaque<StringSplitState>,
-                   Nullable<StringRef>, StringRef>()
+        .templates<ListRef<StringRef>, Opaque<StringSplitState>, Nullable<StringRef>, StringRef>()
         .init("fz_window_split_init", FZStringOpsDef::InitList)
         .update("fz_window_split_update", FZStringOpsDef::UpdateSplit)
         .output("fz_window_split_output", FZStringOpsDef::OutputList)
@@ -563,8 +533,7 @@ void DefaultUdfLibrary::InitFeatureZero() {
     RegisterExternal("fz_split")
         .returns<ListRef<StringRef>>()
         .return_by_arg(true)
-        .args<Nullable<StringRef>, StringRef>(
-            reinterpret_cast<void*>(&FZStringOpsDef::SingleSplit))
+        .args<Nullable<StringRef>, StringRef>(reinterpret_cast<void*>(&FZStringOpsDef::SingleSplit))
         .doc(R"(
             @brief Used by feature zero, split string to list by delimeter.
             Null values are skipped.
@@ -572,11 +541,9 @@ void DefaultUdfLibrary::InitFeatureZero() {
             @since 0.1.0)");
 
     RegisterUdaf("fz_window_split_by_key")
-        .templates<ListRef<StringRef>, Opaque<StringSplitState>,
-                   Nullable<StringRef>, StringRef, StringRef>()
+        .templates<ListRef<StringRef>, Opaque<StringSplitState>, Nullable<StringRef>, StringRef, StringRef>()
         .init("fz_window_split_by_key_init", FZStringOpsDef::InitList)
-        .update("fz_window_split_by_key_update",
-                FZStringOpsDef::UpdateSplitByKey)
+        .update("fz_window_split_by_key_update", FZStringOpsDef::UpdateSplitByKey)
         .output("fz_window_split_by_key_output", FZStringOpsDef::OutputList)
         .doc(R"(
             @brief Used by feature zero, for each string value from specified
@@ -590,8 +557,7 @@ void DefaultUdfLibrary::InitFeatureZero() {
     RegisterExternal("fz_split_by_key")
         .returns<ListRef<StringRef>>()
         .return_by_arg(true)
-        .args<Nullable<StringRef>, StringRef, StringRef>(
-            reinterpret_cast<void*>(FZStringOpsDef::SingleSplitByKey))
+        .args<Nullable<StringRef>, StringRef, StringRef>(reinterpret_cast<void*>(FZStringOpsDef::SingleSplitByKey))
         .doc(R"(
             @brief Used by feature zero, split string by delimeter and then
             split each segment as kv pair, then add each 
@@ -600,11 +566,9 @@ void DefaultUdfLibrary::InitFeatureZero() {
             @since 0.1.0)");
 
     RegisterUdaf("fz_window_split_by_value")
-        .templates<ListRef<StringRef>, Opaque<StringSplitState>,
-                   Nullable<StringRef>, StringRef, StringRef>()
+        .templates<ListRef<StringRef>, Opaque<StringSplitState>, Nullable<StringRef>, StringRef, StringRef>()
         .init("fz_window_split_by_value_init", FZStringOpsDef::InitList)
-        .update("fz_window_split_by_value_update",
-                FZStringOpsDef::UpdateSplitByValue)
+        .update("fz_window_split_by_value_update", FZStringOpsDef::UpdateSplitByValue)
         .output("fz_window_split_by_value_output", FZStringOpsDef::OutputList)
         .doc(R"(
             @brief Used by feature zero, for each string value from specified
@@ -618,8 +582,7 @@ void DefaultUdfLibrary::InitFeatureZero() {
     RegisterExternal("fz_split_by_value")
         .returns<ListRef<StringRef>>()
         .return_by_arg(true)
-        .args<Nullable<StringRef>, StringRef, StringRef>(
-            reinterpret_cast<void*>(FZStringOpsDef::SingleSplitByValue))
+        .args<Nullable<StringRef>, StringRef, StringRef>(reinterpret_cast<void*>(FZStringOpsDef::SingleSplitByValue))
         .doc(R"(
             @brief Used by feature zero, split string by delimeter and then
             split each segment as kv pair, then add each
@@ -647,15 +610,13 @@ void DefaultUdfLibrary::InitFeatureZero() {
         .doc(R"(@brief Compute the top1 key's ratio
 
         @since 0.1.0)")
-        .args_in<int16_t, int32_t, int64_t, float, double, Date, Timestamp,
-                 StringRef>();
+        .args_in<int16_t, int32_t, int64_t, float, double, Date, Timestamp, StringRef>();
 
     RegisterUdafTemplate<FZTopNFrequency>("fz_topn_frequency")
         .doc(R"(@brief Return the topN keys sorted by their frequency
 
         @since 0.1.0)")
-        .args_in<int16_t, int32_t, int64_t, float, double, Date, Timestamp,
-                 StringRef>();
+        .args_in<int16_t, int32_t, int64_t, float, double, Date, Timestamp, StringRef>();
 }
 
 }  // namespace udf

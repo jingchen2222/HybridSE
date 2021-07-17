@@ -37,41 +37,29 @@ class WindowDecodeIRBuilder {
 
     virtual ~WindowDecodeIRBuilder() {}
 
-    virtual bool BuildInnerRangeList(::llvm::Value* window_ptr,
-                                     ::llvm::Value* row_key, int64_t start,
-                                     int64_t end, ::llvm::Value** output) = 0;
-    virtual bool BuildInnerRowsList(::llvm::Value* window_ptr, int64_t start,
-                                    int64_t end, ::llvm::Value** output) = 0;
-    virtual bool BuildGetCol(size_t schema_idx, size_t col_idx,
-                             ::llvm::Value* window_ptr,
-                             ::llvm::Value** output) = 0;
+    virtual bool BuildInnerRangeList(::llvm::Value* window_ptr, ::llvm::Value* row_key, int64_t start, int64_t end,
+                                     ::llvm::Value** output) = 0;
+    virtual bool BuildInnerRowsList(::llvm::Value* window_ptr, int64_t start, int64_t end, ::llvm::Value** output) = 0;
+    virtual bool BuildGetCol(size_t schema_idx, size_t col_idx, ::llvm::Value* window_ptr, ::llvm::Value** output) = 0;
 };
 
 class MemoryWindowDecodeIRBuilder : public WindowDecodeIRBuilder {
  public:
-    MemoryWindowDecodeIRBuilder(const vm::SchemasContext* schemas_context,
-                                ::llvm::BasicBlock* block);
+    MemoryWindowDecodeIRBuilder(const vm::SchemasContext* schemas_context, ::llvm::BasicBlock* block);
 
     ~MemoryWindowDecodeIRBuilder();
-    virtual bool BuildInnerRangeList(::llvm::Value* window_ptr,
-                                     ::llvm::Value* row_key, int64_t start,
-                                     int64_t end, ::llvm::Value** output);
-    virtual bool BuildInnerRowsList(::llvm::Value* window_ptr, int64_t start,
-                                    int64_t end, ::llvm::Value** output);
-    virtual bool BuildGetCol(size_t schema_idx, size_t col_idx,
-                             ::llvm::Value* window_ptr, ::llvm::Value** output);
+    virtual bool BuildInnerRangeList(::llvm::Value* window_ptr, ::llvm::Value* row_key, int64_t start, int64_t end,
+                                     ::llvm::Value** output);
+    virtual bool BuildInnerRowsList(::llvm::Value* window_ptr, int64_t start, int64_t end, ::llvm::Value** output);
+    virtual bool BuildGetCol(size_t schema_idx, size_t col_idx, ::llvm::Value* window_ptr, ::llvm::Value** output);
 
  private:
-    bool BuildGetPrimaryCol(const std::string& fn_name, ::llvm::Value* row_ptr,
-                            size_t schema_idx, size_t col_idx, uint32_t offset,
-                            hybridse::node::TypeNode* type,
-                            ::llvm::Value** output);
+    bool BuildGetPrimaryCol(const std::string& fn_name, ::llvm::Value* row_ptr, size_t schema_idx, size_t col_idx,
+                            uint32_t offset, hybridse::node::TypeNode* type, ::llvm::Value** output);
 
-    bool BuildGetStringCol(size_t schema_idx, size_t col_idx, uint32_t offset,
-                           uint32_t next_str_field_offset,
-                           uint32_t str_start_offset,
-                           hybridse::node::TypeNode* type,
-                           ::llvm::Value* window_ptr, ::llvm::Value** output);
+    bool BuildGetStringCol(size_t schema_idx, size_t col_idx, uint32_t offset, uint32_t next_str_field_offset,
+                           uint32_t str_start_offset, hybridse::node::TypeNode* type, ::llvm::Value* window_ptr,
+                           ::llvm::Value** output);
 
  private:
     ::llvm::BasicBlock* block_;

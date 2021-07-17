@@ -28,18 +28,13 @@ namespace sdk {
 #define BitMapSize(size) (((size) >> 3) + !!((size)&0x07))
 static constexpr uint8_t SDK_VERSION_LENGTH = 2;
 static constexpr uint8_t SDK_SIZE_LENGTH = 4;
-static constexpr uint8_t SDK_HEADER_LENGTH =
-    SDK_VERSION_LENGTH + SDK_SIZE_LENGTH;
+static constexpr uint8_t SDK_HEADER_LENGTH = SDK_VERSION_LENGTH + SDK_SIZE_LENGTH;
 static constexpr uint32_t SDK_UINT24_MAX = (1 << 24) - 1;
-static const std::unordered_map<::hybridse::sdk::DataType, uint8_t>
-    SDK_TYPE_SIZE_MAP = {{::hybridse::sdk::kTypeBool, sizeof(bool)},
-                         {::hybridse::sdk::kTypeInt16, sizeof(int16_t)},
-                         {::hybridse::sdk::kTypeInt32, sizeof(int32_t)},
-                         {::hybridse::sdk::kTypeDate, sizeof(int32_t)},
-                         {::hybridse::sdk::kTypeFloat, sizeof(float)},
-                         {::hybridse::sdk::kTypeInt64, sizeof(int64_t)},
-                         {::hybridse::sdk::kTypeTimestamp, sizeof(int64_t)},
-                         {::hybridse::sdk::kTypeDouble, sizeof(double)}};
+static const std::unordered_map<::hybridse::sdk::DataType, uint8_t> SDK_TYPE_SIZE_MAP = {
+    {::hybridse::sdk::kTypeBool, sizeof(bool)},         {::hybridse::sdk::kTypeInt16, sizeof(int16_t)},
+    {::hybridse::sdk::kTypeInt32, sizeof(int32_t)},     {::hybridse::sdk::kTypeDate, sizeof(int32_t)},
+    {::hybridse::sdk::kTypeFloat, sizeof(float)},       {::hybridse::sdk::kTypeInt64, sizeof(int64_t)},
+    {::hybridse::sdk::kTypeTimestamp, sizeof(int64_t)}, {::hybridse::sdk::kTypeDouble, sizeof(double)}};
 static inline uint8_t SDKGetAddrLength(uint32_t size) {
     if (size <= UINT8_MAX) {
         return 1;
@@ -52,9 +47,7 @@ static inline uint8_t SDKGetAddrLength(uint32_t size) {
     }
 }
 
-inline uint32_t SDKGetStartOffset(int32_t column_count) {
-    return SDK_HEADER_LENGTH + BitMapSize(column_count);
-}
+inline uint32_t SDKGetStartOffset(int32_t column_count) { return SDK_HEADER_LENGTH + BitMapSize(column_count); }
 
 RequestRow::RequestRow(const hybridse::sdk::Schema* schema)
     : schema_(schema),
@@ -67,8 +60,7 @@ RequestRow::RequestRow(const hybridse::sdk::Schema* schema)
       offset_vec_(),
       val_(),
       buf_(NULL) {
-    str_field_start_offset_ =
-        SDK_HEADER_LENGTH + BitMapSize(schema->GetColumnCnt());
+    str_field_start_offset_ = SDK_HEADER_LENGTH + BitMapSize(schema->GetColumnCnt());
     for (int idx = 0; idx < schema->GetColumnCnt(); idx++) {
         auto type = schema->GetColumnType(idx);
         if (type == ::hybridse::sdk::kTypeString) {
@@ -77,8 +69,7 @@ RequestRow::RequestRow(const hybridse::sdk::Schema* schema)
         } else {
             auto iter = SDK_TYPE_SIZE_MAP.find(type);
             if (iter == SDK_TYPE_SIZE_MAP.end()) {
-                LOG(WARNING)
-                    << hybridse::sdk::DataTypeName(type) << " is not supported";
+                LOG(WARNING) << hybridse::sdk::DataTypeName(type) << " is not supported";
             } else {
                 offset_vec_.push_back(str_field_start_offset_);
                 str_field_start_offset_ += iter->second;
@@ -123,8 +114,7 @@ bool RequestRow::Check(hybridse::sdk::DataType type) {
         return false;
     }
     if ((int32_t)cnt_ >= schema_->GetColumnCnt()) {
-        LOG(WARNING) << "idx out of index: " << cnt_
-                     << " size=" << schema_->GetColumnCnt();
+        LOG(WARNING) << "idx out of index: " << cnt_ << " size=" << schema_->GetColumnCnt();
         return false;
     }
     auto expected_type = schema_->GetColumnType(cnt_);
@@ -135,8 +125,7 @@ bool RequestRow::Check(hybridse::sdk::DataType type) {
     if (type != ::hybridse::sdk::kTypeString) {
         auto iter = SDK_TYPE_SIZE_MAP.find(type);
         if (iter == SDK_TYPE_SIZE_MAP.end()) {
-            LOG(WARNING) << hybridse::sdk::DataTypeName(type)
-                         << " is not supported";
+            LOG(WARNING) << hybridse::sdk::DataTypeName(type) << " is not supported";
             return false;
         }
     }
@@ -202,8 +191,7 @@ bool RequestRow::AppendDouble(double val) {
 bool RequestRow::AppendString(const std::string& val) {
     if (!Check(::hybridse::sdk::kTypeString)) return false;
     if (str_offset_ + val.size() > size_) return false;
-    int8_t* ptr =
-        buf_ + str_field_start_offset_ + str_addr_length_ * offset_vec_[cnt_];
+    int8_t* ptr = buf_ + str_field_start_offset_ + str_addr_length_ * offset_vec_[cnt_];
     if (str_addr_length_ == 1) {
         *(reinterpret_cast<uint8_t*>(ptr)) = (uint8_t)str_offset_;
     } else if (str_addr_length_ == 2) {
@@ -216,8 +204,7 @@ bool RequestRow::AppendString(const std::string& val) {
         *(reinterpret_cast<uint32_t*>(ptr)) = str_offset_;
     }
     if (val.size() != 0) {
-        memcpy(reinterpret_cast<char*>(buf_ + str_offset_), val.c_str(),
-               val.size());
+        memcpy(reinterpret_cast<char*>(buf_ + str_offset_), val.c_str(), val.size());
     }
     str_offset_ += val.size();
     cnt_++;
@@ -229,16 +216,14 @@ bool RequestRow::AppendNULL() {
     *(reinterpret_cast<uint8_t*>(ptr)) |= 1 << (cnt_ & 0x07);
     auto type = schema_->GetColumnType(cnt_);
     if (type == ::hybridse::sdk::kTypeString) {
-        ptr = buf_ + str_field_start_offset_ +
-              str_addr_length_ * offset_vec_[cnt_];
+        ptr = buf_ + str_field_start_offset_ + str_addr_length_ * offset_vec_[cnt_];
         if (str_addr_length_ == 1) {
             *(reinterpret_cast<uint8_t*>(ptr)) = (uint8_t)str_offset_;
         } else if (str_addr_length_ == 2) {
             *(reinterpret_cast<uint16_t*>(ptr)) = (uint16_t)str_offset_;
         } else if (str_addr_length_ == 3) {
             *(reinterpret_cast<uint8_t*>(ptr)) = str_offset_ >> 16;
-            *(reinterpret_cast<uint8_t*>(ptr + 1)) =
-                (str_offset_ & 0xFF00) >> 8;
+            *(reinterpret_cast<uint8_t*>(ptr + 1)) = (str_offset_ & 0xFF00) >> 8;
             *(reinterpret_cast<uint8_t*>(ptr + 2)) = str_offset_ & 0x00FF;
         } else {
             *(reinterpret_cast<uint32_t*>(ptr)) = str_offset_;

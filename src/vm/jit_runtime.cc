@@ -22,9 +22,7 @@ thread_local JitRuntime JitRuntime::tls_runtime_inst_;
 
 JitRuntime* JitRuntime::get() { return &tls_runtime_inst_; }
 
-int8_t* JitRuntime::AllocManaged(size_t bytes) {
-    return reinterpret_cast<int8_t*>(mem_pool_.Alloc(bytes));
-}
+int8_t* JitRuntime::AllocManaged(size_t bytes) { return reinterpret_cast<int8_t*>(mem_pool_.Alloc(bytes)); }
 
 void JitRuntime::AddManagedObject(base::FeBaseObject* obj) {
     if (obj != nullptr) {

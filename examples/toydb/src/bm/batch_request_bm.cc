@@ -25,10 +25,10 @@ using namespace ::llvm;  // NOLINT
     static void BM_BatchRequest_##NAME(benchmark::State& state) {              \
         auto sql_case = LoadSqlCaseWithID(PATH, CASE_ID);                      \
         sql_case.batch_request_optimized_ = state.range(0) == 1;               \
-        if (!hybridse::sqlcase::SqlCase::IsDebug()) {                         \
+        if (!hybridse::sqlcase::SqlCase::IsDebug()) {                          \
             sql_case.SqlCaseRepeatConfig("window_scale", state.range(1));      \
         }                                                                      \
-        if (!hybridse::sqlcase::SqlCase::IsDebug()) {                         \
+        if (!hybridse::sqlcase::SqlCase::IsDebug()) {                          \
             sql_case.SqlCaseRepeatConfig("batch_scale", state.range(2));       \
         }                                                                      \
                                                                                \
@@ -50,8 +50,7 @@ const char* DEFAULT_YAML_PATH = "/cases/benchmark/batch_request_benchmark.yaml";
 DEFINE_BATCH_REQUEST_CASE(TwoWindow, DEFAULT_YAML_PATH, "0");
 DEFINE_BATCH_REQUEST_CASE(CommonWindow, DEFAULT_YAML_PATH, "1");
 DEFINE_BATCH_REQUEST_CASE(SelectAll, DEFAULT_YAML_PATH, "2");
-DEFINE_BATCH_REQUEST_CASE(SimpleSelectFromNonCommonJoin, DEFAULT_YAML_PATH,
-                          "3");
+DEFINE_BATCH_REQUEST_CASE(SimpleSelectFromNonCommonJoin, DEFAULT_YAML_PATH, "3");
 
 }  // namespace bm
 }  // namespace hybridse

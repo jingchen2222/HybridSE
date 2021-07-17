@@ -75,10 +75,8 @@ T PrintList(int8_t* input) {
     } else {
         std::cout << "list ptr is ok" << std::endl;
     }
-    ::hybridse::codec::ListRef<>* list_ref =
-        reinterpret_cast<::hybridse::codec::ListRef<>*>(input);
-    ::hybridse::codec::ColumnImpl<T>* column =
-        reinterpret_cast<::hybridse::codec::ColumnImpl<T>*>(list_ref->list);
+    ::hybridse::codec::ListRef<>* list_ref = reinterpret_cast<::hybridse::codec::ListRef<>*>(input);
+    ::hybridse::codec::ColumnImpl<T>* column = reinterpret_cast<::hybridse::codec::ColumnImpl<T>*>(list_ref->list);
     auto col = column->GetIterator();
     std::cout << "[";
     while (col->Valid()) {
@@ -104,8 +102,7 @@ int32_t PrintListString(int8_t* input) {
     } else {
         std::cout << "list ptr is ok" << std::endl;
     }
-    ::hybridse::codec::ListRef<>* list_ref =
-        reinterpret_cast<::hybridse::codec::ListRef<>*>(input);
+    ::hybridse::codec::ListRef<>* list_ref = reinterpret_cast<::hybridse::codec::ListRef<>*>(input);
     ::hybridse::codec::StringColumnImpl* column =
         reinterpret_cast<::hybridse::codec::StringColumnImpl*>(list_ref->list);
     auto col = column->GetIterator();
@@ -139,49 +136,37 @@ class BufIRBuilderTest : public ::testing::Test {
     ~BufIRBuilderTest() {}
 };
 
-void RunEncode(::hybridse::type::TableDef& table, // NOLINT
+void RunEncode(::hybridse::type::TableDef& table,  // NOLINT
                int8_t** output_ptr) {
     SqlCase::TableInfo table_info;
-    ASSERT_TRUE(SqlCase::CreateTableInfoFromYaml(
-        hybridse::sqlcase::FindSqlCaseBaseDirPath(),
-        "cases/resource/codegen_t1_one_row.yaml", &table_info));
-    ASSERT_TRUE(
-        SqlCase::ExtractTableDef(table_info.schema_, table_info.index_, table));
+    ASSERT_TRUE(SqlCase::CreateTableInfoFromYaml(hybridse::sqlcase::FindSqlCaseBaseDirPath(),
+                                                 "cases/resource/codegen_t1_one_row.yaml", &table_info));
+    ASSERT_TRUE(SqlCase::ExtractTableDef(table_info.schema_, table_info.index_, table));
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("test_encode", *ctx);
     // Create the add1 function entry and insert this entry into module M.  The
     // function will have a return type of "int" and take an argument of "int".
-    Function* fn = Function::Create(
-        FunctionType::get(Type::getVoidTy(*ctx),
-                          {Type::getInt8PtrTy(*ctx)->getPointerTo()}, false),
-        Function::ExternalLinkage, "fn", m.get());
+    Function* fn =
+        Function::Create(FunctionType::get(Type::getVoidTy(*ctx), {Type::getInt8PtrTy(*ctx)->getPointerTo()}, false),
+                         Function::ExternalLinkage, "fn", m.get());
     BasicBlock* entry_block = BasicBlock::Create(*ctx, "EntryBlock", fn);
     IRBuilder<> builder(entry_block);
     ScopeVar sv;
     std::map<uint32_t, NativeValue> outputs;
-    outputs.insert(
-        std::make_pair(0, NativeValue::Create(builder.getInt32(32))));
-    outputs.insert(
-        std::make_pair(1, NativeValue::Create(builder.getInt16(16))));
-    outputs.insert(
-        std::make_pair(2, NativeValue::Create(::llvm::ConstantFP::get(
-                              *ctx, ::llvm::APFloat(32.1f)))));
-    outputs.insert(
-        std::make_pair(3, NativeValue::Create(::llvm::ConstantFP::get(
-                              *ctx, ::llvm::APFloat(64.1)))));
-    outputs.insert(
-        std::make_pair(4, NativeValue::Create(builder.getInt64(64))));
+    outputs.insert(std::make_pair(0, NativeValue::Create(builder.getInt32(32))));
+    outputs.insert(std::make_pair(1, NativeValue::Create(builder.getInt16(16))));
+    outputs.insert(std::make_pair(2, NativeValue::Create(::llvm::ConstantFP::get(*ctx, ::llvm::APFloat(32.1f)))));
+    outputs.insert(std::make_pair(3, NativeValue::Create(::llvm::ConstantFP::get(*ctx, ::llvm::APFloat(64.1)))));
+    outputs.insert(std::make_pair(4, NativeValue::Create(builder.getInt64(64))));
 
     std::string hello = "hello";
     ::llvm::Value* string_ref = NULL;
     bool ok = GetConstFeString(hello, entry_block, &string_ref);
     ASSERT_TRUE(ok);
     outputs.insert(std::make_pair(5, NativeValue::Create(string_ref)));
-    outputs.insert(std::make_pair(
-        6, NativeValue::Create(builder.getInt64(1590115420000L))));
+    outputs.insert(std::make_pair(6, NativeValue::Create(builder.getInt64(1590115420000L))));
 
-    BufNativeEncoderIRBuilder buf_encoder_builder(&outputs, &table.columns(),
-                                                  entry_block);
+    BufNativeEncoderIRBuilder buf_encoder_builder(&outputs, &table.columns(), entry_block);
     Function::arg_iterator it = fn->arg_begin();
     Argument* arg0 = &*it;
     ok = buf_encoder_builder.BuildEncode(arg0);
@@ -189,21 +174,18 @@ void RunEncode(::hybridse::type::TableDef& table, // NOLINT
     builder.CreateRetVoid();
     m->print(::llvm::errs(), NULL);
 
-    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(
-        vm::HybridSeJitWrapper::Create());
+    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(vm::HybridSeJitWrapper::Create());
     jit->Init();
     vm::HybridSeJitWrapper::InitJitSymbols(jit.get());
     ASSERT_TRUE(jit->AddModule(std::move(m), std::move(ctx)));
     auto load_fn_jit = jit->FindFunction("fn");
-    void (*decode)(int8_t**) =
-        reinterpret_cast<void (*)(int8_t**)>(const_cast<int8_t*>(load_fn_jit));
+    void (*decode)(int8_t**) = reinterpret_cast<void (*)(int8_t**)>(const_cast<int8_t*>(load_fn_jit));
     decode(output_ptr);
 }
 template <class T>
 void LoadValue(T* result, bool* is_null,
                ::hybridse::type::TableDef& table,  // NOLINT
-               const ::hybridse::type::Type& type, const std::string& col,
-               int8_t* row, int32_t row_size) {
+               const ::hybridse::type::Type& type, const std::string& col, int8_t* row, int32_t row_size) {
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("test_load_buf", *ctx);
     // Create the add1 function entry and insert this entry into module M.  The
@@ -242,11 +224,9 @@ void LoadValue(T* result, bool* is_null,
     if (!retTy->isPointerTy()) {
         retTy = retTy->getPointerTo();
     }
-    Function* fn = Function::Create(
-        FunctionType::get(
-            llvm::Type::getInt1Ty(*ctx),
-            {Type::getInt8PtrTy(*ctx), Type::getInt32Ty(*ctx), retTy}, false),
-        Function::ExternalLinkage, "fn", m.get());
+    Function* fn = Function::Create(FunctionType::get(llvm::Type::getInt1Ty(*ctx),
+                                                      {Type::getInt8PtrTy(*ctx), Type::getInt32Ty(*ctx), retTy}, false),
+                                    Function::ExternalLinkage, "fn", m.get());
     BasicBlock* entry_block = BasicBlock::Create(*ctx, "EntryBlock", fn);
     ScopeVar sv;
     codec::RowFormat buf_format(&table.columns());
@@ -291,17 +271,14 @@ void LoadValue(T* result, bool* is_null,
     switch (type) {
         case ::hybridse::type::kVarchar: {
             codegen::StringIRBuilder string_builder(m.get());
-            ASSERT_TRUE(
-                string_builder.CopyFrom(builder.GetInsertBlock(), raw, arg2));
+            ASSERT_TRUE(string_builder.CopyFrom(builder.GetInsertBlock(), raw, arg2));
             break;
         }
         case ::hybridse::type::kTimestamp: {
             codegen::TimestampIRBuilder timestamp_builder(m.get());
             ::llvm::Value* ts_output;
-            ASSERT_TRUE(timestamp_builder.GetTs(builder.GetInsertBlock(), raw,
-                                                &ts_output));
-            ASSERT_TRUE(timestamp_builder.SetTs(builder.GetInsertBlock(), arg2,
-                                                ts_output));
+            ASSERT_TRUE(timestamp_builder.GetTs(builder.GetInsertBlock(), raw, &ts_output));
+            ASSERT_TRUE(timestamp_builder.SetTs(builder.GetInsertBlock(), arg2, ts_output));
             break;
         }
         default: {
@@ -311,16 +288,14 @@ void LoadValue(T* result, bool* is_null,
     builder.CreateRet(llvm::ConstantInt::getFalse(*ctx));
     m->print(::llvm::errs(), NULL);
 
-    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(
-        vm::HybridSeJitWrapper::Create());
+    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(vm::HybridSeJitWrapper::Create());
     jit->Init();
     vm::HybridSeJitWrapper::InitJitSymbols(jit.get());
     ASSERT_TRUE(jit->AddModule(std::move(m), std::move(ctx)));
     auto load_fn_jit = jit->FindFunction("fn");
 
     bool (*decode)(int8_t*, int32_t, T*) =
-        reinterpret_cast<bool (*)(int8_t*, int32_t, T*)>(
-            const_cast<int8_t*>(load_fn_jit));
+        reinterpret_cast<bool (*)(int8_t*, int32_t, T*)>(const_cast<int8_t*>(load_fn_jit));
     bool n = decode(row, row_size, result);
     if (is_null != nullptr) {
         *is_null = n;
@@ -330,8 +305,7 @@ void LoadValue(T* result, bool* is_null,
 template <class T>
 void RunCaseV1(T expected,
                ::hybridse::type::TableDef& table,  // NOLINT
-               const ::hybridse::type::Type& type, const std::string& col,
-               int8_t* row, int32_t row_size) {
+               const ::hybridse::type::Type& type, const std::string& col, int8_t* row, int32_t row_size) {
     T result;
     bool is_null;
     LoadValue(&result, &is_null, table, type, col, row, row_size);
@@ -341,8 +315,7 @@ void RunCaseV1(T expected,
 
 template <class T>
 void RunColCase(T expected, type::TableDef& table,  // NOLINT
-                const ::hybridse::type::Type& type, const std::string& col,
-                int8_t* window) {
+                const ::hybridse::type::Type& type, const std::string& col, int8_t* window) {
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("test_load_buf", *ctx);
     // Create the add1 function entry and insert this entry into module M.  The
@@ -375,9 +348,8 @@ void RunColCase(T expected, type::TableDef& table,  // NOLINT
             is_void = true;
             retTy = Type::getVoidTy(*ctx);
     }
-    Function* fn = Function::Create(
-        FunctionType::get(retTy, {Type::getInt8PtrTy(*ctx)}, false),
-        Function::ExternalLinkage, "fn", m.get());
+    Function* fn = Function::Create(FunctionType::get(retTy, {Type::getInt8PtrTy(*ctx)}, false),
+                                    Function::ExternalLinkage, "fn", m.get());
     BasicBlock* entry_block = BasicBlock::Create(*ctx, "EntryBlock", fn);
     ScopeVar sv;
 
@@ -386,9 +358,7 @@ void RunColCase(T expected, type::TableDef& table,  // NOLINT
     size_t schema_idx;
     size_t col_idx;
 
-    ASSERT_TRUE(
-        schemas_context.ResolveColumnIndexByName("", col, &schema_idx, &col_idx)
-            .isOK());
+    ASSERT_TRUE(schemas_context.ResolveColumnIndexByName("", col, &schema_idx, &col_idx).isOK());
 
     MemoryWindowDecodeIRBuilder buf_builder(&schemas_context, entry_block);
 
@@ -413,28 +383,23 @@ void RunColCase(T expected, type::TableDef& table,  // NOLINT
             callee = m->getOrInsertFunction("print_list_i64", retTy, i8_ptr_ty);
             break;
         case hybridse::type::kTimestamp:
-            callee = m->getOrInsertFunction("print_list_timestamp", retTy,
-                                            i8_ptr_ty);
+            callee = m->getOrInsertFunction("print_list_timestamp", retTy, i8_ptr_ty);
             break;
         case hybridse::type::kFloat:
-            callee =
-                m->getOrInsertFunction("print_list_float", retTy, i8_ptr_ty);
+            callee = m->getOrInsertFunction("print_list_float", retTy, i8_ptr_ty);
             break;
         case hybridse::type::kDouble:
-            callee =
-                m->getOrInsertFunction("print_list_double", retTy, i8_ptr_ty);
+            callee = m->getOrInsertFunction("print_list_double", retTy, i8_ptr_ty);
             break;
         case hybridse::type::kVarchar:
-            callee =
-                m->getOrInsertFunction("print_list_string", retTy, i8_ptr_ty);
+            callee = m->getOrInsertFunction("print_list_string", retTy, i8_ptr_ty);
             break;
 
         default: {
             return;
         }
     }
-    ::llvm::Value* ret_val =
-        builder.CreateCall(callee, ::llvm::ArrayRef<Value*>(i8_ptr));
+    ::llvm::Value* ret_val = builder.CreateCall(callee, ::llvm::ArrayRef<Value*>(i8_ptr));
     if (!is_void) {
         builder.CreateRet(ret_val);
     } else {
@@ -442,48 +407,34 @@ void RunColCase(T expected, type::TableDef& table,  // NOLINT
     }
     m->print(::llvm::errs(), NULL);
 
-    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(
-        vm::HybridSeJitWrapper::Create());
+    auto jit = std::unique_ptr<vm::HybridSeJitWrapper>(vm::HybridSeJitWrapper::Create());
     jit->Init();
     vm::HybridSeJitWrapper::InitJitSymbols(jit.get());
     ASSERT_TRUE(jit->AddModule(std::move(m), std::move(ctx)));
-    jit->AddExternalFunction("print_list_i16",
-                             reinterpret_cast<void*>(&PrintListInt16));
-    jit->AddExternalFunction("print_list_i32",
-                             reinterpret_cast<void*>(&PrintListInt32));
-    jit->AddExternalFunction("print_list_i64",
-                             reinterpret_cast<void*>(&PrintListInt64));
-    jit->AddExternalFunction("print_list_float",
-                             reinterpret_cast<void*>(&PrintListFloat));
-    jit->AddExternalFunction("print_list_double",
-                             reinterpret_cast<void*>(&PrintListDouble));
-    jit->AddExternalFunction("print_list_string",
-                             reinterpret_cast<void*>(&PrintListString));
-    jit->AddExternalFunction("print_list_timestamp",
-                             reinterpret_cast<void*>(&PrintListTimestamp));
+    jit->AddExternalFunction("print_list_i16", reinterpret_cast<void*>(&PrintListInt16));
+    jit->AddExternalFunction("print_list_i32", reinterpret_cast<void*>(&PrintListInt32));
+    jit->AddExternalFunction("print_list_i64", reinterpret_cast<void*>(&PrintListInt64));
+    jit->AddExternalFunction("print_list_float", reinterpret_cast<void*>(&PrintListFloat));
+    jit->AddExternalFunction("print_list_double", reinterpret_cast<void*>(&PrintListDouble));
+    jit->AddExternalFunction("print_list_string", reinterpret_cast<void*>(&PrintListString));
+    jit->AddExternalFunction("print_list_timestamp", reinterpret_cast<void*>(&PrintListTimestamp));
 
     auto load_fn_jit = jit->FindFunction("fn");
     codec::ListRef<> window_ref;
     window_ref.list = window;
     if (!is_void) {
         T(*decode)
-        (int8_t*) =
-            reinterpret_cast<T (*)(int8_t*)>(const_cast<int8_t*>(load_fn_jit));
+        (int8_t*) = reinterpret_cast<T (*)(int8_t*)>(const_cast<int8_t*>(load_fn_jit));
         ASSERT_EQ(expected, decode(reinterpret_cast<int8_t*>(&window_ref)));
 
     } else {
-        void (*decode)(int8_t*) = reinterpret_cast<void (*)(int8_t*)>(
-            const_cast<int8_t*>(load_fn_jit));
+        void (*decode)(int8_t*) = reinterpret_cast<void (*)(int8_t*)>(const_cast<int8_t*>(load_fn_jit));
         decode(reinterpret_cast<int8_t*>(&window_ref));
     }
 }
 
-static bool operator==(const codec::Timestamp& a, const codec::Timestamp& b) {
-    return a.ts_ == b.ts_;
-}
-static bool operator!=(const codec::Timestamp& a, const codec::Timestamp& b) {
-    return a.ts_ != b.ts_;
-}
+static bool operator==(const codec::Timestamp& a, const codec::Timestamp& b) { return a.ts_ == b.ts_; }
+static bool operator!=(const codec::Timestamp& a, const codec::Timestamp& b) { return a.ts_ != b.ts_; }
 
 TEST_F(BufIRBuilderTest, native_test_load_int16) {
     int8_t* ptr = NULL;
@@ -499,9 +450,8 @@ TEST_F(BufIRBuilderTest, native_test_load_string) {
     uint32_t size = 0;
     type::TableDef table;
     BuildT1Buf(table, &ptr, &size);
-    RunCaseV1<codec::StringRef>(codec::StringRef(strlen("1"), strdup("1")),
-                                table, ::hybridse::type::kVarchar, "col6", ptr,
-                                size);
+    RunCaseV1<codec::StringRef>(codec::StringRef(strlen("1"), strdup("1")), table, ::hybridse::type::kVarchar, "col6",
+                                ptr, size);
     free(ptr);
 }
 
@@ -529,8 +479,7 @@ TEST_F(BufIRBuilderTest, native_test_load_int16_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<int16_t>(16 * 5, table, ::hybridse::type::kInt16, "col2", ptr);
     free(ptr);
 }
@@ -539,8 +488,7 @@ TEST_F(BufIRBuilderTest, native_test_load_int32_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<int32_t>(32 * 5, table, ::hybridse::type::kInt32, "col1", ptr);
     free(ptr);
 }
@@ -549,8 +497,7 @@ TEST_F(BufIRBuilderTest, native_test_load_int64_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<int64_t>(64 * 5, table, ::hybridse::type::kInt64, "col5", ptr);
     free(ptr);
 }
@@ -558,18 +505,15 @@ TEST_F(BufIRBuilderTest, native_test_load_timestamp_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
-    RunColCase<int64_t>(1590115420000L * 5, table, ::hybridse::type::kTimestamp,
-                        "std_ts", ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
+    RunColCase<int64_t>(1590115420000L * 5, table, ::hybridse::type::kTimestamp, "std_ts", ptr);
     free(ptr);
 }
 TEST_F(BufIRBuilderTest, native_test_load_float_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<float>(2.1f * 5, table, ::hybridse::type::kFloat, "col3", ptr);
     free(ptr);
 }
@@ -578,8 +522,7 @@ TEST_F(BufIRBuilderTest, native_test_load_double_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<double>(3.1f * 5, table, ::hybridse::type::kDouble, "col4", ptr);
     free(ptr);
 }
@@ -588,8 +531,7 @@ TEST_F(BufIRBuilderTest, native_test_load_string_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<int32_t>(5, table, ::hybridse::type::kVarchar, "col6", ptr);
     free(ptr);
 }
@@ -615,8 +557,7 @@ TEST_F(BufIRBuilderTest, spark_unsaferow_native_test_load_int64_col) {
     int8_t* ptr = NULL;
     std::vector<Row> rows;
     type::TableDef table;
-    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table,
-                            rows, &ptr);
+    BuildWindowFromResource("cases/resource/codegen_t1_five_row.yaml", table, rows, &ptr);
     RunColCase<int64_t>(64 * 5, table, ::hybridse::type::kInt64, "col5", ptr);
     free(ptr);
 }

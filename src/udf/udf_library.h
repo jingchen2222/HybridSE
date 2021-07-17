@@ -74,29 +74,22 @@ struct UdfLibraryEntry;
  */
 class UdfLibrary {
  public:
-    Status Transform(const std::string& name,
-                     const std::vector<node::ExprNode*>& args,
-                     node::NodeManager* node_manager, ExprNode** result) const;
-
-    Status Transform(const std::string& name, UdfResolveContext* ctx,
+    Status Transform(const std::string& name, const std::vector<node::ExprNode*>& args, node::NodeManager* node_manager,
                      ExprNode** result) const;
 
-    Status ResolveFunction(const std::string& name, UdfResolveContext* ctx,
-                           node::FnDefNode** result) const;
+    Status Transform(const std::string& name, UdfResolveContext* ctx, ExprNode** result) const;
 
-    Status ResolveFunction(const std::string& name,
-                           const std::vector<node::ExprNode*>& args,
-                           node::NodeManager* node_manager,
-                           node::FnDefNode** result) const;
+    Status ResolveFunction(const std::string& name, UdfResolveContext* ctx, node::FnDefNode** result) const;
 
-    std::shared_ptr<UdfRegistry> Find(
-        const std::string& name,
-        const std::vector<const node::TypeNode*>& arg_types) const;
+    Status ResolveFunction(const std::string& name, const std::vector<node::ExprNode*>& args,
+                           node::NodeManager* node_manager, node::FnDefNode** result) const;
+
+    std::shared_ptr<UdfRegistry> Find(const std::string& name,
+                                      const std::vector<const node::TypeNode*>& arg_types) const;
 
     bool HasFunction(const std::string& name) const;
 
-    std::shared_ptr<ArgSignatureTable<std::shared_ptr<UdfRegistry>>> FindAll(
-        const std::string& name) const;
+    std::shared_ptr<ArgSignatureTable<std::shared_ptr<UdfRegistry>>> FindAll(const std::string& name) const;
 
     bool IsUdaf(const std::string& name, size_t args) const;
     void SetIsUdaf(const std::string& name, size_t args);
@@ -140,10 +133,8 @@ class UdfLibrary {
 
     const auto& GetAllRegistries() { return table_; }
 
-    void InsertRegistry(const std::string& name,
-                        const std::vector<const node::TypeNode*>& arg_types,
-                        bool is_variadic, bool always_return_list,
-                        const std::unordered_set<size_t>& always_list_argidx,
+    void InsertRegistry(const std::string& name, const std::vector<const node::TypeNode*>& arg_types, bool is_variadic,
+                        bool always_return_list, const std::unordered_set<size_t>& always_list_argidx,
                         std::shared_ptr<UdfRegistry> registry);
 
  private:

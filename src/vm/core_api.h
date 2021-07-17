@@ -38,16 +38,12 @@ typedef int8_t* ByteArrayPtr;
 
 class WindowInterface {
  public:
-    WindowInterface(bool instance_not_in_window, bool exclude_current_time,
-                    const std::string& frame_type_str, int64_t start_offset,
-                    int64_t end_offset, uint64_t rows_preceding,
-                    uint64_t max_size);
+    WindowInterface(bool instance_not_in_window, bool exclude_current_time, const std::string& frame_type_str,
+                    int64_t start_offset, int64_t end_offset, uint64_t rows_preceding, uint64_t max_size);
 
     bool BufferData(uint64_t key, const Row& row);
 
-    hybridse::codec::Row Get(uint64_t idx) const {
-        return window_impl_->At(idx);
-    }
+    hybridse::codec::Row Get(uint64_t idx) const { return window_impl_->At(idx); }
 
     size_t size() const { return window_impl_->GetCount(); }
 
@@ -55,8 +51,7 @@ class WindowInterface {
     friend CoreAPI;
 
     Window* GetWindow() { return window_impl_.get(); }
-    inline Window::WindowFrameType ExtractFrameType(
-        const std::string& frame_type_str) const;
+    inline Window::WindowFrameType ExtractFrameType(const std::string& frame_type_str) const;
     std::unique_ptr<Window> window_impl_;
 };
 
@@ -79,9 +74,7 @@ class ColumnSourceInfo {
     size_t GetChildColumnID() const { return child_column_id_; }
     size_t GetSourceColumnID() const { return source_column_id_; }
     const std::string& GetSourceColumnName() const { return source_col_name_; }
-    const hybridse::vm::PhysicalOpNode* GetSourceNode() const {
-        return source_node_;
-    }
+    const hybridse::vm::PhysicalOpNode* GetSourceNode() const { return source_node_; }
     int GetColumnIndex() const { return total_col_idx_; }
     int GetColumnIndexInSlice() const { return col_idx_; }
     int GetSchemaIndex() const { return schema_idx_; }
@@ -112,58 +105,44 @@ class CoreAPI {
     static RawPtrHandle GetRowBuf(hybridse::codec::Row*, size_t idx);
     static RawPtrHandle AppendRow(hybridse::codec::Row*, size_t bytes);
 
-    static int ResolveColumnIndex(hybridse::vm::PhysicalOpNode* node,
-                                  hybridse::node::ExprNode* expr);
+    static int ResolveColumnIndex(hybridse::vm::PhysicalOpNode* node, hybridse::node::ExprNode* expr);
 
-    static std::string ResolveSourceColumnName(
-        hybridse::vm::PhysicalOpNode* node,
-        hybridse::node::ColumnRefNode* expr);
+    static std::string ResolveSourceColumnName(hybridse::vm::PhysicalOpNode* node, hybridse::node::ColumnRefNode* expr);
 
-    static ColumnSourceInfo ResolveSourceColumn(
-        hybridse::vm::PhysicalOpNode* node, const std::string& relation_name,
-        const std::string& column_name);
+    static ColumnSourceInfo ResolveSourceColumn(hybridse::vm::PhysicalOpNode* node, const std::string& relation_name,
+                                                const std::string& column_name);
 
     static size_t GetUniqueID(const hybridse::vm::PhysicalOpNode* node);
 
-    static hybridse::codec::Row RowProject(const hybridse::vm::RawPtrHandle fn,
-                                           const hybridse::codec::Row row,
+    static hybridse::codec::Row RowProject(const hybridse::vm::RawPtrHandle fn, const hybridse::codec::Row row,
                                            const bool need_free = false);
-    static hybridse::codec::Row RowConstProject(
-        const hybridse::vm::RawPtrHandle fn, const bool need_free = false);
+    static hybridse::codec::Row RowConstProject(const hybridse::vm::RawPtrHandle fn, const bool need_free = false);
 
     // Row project API with Spark UnsafeRow optimization
-    static hybridse::codec::Row UnsafeRowProject(
-        const hybridse::vm::RawPtrHandle fn,
-        hybridse::vm::ByteArrayPtr inputUnsafeRowBytes,
-        const int inputRowSizeInBytes, const bool need_free = false);
+    static hybridse::codec::Row UnsafeRowProject(const hybridse::vm::RawPtrHandle fn,
+                                                 hybridse::vm::ByteArrayPtr inputUnsafeRowBytes,
+                                                 const int inputRowSizeInBytes, const bool need_free = false);
 
-    static void CopyRowToUnsafeRowBytes(const hybridse::codec::Row inputRow,
-                                        hybridse::vm::ByteArrayPtr outputBytes,
+    static void CopyRowToUnsafeRowBytes(const hybridse::codec::Row inputRow, hybridse::vm::ByteArrayPtr outputBytes,
                                         const int length);
 
-    static hybridse::codec::Row WindowProject(
-        const hybridse::vm::RawPtrHandle fn, const uint64_t key, const Row row,
-        const bool is_instance, size_t append_slices, WindowInterface* window);
+    static hybridse::codec::Row WindowProject(const hybridse::vm::RawPtrHandle fn, const uint64_t key, const Row row,
+                                              const bool is_instance, size_t append_slices, WindowInterface* window);
 
     // Window project API with Spark UnsafeRow optimization
-    static hybridse::codec::Row UnsafeWindowProject(
-        const hybridse::vm::RawPtrHandle fn, const uint64_t key,
-        hybridse::vm::ByteArrayPtr inputUnsafeRowBytes,
-        const int inputRowSizeInBytes, const bool is_instance,
-        size_t append_slices, WindowInterface* window);
+    static hybridse::codec::Row UnsafeWindowProject(const hybridse::vm::RawPtrHandle fn, const uint64_t key,
+                                                    hybridse::vm::ByteArrayPtr inputUnsafeRowBytes,
+                                                    const int inputRowSizeInBytes, const bool is_instance,
+                                                    size_t append_slices, WindowInterface* window);
 
-    static hybridse::codec::Row WindowProject(
-        const hybridse::vm::RawPtrHandle fn, const uint64_t key, const Row row,
-        WindowInterface* window);
+    static hybridse::codec::Row WindowProject(const hybridse::vm::RawPtrHandle fn, const uint64_t key, const Row row,
+                                              WindowInterface* window);
 
-    static hybridse::codec::Row GroupbyProject(
-        const hybridse::vm::RawPtrHandle fn,
-        hybridse::vm::GroupbyInterface* groupby_interface);
+    static hybridse::codec::Row GroupbyProject(const hybridse::vm::RawPtrHandle fn,
+                                               hybridse::vm::GroupbyInterface* groupby_interface);
 
-    static bool ComputeCondition(const hybridse::vm::RawPtrHandle fn,
-                                 const Row& row,
-                                 const hybridse::codec::RowView* row_view,
-                                 size_t out_idx);
+    static bool ComputeCondition(const hybridse::vm::RawPtrHandle fn, const Row& row,
+                                 const hybridse::codec::RowView* row_view, size_t out_idx);
 
     static bool EnableSignalTraceback();
 };

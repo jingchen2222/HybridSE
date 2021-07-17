@@ -33,61 +33,47 @@ class PredicateIRBuilder {
     explicit PredicateIRBuilder(::llvm::BasicBlock* block);
     ~PredicateIRBuilder();
 
-    Status BuildAndExpr(NativeValue left, NativeValue right,
-                        NativeValue* output);
-    Status BuildOrExpr(NativeValue left, NativeValue right,
-                       NativeValue* output);
-    Status BuildXorExpr(NativeValue left, NativeValue right,
-                        NativeValue* output);
+    Status BuildAndExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildOrExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildXorExpr(NativeValue left, NativeValue right, NativeValue* output);
     Status BuildNotExpr(NativeValue left, NativeValue* output);
 
-    Status BuildEqExpr(NativeValue left, NativeValue right,
-                       NativeValue* output);
-    Status BuildNeqExpr(NativeValue left, NativeValue right,
-                        NativeValue* output);
-    Status BuildGtExpr(NativeValue left, NativeValue right,
-                       NativeValue* output);
-    Status BuildGeExpr(NativeValue left, NativeValue right,
-                       NativeValue* output);
-    Status BuildLtExpr(NativeValue left, NativeValue right,
-                       NativeValue* output);
-    Status BuildLeExpr(NativeValue left, NativeValue right,
-                       NativeValue* output);
+    Status BuildEqExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildNeqExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildGtExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildGeExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildLtExpr(NativeValue left, NativeValue right, NativeValue* output);
+    Status BuildLeExpr(NativeValue left, NativeValue right, NativeValue* output);
     Status BuildIsNullExpr(NativeValue left, NativeValue* output);
 
-    static bool BuildEqExpr(::llvm::BasicBlock* block, ::llvm::Value* left,
-                            ::llvm::Value* right, ::llvm::Value** output,
+    static bool BuildEqExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                            ::llvm::Value** output,
                             base::Status& status);  // NOLINT
-    static bool BuildNeqExpr(::llvm::BasicBlock* block, ::llvm::Value* left,
-                             ::llvm::Value* right, ::llvm::Value** output,
+    static bool BuildNeqExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                             ::llvm::Value** output,
                              base::Status& status);  // NOLINT
-    static bool BuildGtExpr(::llvm::BasicBlock* block, ::llvm::Value* left,
-                            ::llvm::Value* right, ::llvm::Value** output,
+    static bool BuildGtExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                            ::llvm::Value** output,
                             base::Status& status);  // NOLINT
-    static bool BuildGeExpr(::llvm::BasicBlock* block, ::llvm::Value* left,
-                            ::llvm::Value* right, ::llvm::Value** output,
+    static bool BuildGeExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                            ::llvm::Value** output,
                             base::Status& status);  // NOLINT
-    static bool BuildLtExpr(::llvm::BasicBlock* block, ::llvm::Value* left,
-                            ::llvm::Value* right, ::llvm::Value** output,
+    static bool BuildLtExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                            ::llvm::Value** output,
                             base::Status& status);  // NOLINT
-    static bool BuildLeExpr(::llvm::BasicBlock* block, ::llvm::Value* left,
-                            ::llvm::Value* right, ::llvm::Value** output,
+    static bool BuildLeExpr(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                            ::llvm::Value** output,
                             base::Status& status);  // NOLINT
 
-    Status BuildIsNullExpr(::llvm::BasicBlock*, NativeValue input,
-                           NativeValue* output);
+    Status BuildIsNullExpr(::llvm::BasicBlock*, NativeValue input, NativeValue* output);
 
  private:
     static bool IsAcceptType(::llvm::Type* type);
     static Status CompareTypeAccept(::llvm::Type* lhs, ::llvm::Type* rhs);
-    static bool InferAndCastBoolTypes(
-        ::llvm::BasicBlock* block, ::llvm::Value* value,
-        ::llvm::Value** casted_value,
-        ::hybridse::base::Status& status);  // NOLINT
-    static bool InferAndCastTypes(::llvm::BasicBlock* block,
-                                  ::llvm::Value* left, ::llvm::Value* right,
-                                  ::llvm::Value** casted_left,
-                                  ::llvm::Value** casted_right,
+    static bool InferAndCastBoolTypes(::llvm::BasicBlock* block, ::llvm::Value* value, ::llvm::Value** casted_value,
+                                      ::hybridse::base::Status& status);  // NOLINT
+    static bool InferAndCastTypes(::llvm::BasicBlock* block, ::llvm::Value* left, ::llvm::Value* right,
+                                  ::llvm::Value** casted_left, ::llvm::Value** casted_right,
                                   ::hybridse::base::Status& status);  // NOLINT
 
  private:

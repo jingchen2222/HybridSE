@@ -59,8 +59,7 @@ class SchemaCodec {
             uint8_t name_size = (uint8_t)(it->name().size());
             memcpy(cbuffer, static_cast<const void*>(&name_size), 1);
             cbuffer += 1;
-            memcpy(cbuffer, static_cast<const void*>(it->name().c_str()),
-                   name_size);
+            memcpy(cbuffer, static_cast<const void*>(it->name().c_str()), name_size);
             cbuffer += name_size;
         }
         return true;

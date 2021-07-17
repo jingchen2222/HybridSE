@@ -38,9 +38,7 @@ class Node {
         nexts_ = new std::atomic<Node<K, V>*>[height];
     }
 
-    explicit Node(uint8_t height) : height_(height), key_(), value_() {
-        nexts_ = new std::atomic<Node<K, V>*>[height];
-    }
+    explicit Node(uint8_t height) : height_(height), key_(), value_() { nexts_ = new std::atomic<Node<K, V>*>[height]; }
 
     // Set the next node with memory barrier
     void SetNext(uint8_t level, Node<K, V>* node) {
@@ -199,8 +197,7 @@ class SkipList {
             }
             for (uint8_t i = 1; i < node->Height(); i++) {
                 Node<K, V>* next = node->GetNext(i);
-                if (next != NULL &&
-                    compare_(pos_node->GetKey(), next->GetKey()) <= 0) {
+                if (next != NULL && compare_(pos_node->GetKey(), next->GetKey()) <= 0) {
                     node->SetNext(i, NULL);
                 }
             }
@@ -294,8 +291,7 @@ class SkipList {
 
     class SkipListIterator : public Iterator<K, V> {
      public:
-        explicit SkipListIterator(SkipList<K, V, Comparator>* list)
-            : node_(NULL), list_(list) {}
+        explicit SkipListIterator(SkipList<K, V, Comparator>* list) : node_(NULL), list_(list) {}
         ~SkipListIterator() {}
 
         virtual bool Valid() const { return node_ != NULL; }
@@ -408,9 +404,7 @@ class SkipList {
         return (node != NULL) && (compare_(key, node->GetKey()) > 0);
     }
 
-    uint8_t GetMaxHeight() const {
-        return max_height_.load(std::memory_order_relaxed);
-    }
+    uint8_t GetMaxHeight() const { return max_height_.load(std::memory_order_relaxed); }
 
  private:
     uint8_t const MaxHeight;

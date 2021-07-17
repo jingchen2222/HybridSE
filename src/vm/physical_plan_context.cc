@@ -25,14 +25,10 @@ namespace vm {
 
 using hybridse::common::kPlanError;
 
-Status OptimizeFunctionLet(const ColumnProjects& projects,
-                           node::ExprAnalysisContext* ctx,
-                           node::LambdaNode* func);
+Status OptimizeFunctionLet(const ColumnProjects& projects, node::ExprAnalysisContext* ctx, node::LambdaNode* func);
 
-Status PhysicalPlanContext::InitFnDef(const node::ExprListNode* exprs,
-                                      const SchemasContext* schemas_ctx,
-                                      bool is_row_project,
-                                      FnComponent* fn_component) {
+Status PhysicalPlanContext::InitFnDef(const node::ExprListNode* exprs, const SchemasContext* schemas_ctx,
+                                      bool is_row_project, FnComponent* fn_component) {
     ColumnProjects projects;
     for (size_t i = 0; i < exprs->GetChildNum(); ++i) {
         const node::ExprNode* expr = exprs->GetChild(i);
@@ -42,21 +38,17 @@ Status PhysicalPlanContext::InitFnDef(const node::ExprListNode* exprs,
     return InitFnDef(projects, schemas_ctx, is_row_project, fn_component);
 }
 
-Status PhysicalPlanContext::InitFnDef(const ColumnProjects& projects,
-                                      const SchemasContext* schemas_ctx,
-                                      bool is_row_project,
-                                      FnComponent* fn_component) {
+Status PhysicalPlanContext::InitFnDef(const ColumnProjects& projects, const SchemasContext* schemas_ctx,
+                                      bool is_row_project, FnComponent* fn_component) {
     // lambdafy project expressions
     std::vector<const node::ExprNode*> exprs;
     for (size_t i = 0; i < projects.size(); ++i) {
         exprs.push_back(projects.GetExpr(i));
     }
 
-    node::ExprAnalysisContext expr_pass_ctx(node_manager(), library(),
-                                            schemas_ctx);
+    node::ExprAnalysisContext expr_pass_ctx(node_manager(), library(), schemas_ctx);
     const bool enable_legacy_agg_opt = true;
-    passes::LambdafyProjects lambdafy_pass(&expr_pass_ctx,
-                                           enable_legacy_agg_opt);
+    passes::LambdafyProjects lambdafy_pass(&expr_pass_ctx, enable_legacy_agg_opt);
     node::LambdaNode* lambdafy_func = nullptr;
     std::vector<int> require_agg;
     CHECK_STATUS(lambdafy_pass.Transform(exprs, &lambdafy_func, &require_agg));
@@ -66,25 +58,20 @@ Status PhysicalPlanContext::InitFnDef(const ColumnProjects& projects,
     for (size_t i = 0; i < require_agg.size(); ++i) {
         if (require_agg[i]) {
             has_agg = true;
-            CHECK_TRUE(
-                !is_row_project, kPlanError,
-                "Can not gen agg project in row project node, ", i,
-                "th expression is: ", projects.GetExpr(i)->GetExprString());
+            CHECK_TRUE(!is_row_project, kPlanError, "Can not gen agg project in row project node, ", i,
+                       "th expression is: ", projects.GetExpr(i)->GetExprString());
         }
     }
 
     // type inference and resolve udf function
-    std::vector<const node::TypeNode*> global_arg_types = {
-        lambdafy_func->GetArgType(0), lambdafy_func->GetArgType(1)};
+    std::vector<const node::TypeNode*> global_arg_types = {lambdafy_func->GetArgType(0), lambdafy_func->GetArgType(1)};
     node::LambdaNode* resolved_func = nullptr;
     passes::ResolveFnAndAttrs resolve_pass(&expr_pass_ctx);
-    CHECK_STATUS(resolve_pass.VisitLambda(lambdafy_func, global_arg_types,
-                                          &resolved_func));
+    CHECK_STATUS(resolve_pass.VisitLambda(lambdafy_func, global_arg_types, &resolved_func));
 
     // expression optimization
     if (enable_expr_opt_) {
-        CHECK_STATUS(
-            OptimizeFunctionLet(projects, &expr_pass_ctx, resolved_func));
+        CHECK_STATUS(OptimizeFunctionLet(projects, &expr_pass_ctx, resolved_func));
     }
 
     FnInfo* output_fn = fn_component->mutable_fn_info();
@@ -120,10 +107,8 @@ Status PhysicalPlanContext::InitFnDef(const ColumnProjects& projects,
                    "th output project expression type "
                    "is unknown: ",
                    resolved_expr->GetExprString());
-        CHECK_TRUE(codegen::DataType2SchemaType(*resolved_expr->GetOutputType(),
-                                                &column_type),
-                   kPlanError, i, "th output project expression type illegal: ",
-                   resolved_expr->GetOutputType()->GetName());
+        CHECK_TRUE(codegen::DataType2SchemaType(*resolved_expr->GetOutputType(), &column_type), kPlanError, i,
+                   "th output project expression type illegal: ", resolved_expr->GetOutputType()->GetName());
         column_def.set_type(column_type);
 
         auto frame = has_agg ? projects.GetFrame(i) : nullptr;
@@ -131,8 +116,7 @@ Status PhysicalPlanContext::InitFnDef(const ColumnProjects& projects,
     }
 
     // set output function info
-    std::string fn_name =
-        "__internal_sql_codegen_" + std::to_string(codegen_func_id_counter_++);
+    std::string fn_name = "__internal_sql_codegen_" + std::to_string(codegen_func_id_counter_++);
     output_fn->SetFn(fn_name, resolved_func, schemas_ctx);
     if (has_agg) {
         output_fn->SetPrimaryFrame(projects.GetPrimaryFrame());
@@ -140,44 +124,38 @@ Status PhysicalPlanContext::InitFnDef(const ColumnProjects& projects,
     return Status::OK();
 }
 
-Status PhysicalPlanContext::GetSourceID(const std::string& table_name,
-                                        const std::string& column_name,
+Status PhysicalPlanContext::GetSourceID(const std::string& table_name, const std::string& column_name,
                                         size_t* column_id) {
     CHECK_STATUS(InitializeSourceIdMappings(table_name));
     auto tbl_iter = table_column_id_map_.find(table_name);
-    CHECK_TRUE(tbl_iter != table_column_id_map_.end(), kPlanError,
-               "Fail to find source table name ", table_name);
+    CHECK_TRUE(tbl_iter != table_column_id_map_.end(), kPlanError, "Fail to find source table name ", table_name);
     auto& dict = tbl_iter->second;
     auto col_iter = dict.find(column_name);
-    CHECK_TRUE(col_iter != dict.end(), kPlanError, "Fail to find column ",
-               column_name, " in source table ", table_name);
+    CHECK_TRUE(col_iter != dict.end(), kPlanError, "Fail to find column ", column_name, " in source table ",
+               table_name);
     *column_id = col_iter->second;
     return Status::OK();
 }
 
-Status PhysicalPlanContext::GetRequestSourceID(const std::string& table_name,
-                                               const std::string& column_name,
+Status PhysicalPlanContext::GetRequestSourceID(const std::string& table_name, const std::string& column_name,
                                                size_t* column_id) {
     CHECK_STATUS(InitializeSourceIdMappings(table_name));
     auto tbl_iter = request_column_id_map_.find(table_name);
-    CHECK_TRUE(tbl_iter != request_column_id_map_.end(), kPlanError,
-               "Fail to find source table name ", table_name);
+    CHECK_TRUE(tbl_iter != request_column_id_map_.end(), kPlanError, "Fail to find source table name ", table_name);
     auto& dict = tbl_iter->second;
     auto col_iter = dict.find(column_name);
-    CHECK_TRUE(col_iter != dict.end(), kPlanError, "Fail to find column \"",
-               column_name, "\" in source table ", table_name);
+    CHECK_TRUE(col_iter != dict.end(), kPlanError, "Fail to find column \"", column_name, "\" in source table ",
+               table_name);
     *column_id = col_iter->second;
     return Status::OK();
 }
 
-Status PhysicalPlanContext::InitializeSourceIdMappings(
-    const std::string& table_name) {
+Status PhysicalPlanContext::InitializeSourceIdMappings(const std::string& table_name) {
     if (table_column_id_map_.find(table_name) != table_column_id_map_.end()) {
         return Status::OK();
     }
     auto table = catalog_->GetTable(db(), table_name);
-    CHECK_TRUE(table != nullptr, kPlanError,
-               "Fail to find source table name: ", table_name);
+    CHECK_TRUE(table != nullptr, kPlanError, "Fail to find source table name: ", table_name);
 
     const codec::Schema& schema = *table->GetSchema();
     auto& table_dict = table_column_id_map_[table_name];
@@ -198,19 +176,14 @@ Status PhysicalPlanContext::InitializeSourceIdMappings(
         auto request_id = GetNewColumnID();
         request_dict[column_name] = request_id;
         column_id_to_name_[request_id] = {table_name, column_name};
-        request_column_id_to_source_id_[request_id] =
-            table_dict[col_def.name()];
+        request_column_id_to_source_id_[request_id] = table_dict[col_def.name()];
     }
     return Status::OK();
 }
 
-size_t PhysicalPlanContext::GetNewColumnID() {
-    return this->column_id_counter_++;
-}
+size_t PhysicalPlanContext::GetNewColumnID() { return this->column_id_counter_++; }
 
-Status OptimizeFunctionLet(const ColumnProjects& projects,
-                           node::ExprAnalysisContext* ctx,
-                           node::LambdaNode* func) {
+Status OptimizeFunctionLet(const ColumnProjects& projects, node::ExprAnalysisContext* ctx, node::LambdaNode* func) {
     CHECK_TRUE(func->GetArgSize() == 2, kPlanError);
     CHECK_TRUE(projects.size() == func->body()->GetChildNum(), kPlanError);
 
@@ -251,9 +224,7 @@ Status OptimizeFunctionLet(const ColumnProjects& projects,
         node::ExprNode* optimized = nullptr;
         CHECK_STATUS(pass_group.Apply(ctx, groups[i], &optimized));
 
-        CHECK_TRUE(optimized != nullptr &&
-                       optimized->GetChildNum() == pos_mappings[i].size(),
-                   kPlanError);
+        CHECK_TRUE(optimized != nullptr && optimized->GetChildNum() == pos_mappings[i].size(), kPlanError);
         for (size_t j = 0; j < optimized->GetChildNum(); ++j) {
             size_t output_idx = pos_mappings[i][j];
             func->body()->SetChild(output_idx, optimized->GetChild(j));

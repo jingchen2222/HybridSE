@@ -42,8 +42,7 @@ class NodeBase : public base::FeBaseObject {
 
     virtual bool Equals(const T* other) const = 0;
 
-    friend std::ostream& operator<<(std::ostream& output,
-                                    const NodeBase<T>& thiz) {
+    friend std::ostream& operator<<(std::ostream& output, const NodeBase<T>& thiz) {
         thiz.Print(output, "");
         return output;
     }

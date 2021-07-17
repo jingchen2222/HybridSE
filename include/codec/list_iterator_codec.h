@@ -41,7 +41,6 @@ class ColumnImpl;
 template <class V>
 class ColumnIterator;
 
-
 template <class V, class R>
 class WrapListImpl : public ListV<V> {
  public:
@@ -56,13 +55,8 @@ class WrapListImpl : public ListV<V> {
 template <class V>
 class ColumnImpl : public WrapListImpl<V, Row> {
  public:
-    ColumnImpl(ListV<Row> *impl, int32_t row_idx, uint32_t col_idx,
-               uint32_t offset)
-        : WrapListImpl<V, Row>(),
-          root_(impl),
-          row_idx_(row_idx),
-          col_idx_(col_idx),
-          offset_(offset) {}
+    ColumnImpl(ListV<Row> *impl, int32_t row_idx, uint32_t col_idx, uint32_t offset)
+        : WrapListImpl<V, Row>(), root_(impl), row_idx_(row_idx), col_idx_(col_idx), offset_(offset) {}
 
     ~ColumnImpl() {}
 
@@ -91,13 +85,10 @@ class ColumnImpl : public WrapListImpl<V, Row> {
 
     // TODO(xxx): iterator of nullable V
     std::unique_ptr<ConstIterator<uint64_t, V>> GetIterator() override {
-        auto iter = std::unique_ptr<ConstIterator<uint64_t, V>>(
-            new ColumnIterator<V>(root_, this));
+        auto iter = std::unique_ptr<ConstIterator<uint64_t, V>>(new ColumnIterator<V>(root_, this));
         return std::move(iter);
     }
-    ConstIterator<uint64_t, V> *GetRawIterator() override {
-        return new ColumnIterator<V>(root_, this);
-    }
+    ConstIterator<uint64_t, V> *GetRawIterator() override { return new ColumnIterator<V>(root_, this); }
     const uint64_t GetCount() override { return root_->GetCount(); }
     V At(uint64_t pos) override { return GetFieldUnsafe(root_->At(pos)); }
 
@@ -112,9 +103,8 @@ class ColumnImpl : public WrapListImpl<V, Row> {
 
 class StringColumnImpl : public ColumnImpl<StringRef> {
  public:
-    StringColumnImpl(ListV<Row> *impl, int32_t row_idx, uint32_t col_idx,
-                     int32_t str_field_offset, int32_t next_str_field_offset,
-                     int32_t str_start_offset)
+    StringColumnImpl(ListV<Row> *impl, int32_t row_idx, uint32_t col_idx, int32_t str_field_offset,
+                     int32_t next_str_field_offset, int32_t str_start_offset)
         : ColumnImpl<StringRef>(impl, row_idx, col_idx, 0u),
           str_field_offset_(str_field_offset),
           next_str_field_offset_(next_str_field_offset),
@@ -125,15 +115,13 @@ class StringColumnImpl : public ColumnImpl<StringRef> {
         int32_t addr_space = v1::GetAddrSpace(row.size(row_idx_));
         StringRef value;
         const char *buffer;
-        v1::GetStrFieldUnsafe(row.buf(row_idx_), col_idx_, str_field_offset_,
-                              next_str_field_offset_, str_start_offset_,
+        v1::GetStrFieldUnsafe(row.buf(row_idx_), col_idx_, str_field_offset_, next_str_field_offset_, str_start_offset_,
                               addr_space, &buffer, &(value.size_));
         value.data_ = buffer;
         return value;
     }
 
-    void GetField(const Row &row, StringRef *res,
-                  bool *is_null) const override {
+    void GetField(const Row &row, StringRef *res, bool *is_null) const override {
         const int8_t *buf = row.buf(row_idx_);
         if (buf == nullptr || v1::IsNullAt(buf, col_idx_)) {
             *is_null = true;
@@ -142,8 +130,7 @@ class StringColumnImpl : public ColumnImpl<StringRef> {
             int32_t addr_space = v1::GetAddrSpace(row.size(row_idx_));
             StringRef value;
             const char *buffer;
-            v1::GetStrFieldUnsafe(buf, col_idx_, str_field_offset_,
-                                  next_str_field_offset_, str_start_offset_,
+            v1::GetStrFieldUnsafe(buf, col_idx_, str_field_offset_, next_str_field_offset_, str_start_offset_,
                                   addr_space, &buffer, &(value.size_));
             value.data_ = buffer;
             *res = value;
@@ -160,22 +147,17 @@ template <class V>
 class ArrayListV : public ListV<V> {
  public:
     ArrayListV() : start_(0), end_(0), buffer_(nullptr) {}
-    explicit ArrayListV(std::vector<V> *buffer)
-        : start_(0), end_(buffer->size()), buffer_(buffer) {}
+    explicit ArrayListV(std::vector<V> *buffer) : start_(0), end_(buffer->size()), buffer_(buffer) {}
 
-    ArrayListV(std::vector<V> *buffer, uint32_t start, uint32_t end)
-        : start_(start), end_(end), buffer_(buffer) {}
+    ArrayListV(std::vector<V> *buffer, uint32_t start, uint32_t end) : start_(start), end_(end), buffer_(buffer) {}
 
     ~ArrayListV() {}
     // TODO(chenjing): at 数组越界处理
 
     std::unique_ptr<ConstIterator<uint64_t, V>> GetIterator() override {
-        return std::unique_ptr<ArrayListIterator<V>>(
-            new ArrayListIterator<V>(buffer_, start_, end_));
+        return std::unique_ptr<ArrayListIterator<V>>(new ArrayListIterator<V>(buffer_, start_, end_));
     }
-    ConstIterator<uint64_t, V> *GetRawIterator() override {
-        return new ArrayListIterator<V>(buffer_, start_, end_);
-    }
+    ConstIterator<uint64_t, V> *GetRawIterator() override { return new ArrayListIterator<V>(buffer_, start_, end_); }
     virtual const uint64_t GetCount() { return end_ - start_; }
     virtual V At(uint64_t pos) const { return buffer_->at(start_ + pos); }
 
@@ -188,8 +170,7 @@ class ArrayListV : public ListV<V> {
 template <class V>
 class ArrayListIterator : public ConstIterator<uint64_t, V> {
  public:
-    explicit ArrayListIterator(const std::vector<V> *buffer,
-                               const uint64_t start, const uint64_t end)
+    explicit ArrayListIterator(const std::vector<V> *buffer, const uint64_t start, const uint64_t end)
         : buffer_(buffer),
           iter_start_(buffer->cbegin() + start),
           iter_end_(buffer->cbegin() + end),
@@ -202,8 +183,7 @@ class ArrayListIterator : public ConstIterator<uint64_t, V> {
           iter_end_(impl.iter_end_),
           iter_(impl.iter_start_),
           key_(0) {}
-    explicit ArrayListIterator(const ArrayListIterator<V> &impl, uint64_t start,
-                               uint64_t end)
+    explicit ArrayListIterator(const ArrayListIterator<V> &impl, uint64_t start, uint64_t end)
         : buffer_(impl.buffer_),
           iter_start_(impl.iter_start_ + start),
           iter_end_(impl.iter_start_ + end),
@@ -212,8 +192,7 @@ class ArrayListIterator : public ConstIterator<uint64_t, V> {
 
     ~ArrayListIterator() {}
     void Seek(const uint64_t &key) override {
-        iter_ =
-            (iter_start_ + key) >= iter_end_ ? iter_end_ : iter_start_ + key;
+        iter_ = (iter_start_ + key) >= iter_end_ ? iter_end_ : iter_start_ + key;
         key_ = iter_end_ - iter_start_;
     }
 
@@ -247,8 +226,7 @@ class ArrayListIterator : public ConstIterator<uint64_t, V> {
 
 class BoolArrayListIterator : public ConstIterator<uint64_t, bool> {
  public:
-    explicit BoolArrayListIterator(const std::vector<int> *buffer,
-                                   const uint64_t start, const uint64_t end)
+    explicit BoolArrayListIterator(const std::vector<int> *buffer, const uint64_t start, const uint64_t end)
         : buffer_(buffer),
           iter_start_(buffer->cbegin() + start),
           iter_end_(buffer->cbegin() + end),
@@ -269,8 +247,7 @@ class BoolArrayListIterator : public ConstIterator<uint64_t, bool> {
             tmp_ = *iter_;
         }
     }
-    explicit BoolArrayListIterator(const BoolArrayListIterator &impl,
-                                   uint64_t start, uint64_t end)
+    explicit BoolArrayListIterator(const BoolArrayListIterator &impl, uint64_t start, uint64_t end)
         : buffer_(impl.buffer_),
           iter_start_(impl.iter_start_ + start),
           iter_end_(impl.iter_start_ + end),
@@ -283,8 +260,7 @@ class BoolArrayListIterator : public ConstIterator<uint64_t, bool> {
 
     ~BoolArrayListIterator() {}
     void Seek(const uint64_t &key) override {
-        iter_ =
-            (iter_start_ + key) >= iter_end_ ? iter_end_ : iter_start_ + key;
+        iter_ = (iter_start_ + key) >= iter_end_ ? iter_end_ : iter_start_ + key;
         key_ = iter_end_ - iter_start_;
     }
 
@@ -322,8 +298,7 @@ class BoolArrayListIterator : public ConstIterator<uint64_t, bool> {
 class BoolArrayListV : public ListV<bool> {
  public:
     BoolArrayListV() : start_(0), end_(0), buffer_(nullptr) {}
-    explicit BoolArrayListV(std::vector<int> *buffer)
-        : start_(0), end_(buffer->size()), buffer_(buffer) {}
+    explicit BoolArrayListV(std::vector<int> *buffer) : start_(0), end_(buffer->size()), buffer_(buffer) {}
 
     BoolArrayListV(std::vector<int> *buffer, uint32_t start, uint32_t end)
         : start_(start), end_(end), buffer_(buffer) {}
@@ -331,8 +306,7 @@ class BoolArrayListV : public ListV<bool> {
     ~BoolArrayListV() {}
 
     std::unique_ptr<ConstIterator<uint64_t, bool>> GetIterator() override {
-        return std::unique_ptr<BoolArrayListIterator>(
-            new BoolArrayListIterator(buffer_, start_, end_));
+        return std::unique_ptr<BoolArrayListIterator>(new BoolArrayListIterator(buffer_, start_, end_));
     }
     ConstIterator<uint64_t, bool> *GetRawIterator() override {
         return new BoolArrayListIterator(buffer_, start_, end_);
@@ -350,19 +324,13 @@ template <class V>
 class InnerRowsIterator : public ConstIterator<uint64_t, V> {
  public:
     InnerRowsIterator(ListV<V> *list, uint64_t start, uint64_t end)
-        : ConstIterator<uint64_t, V>(),
-          root_(list->GetIterator()),
-          pos_(0),
-          start_(start),
-          end_(end) {
+        : ConstIterator<uint64_t, V>(), root_(list->GetIterator()), pos_(0), start_(start), end_(end) {
         if (nullptr != root_) {
             SeekToFirst();
         }
     }
     ~InnerRowsIterator() {}
-    virtual bool Valid() const {
-        return root_->Valid() && pos_ <= end_ && pos_ >= start_;
-    }
+    virtual bool Valid() const { return root_->Valid() && pos_ <= end_ && pos_ >= start_; }
     virtual void Next() {
         pos_++;
         return root_->Next();
@@ -389,21 +357,14 @@ template <class V>
 class InnerRangeIterator : public ConstIterator<uint64_t, V> {
  public:
     InnerRangeIterator(ListV<V> *list, uint64_t start, uint64_t end)
-        : ConstIterator<uint64_t, V>(),
-          root_(list->GetIterator()),
-          start_key_(0),
-          start_(start),
-          end_(end) {
+        : ConstIterator<uint64_t, V>(), root_(list->GetIterator()), start_key_(0), start_(start), end_(end) {
         if (nullptr != root_) {
             root_->SeekToFirst();
             start_key_ = root_->Valid() ? root_->GetKey() : 0;
         }
     }
     ~InnerRangeIterator() {}
-    virtual bool Valid() const {
-        return root_->Valid() && root_->GetKey() <= start_ &&
-               root_->GetKey() >= end_;
-    }
+    virtual bool Valid() const { return root_->Valid() && root_->GetKey() <= start_ && root_->GetKey() >= end_; }
     virtual void Next() { return root_->Next(); }
     virtual const uint64_t &GetKey() const { return root_->GetKey(); }
     virtual const V &GetValue() { return root_->GetValue(); }
@@ -427,12 +388,9 @@ class InnerRangeList : public ListV<V> {
     virtual ~InnerRangeList() {}
     // TODO(chenjing): at 数组越界处理
     virtual std::unique_ptr<ConstIterator<uint64_t, V>> GetIterator() {
-        return std::unique_ptr<InnerRangeIterator<V>>(
-            new InnerRangeIterator<V>(root_, start_, end_));
+        return std::unique_ptr<InnerRangeIterator<V>>(new InnerRangeIterator<V>(root_, start_, end_));
     }
-    virtual ConstIterator<uint64_t, V> *GetRawIterator() {
-        return new InnerRangeIterator<V>(root_, start_, end_);
-    }
+    virtual ConstIterator<uint64_t, V> *GetRawIterator() { return new InnerRangeIterator<V>(root_, start_, end_); }
 
     ListV<Row> *root_;
     uint64_t start_;
@@ -442,17 +400,13 @@ class InnerRangeList : public ListV<V> {
 template <class V>
 class InnerRowsList : public ListV<V> {
  public:
-    InnerRowsList(ListV<Row> *root, uint64_t start, uint64_t end)
-        : ListV<V>(), root_(root), start_(start), end_(end) {}
+    InnerRowsList(ListV<Row> *root, uint64_t start, uint64_t end) : ListV<V>(), root_(root), start_(start), end_(end) {}
     virtual ~InnerRowsList() {}
     // TODO(chenjing): at 数组越界处理
     virtual std::unique_ptr<ConstIterator<uint64_t, V>> GetIterator() {
-        return std::unique_ptr<InnerRowsIterator<V>>(
-            new InnerRowsIterator<V>(root_, start_, end_));
+        return std::unique_ptr<InnerRowsIterator<V>>(new InnerRowsIterator<V>(root_, start_, end_));
     }
-    virtual ConstIterator<uint64_t, V> *GetRawIterator() {
-        return new InnerRowsIterator<V>(root_, start_, end_);
-    }
+    virtual ConstIterator<uint64_t, V> *GetRawIterator() { return new InnerRowsIterator<V>(root_, start_, end_); }
 
     ListV<Row> *root_;
     uint64_t start_;

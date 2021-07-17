@@ -39,10 +39,9 @@ TEST_F(DateIRBuilderTest, DayTest) {
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("date_test", *ctx);
     DateIRBuilder date_builder(m.get());
-    Function *load_fn = Function::Create(
-        FunctionType::get(Int32IRBuilder::GetType(m.get()),
-                          {Int32IRBuilder::GetType(m.get())}, false),
-        Function::ExternalLinkage, "date_day", m.get());
+    Function *load_fn =
+        Function::Create(FunctionType::get(Int32IRBuilder::GetType(m.get()), {Int32IRBuilder::GetType(m.get())}, false),
+                         Function::ExternalLinkage, "date_day", m.get());
     auto iter = load_fn->arg_begin();
     Argument *arg0 = &(*iter);
     iter++;
@@ -73,10 +72,9 @@ TEST_F(DateIRBuilderTest, YearTest) {
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("date_test", *ctx);
     DateIRBuilder date_builder(m.get());
-    Function *load_fn = Function::Create(
-        FunctionType::get(Int32IRBuilder::GetType(m.get()),
-                          {Int32IRBuilder::GetType(m.get())}, false),
-        Function::ExternalLinkage, "date_year", m.get());
+    Function *load_fn =
+        Function::Create(FunctionType::get(Int32IRBuilder::GetType(m.get()), {Int32IRBuilder::GetType(m.get())}, false),
+                         Function::ExternalLinkage, "date_year", m.get());
     auto iter = load_fn->arg_begin();
     Argument *arg0 = &(*iter);
     iter++;
@@ -107,10 +105,9 @@ TEST_F(DateIRBuilderTest, MonthTest) {
     auto ctx = llvm::make_unique<LLVMContext>();
     auto m = make_unique<Module>("date_test", *ctx);
     DateIRBuilder date_builder(m.get());
-    Function *load_fn = Function::Create(
-        FunctionType::get(Int32IRBuilder::GetType(m.get()),
-                          {Int32IRBuilder::GetType(m.get())}, false),
-        Function::ExternalLinkage, "date_month", m.get());
+    Function *load_fn =
+        Function::Create(FunctionType::get(Int32IRBuilder::GetType(m.get()), {Int32IRBuilder::GetType(m.get())}, false),
+                         Function::ExternalLinkage, "date_month", m.get());
     auto iter = load_fn->arg_begin();
     Argument *arg0 = &(*iter);
     iter++;

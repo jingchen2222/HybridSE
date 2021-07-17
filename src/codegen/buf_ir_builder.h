@@ -35,8 +35,7 @@ namespace codegen {
 
 class BufNativeEncoderIRBuilder : public RowEncodeIRBuilder {
  public:
-    BufNativeEncoderIRBuilder(const std::map<uint32_t, NativeValue>* outputs,
-                              const vm::Schema* schema,
+    BufNativeEncoderIRBuilder(const std::map<uint32_t, NativeValue>* outputs, const vm::Schema* schema,
                               ::llvm::BasicBlock* block);
 
     ~BufNativeEncoderIRBuilder();
@@ -44,23 +43,18 @@ class BufNativeEncoderIRBuilder : public RowEncodeIRBuilder {
     // the output_ptr like int8_t**
     bool BuildEncode(::llvm::Value* output_ptr);
 
-    bool BuildEncodePrimaryField(::llvm::Value* buf, size_t idx,
-                                 const NativeValue& val);
+    bool BuildEncodePrimaryField(::llvm::Value* buf, size_t idx, const NativeValue& val);
 
  private:
     bool CalcTotalSize(::llvm::Value** output, ::llvm::Value* str_addr_space);
     bool CalcStrBodyStart(::llvm::Value** output, ::llvm::Value* str_add_space);
-    bool AppendPrimary(::llvm::Value* i8_ptr, const NativeValue& val,
-                       size_t field_idx, uint32_t field_offset);
+    bool AppendPrimary(::llvm::Value* i8_ptr, const NativeValue& val, size_t field_idx, uint32_t field_offset);
 
-    bool AppendString(::llvm::Value* i8_ptr, ::llvm::Value* buf_size,
-                      uint32_t field_idx, const NativeValue& str_val,
-                      ::llvm::Value* str_addr_space,
-                      ::llvm::Value* str_body_offset, uint32_t str_field_idx,
+    bool AppendString(::llvm::Value* i8_ptr, ::llvm::Value* buf_size, uint32_t field_idx, const NativeValue& str_val,
+                      ::llvm::Value* str_addr_space, ::llvm::Value* str_body_offset, uint32_t str_field_idx,
                       ::llvm::Value** output);
 
-    bool AppendHeader(::llvm::Value* i8_ptr, ::llvm::Value* size,
-                      ::llvm::Value* bitmap_size);
+    bool AppendHeader(::llvm::Value* i8_ptr, ::llvm::Value* size, ::llvm::Value* bitmap_size);
 
  private:
     const std::map<uint32_t, NativeValue>* outputs_;
@@ -73,22 +67,18 @@ class BufNativeEncoderIRBuilder : public RowEncodeIRBuilder {
 
 class BufNativeIRBuilder : public RowDecodeIRBuilder {
  public:
-    BufNativeIRBuilder(size_t schema_idx, const codec::RowFormat* format,
-                       ::llvm::BasicBlock* block, ScopeVar* scope_var);
+    BufNativeIRBuilder(size_t schema_idx, const codec::RowFormat* format, ::llvm::BasicBlock* block,
+                       ScopeVar* scope_var);
     ~BufNativeIRBuilder();
 
-    bool BuildGetField(size_t col_idx, ::llvm::Value* row_ptr,
-                       ::llvm::Value* row_size, NativeValue* output);
+    bool BuildGetField(size_t col_idx, ::llvm::Value* row_ptr, ::llvm::Value* row_size, NativeValue* output);
 
  private:
-    bool BuildGetPrimaryField(const std::string& fn_name,
-                              ::llvm::Value* row_ptr, uint32_t col_idx,
-                              uint32_t offset, ::llvm::Type* type,
-                              NativeValue* output);
-    bool BuildGetStringField(uint32_t col_idx, uint32_t offset,
-                             uint32_t next_str_field_offset,
-                             uint32_t str_start_offset, ::llvm::Value* row_ptr,
-                             ::llvm::Value* size, NativeValue* output);
+    bool BuildGetPrimaryField(const std::string& fn_name, ::llvm::Value* row_ptr, uint32_t col_idx, uint32_t offset,
+                              ::llvm::Type* type, NativeValue* output);
+    bool BuildGetStringField(uint32_t col_idx, uint32_t offset, uint32_t next_str_field_offset,
+                             uint32_t str_start_offset, ::llvm::Value* row_ptr, ::llvm::Value* size,
+                             NativeValue* output);
 
  private:
     ::llvm::BasicBlock* block_;
